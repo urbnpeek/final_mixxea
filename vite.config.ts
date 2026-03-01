@@ -15,15 +15,19 @@ const figmaAssetResolver = {
     }
 
     const filename = id.slice('figma:asset/'.length)
-    const resolvedPath = path.resolve(repoRoot, 'src/assets', filename)
-
-    if (!fs.existsSync(resolvedPath)) {
-      throw new Error(
-        `[figma-asset-resolver] Missing asset "${filename}". Place it at: ${resolvedPath}`,
-      )
+    const srcPath = path.resolve(repoRoot, 'src/assets', filename)
+    if (fs.existsSync(srcPath)) {
+      return srcPath
     }
 
-    return resolvedPath
+    const publicPath = path.resolve(repoRoot, 'public/assets', filename)
+    if (fs.existsSync(publicPath)) {
+      return publicPath
+    }
+
+    throw new Error(
+      `[figma-asset-resolver] Missing asset "${filename}". Place it at: ${srcPath} or ${publicPath}`,
+    )
   },
 }
 
