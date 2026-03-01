@@ -30,7 +30,7 @@ jobs:
 
           if grep -q '"next"' package.json; then
             echo "stack=next" >> "$GITHUB_OUTPUT"
-          elif grep -q '"vite"' package.json; then
+          elif grep -q '"vite"' package.json || grep -q 'vite' package.json; then
             echo "stack=vite" >> "$GITHUB_OUTPUT"
           else
             echo "Unknown stack. Expected Next.js or Vite."
