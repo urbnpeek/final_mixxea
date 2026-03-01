@@ -1,5 +1,6 @@
-import { defineConfig } from 'vite'
-import path from 'path'
+ï»¿import { defineConfig } from 'vite'
+import fs from 'node:fs'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
@@ -14,14 +15,22 @@ const figmaAssetResolver = {
     }
 
     const filename = id.slice('figma:asset/'.length)
-    return path.resolve(repoRoot, 'src/assets', filename)
+    const resolvedPath = path.resolve(repoRoot, 'src/assets', filename)
+
+    if (!fs.existsSync(resolvedPath)) {
+      throw new Error(
+        `[figma-asset-resolver] Missing asset "${filename}". Place it at: ${resolvedPath}`,
+      )
+    }
+
+    return resolvedPath
   },
 }
 
 export default defineConfig({
   plugins: [
     // The React and Tailwind plugins are both required for Make, even if
-    // Tailwind is not being actively used – do not remove them
+    // Tailwind is not being actively used - do not remove them
     figmaAssetResolver,
     react(),
     tailwindcss(),

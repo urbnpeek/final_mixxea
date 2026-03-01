@@ -1,4 +1,4 @@
-name: Deploy MIXXEA
+﻿name: Deploy MIXXEA
 
 on:
   push:
@@ -55,6 +55,14 @@ jobs:
             fi
           fi
 
+      - name: Check figma asset imports
+        run: |
+          if [ "${{ steps.detect.outputs.pm }}" = "pnpm" ]; then
+            pnpm run check:figma-assets
+          else
+            npm run check:figma-assets
+          fi
+
       - name: Build
         run: |
           if [ "${{ steps.detect.outputs.pm }}" = "pnpm" ]; then
@@ -92,6 +100,7 @@ jobs:
 
           if [ "${PM}" = "pnpm" ]; then
             pnpm install --frozen-lockfile
+            pnpm run check:figma-assets
             pnpm build
           else
             if [ -f package-lock.json ]; then
@@ -99,6 +108,7 @@ jobs:
             else
               npm install
             fi
+            npm run check:figma-assets
             npm run build
           fi
 

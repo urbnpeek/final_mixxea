@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "check:figma-assets": "node scripts/check-figma-assets.mjs",
     "dev": "vite"
   },
   "dependencies": {
