@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { ArrowRight, Mail, MessageCircle, MapPin } from 'lucide-react';
-import mixxeaLogo from 'figma:asset/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
+import mixxeaLogo from '../../../assets/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
 
 // ─── Social Icons (inline SVGs to avoid lucide naming mismatch) ──────────────
 

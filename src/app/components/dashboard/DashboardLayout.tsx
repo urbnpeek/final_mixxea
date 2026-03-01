@@ -9,7 +9,7 @@ import {
   MessageSquare, Zap, Settings, ChevronDown, LogOut, Menu, Bell, ChevronRight,
   User, Shield, Radio, Users, Lock
 } from 'lucide-react';
-import mixxeaLogo from 'figma:asset/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
+import mixxeaLogo from '../../../assets/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
 import { planHasAccess } from './PlanGate';
 import { CurrencySelector } from '../mixxea/CurrencySelector';
 

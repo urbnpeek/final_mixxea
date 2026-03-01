@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Music, Radio, BookOpen, ArrowLeft, Zap, Tag } from 'lucide-react';
 import { Link } from 'react-router';
-import mixxeaLogo from 'figma:asset/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
+import mixxeaLogo from '../../../assets/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
 
 const roles = [
   { id: 'artist', label: 'Artist', icon: Music, desc: 'Independent artist, singer, producer, or DJ' },
