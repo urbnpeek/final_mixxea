@@ -1,0 +1,91 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  MIXXEA — GitHub Actions CI/CD Pipeline
+#  Triggers on every push to the `main` branch.
+#
+#  Secrets to add in GitHub → Settings → Secrets → Actions:
+#    VPS_HOST        Your VPS IP address
+#    VPS_USER        Your SSH username (e.g. root)
+#    VPS_SSH_KEY     Your full private SSH key (cat ~/.ssh/id_rsa)
+#    VPS_PATH        Deployment path (e.g. /var/www/mixxea)
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: Deploy MIXXEA to VPS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:   # Allow manual trigger from GitHub UI
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Setup pnpm ──────────────────────────────────────────────────────
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      # ── 3. Setup Node.js ───────────────────────────────────────────────────
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      # ── 4. Install dependencies ────────────────────────────────────────────
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # ── 5. Build Vite app ──────────────────────────────────────────────────
+      - name: Build production bundle
+        run: pnpm build
+
+      # ── 6. Deploy dist/ to VPS via rsync ───────────────────────────────────
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Add VPS to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Upload dist/ to VPS
+        run: |
+          rsync -avz --delete \
+            ./dist/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}/
+
+      # ── 7. Reload Nginx on VPS ─────────────────────────────────────────────
+      - name: Reload Nginx
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "sudo nginx -t && sudo systemctl reload nginx"
+
+      # ── 8. Deploy Supabase Edge Functions ─────────────────────────────────
+      # Uncomment this block once you've added SUPABASE_ACCESS_TOKEN to secrets
+      #
+      # - name: Deploy Supabase Edge Functions
+      #   uses: supabase/setup-cli@v1
+      #   with:
+      #     version: latest
+      # - run: |
+      #     supabase functions deploy make-server-f4d1ffe4 \
+      #       --project-ref gotvednpnpkbcplurvvu
+      #   env:
+      #     SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      # ── 9. Notify deployment success ───────────────────────────────────────
+      - name: Deployment summary
+        run: |
+          echo "✅ MIXXEA deployed successfully!"
+          echo "🌐 https://${{ secrets.VPS_HOST }}"

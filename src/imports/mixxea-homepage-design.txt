@@ -1,0 +1,143 @@
+Create a premium, modern, dark-themed music SaaS homepage inspired by the visual style of matchmusic.co.
+
+CRITICAL:
+- Keep the exact aesthetic tone: dark background, bold typography, electric gradient buttons, floating UI cards.
+- Adapt for MIXXEA brand (#FF5F1F accent instead of blue).
+- Design must feel like a $90,000 agency-level landing page.
+- Cinematic, minimal, elegant, high contrast.
+- Desktop-first 1440px frame.
+
+----------------------------------------
+GLOBAL STYLE SETTINGS
+----------------------------------------
+
+Typography:
+- Use a bold geometric sans-serif (Inter / Satoshi style).
+- Hero headline: 80px, weight 800, line-height 1.1
+- Section headings: 56px–64px, weight 700
+- Body text: 18px, color #B5B5B5
+- Buttons: 16–18px, medium weight
+
+Colors:
+- Background: #000000
+- Card background: #121212
+- Secondary dark: #181818
+- Text primary: #FFFFFF
+- Text secondary: #B5B5B5
+- Accent gradient (MIXXEA version):
+    from #FF5F1F to #FF8A3D
+- Glow shadows use soft orange instead of blue.
+
+Spacing:
+- Section vertical padding: 160px
+- Container max width: 1240px
+- Border radius: 24px on major cards
+- Soft drop shadows and subtle borders
+
+----------------------------------------
+PAGE STRUCTURE
+----------------------------------------
+
+1) NAVIGATION (Sticky)
+- Left: MIXXEA logo
+- Right: Platform, Distribution, Promotions, Publishing, Pricing, Login
+- Primary CTA button with orange gradient: “Request Access”
+
+2) HERO SECTION
+- Full viewport height
+- Background: subtle animated gradient drift + dark texture
+- Floating angled artist image cards (5–6 cards)
+- Headline:
+  “Launch. Distribute. Promote.”
+- Subtext:
+  “All-in-one platform for music distribution, promotion campaigns, and publishing management.”
+- Primary CTA: “Request Access”
+- Secondary CTA: “Watch Demo”
+
+3) BENEFITS SECTION (3 Large Cards)
+- 3 MagicCard style panels:
+  - Split Royalties
+  - Track Releases
+  - Grow Your Streams
+- Each card dark with subtle glow border
+- Include UI mockups inside cards
+- Include small floating avatars like screenshot
+
+4) DISTRIBUTE GLOBALLY SECTION
+- 2-column layout:
+  Left: stylized calendar UI with floating country badges
+  Right: big headline “Distribute Globally”
+- Button: “Get Started”
+- Rounded large image with shadow
+
+5) CONNECT WITH CURATORS SECTION
+- Left: headline + description + CTA
+- Right: dark playlist card mockup
+- Include badges like “Only on Spotify”
+- Add hover lift effect
+
+6) PUBLIC PAGES SECTION
+- Large profile card mockup (artist page)
+- Floating event cards
+- Headline on right
+- Button CTA
+
+7) SERVICES (AGENCY + PLATFORM)
+Create new section not on matchmusic but consistent style:
+
+Title: “Agency-Grade Promotion”
+Grid of 6 cards:
+- Spotify Growth
+- Playlist Pitching
+- TikTok Creator Campaigns
+- YouTube Ads
+- PR & Press
+- Meta & Google Ads
+
+Cards:
+- Dark background
+- Orange accent icon
+- Hover lift + glow border
+
+8) STATS SECTION
+Row of 4 large numbers:
+- 10M+ Streams Delivered
+- 500+ Campaigns
+- 120+ Labels
+- 98% Client Retention
+
+Large white numbers, smaller gray label text.
+
+9) FINAL CTA
+Large centered block:
+“Ready to Scale Your Music?”
+Primary button: Request Access
+
+10) FOOTER
+Minimal dark footer
+Columns:
+Platform | Services | Company | Legal
+Social icons
+
+----------------------------------------
+ANIMATION GUIDELINES
+----------------------------------------
+
+- Hero floating cards slight rotate + parallax
+- Buttons glow on hover
+- Cards scale to 1.03 on hover
+- Sections fade-in on scroll
+- Soft animated background gradient
+
+----------------------------------------
+DELIVER FRAMES NAMED:
+
+Home/Hero
+Home/Benefits
+Home/DistributeGlobally
+Home/Curators
+Home/PublicPages
+Home/AgencyServices
+Home/Stats
+Home/FinalCTA
+Home/Footer
