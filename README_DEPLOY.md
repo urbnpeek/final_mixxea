@@ -24,6 +24,17 @@ Set these in **GitHub repo -> Settings -> Secrets and variables -> Actions**:
 - `VPS_PATH` = `/home/code/mixxea`
 - `VPS_SSH_KEY` = private key content for the deploy key/user
 
+## Fix SSH agent passphrase prompt
+
+- GitHub Actions cannot use passphrase-protected keys.
+- Create a no-passphrase key for CI and paste its PRIVATE key into `VPS_SSH_KEY`.
+
+Use:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\setup-ci-ssh.ps1
+```
+
 ## One-time VPS setup
 
 Run on your local machine (from repo root):
@@ -60,6 +71,11 @@ git push origin main
 ## Manual redeploy (without new commit)
 
 - GitHub -> Actions -> `Deploy MIXXEA (Vite)` -> `Run workflow`
+
+## Quick checklist
+
+- Set GitHub secrets: `VPS_HOST`, `VPS_USER`, `VPS_PATH`, `VPS_SSH_KEY` (PRIVATE key, no passphrase)
+- Re-run workflow from Actions tab.
 
 ## Notes
 

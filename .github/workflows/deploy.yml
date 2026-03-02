@@ -18,14 +18,10 @@ jobs:
         run: |
           set -euo pipefail
           missing=0
-
           if [ -z "${{ secrets.VPS_HOST }}" ]; then echo "Missing VPS_HOST"; missing=1; fi
           if [ -z "${{ secrets.VPS_USER }}" ]; then echo "Missing VPS_USER"; missing=1; fi
           if [ -z "${{ secrets.VPS_PATH }}" ]; then echo "Missing VPS_PATH"; missing=1; fi
-
-          # DO NOT inline VPS_SSH_KEY here (it's multi-line). Just check it via expression:
           if [ "${{ secrets.VPS_SSH_KEY != '' }}" != "true" ]; then echo "Missing VPS_SSH_KEY"; missing=1; fi
-
           exit $missing
 
       - name: Checkout
