@@ -24,16 +24,18 @@ Set these in **GitHub repo -> Settings -> Secrets and variables -> Actions**:
 - `VPS_PATH` = `/home/code/mixxea`
 - `VPS_SSH_KEY` = private key content for the deploy key/user
 
-## Fix SSH agent passphrase prompt
+## Fix SSH agent passphrase prompt (required)
 
 - GitHub Actions cannot use passphrase-protected keys.
-- Create a no-passphrase key for CI and paste its PRIVATE key into `VPS_SSH_KEY`.
+- Run `scripts/setup-ci-ssh.ps1`, copy the PRIVATE key into GitHub secret `VPS_SSH_KEY`, then append the PUBLIC key to VPS `authorized_keys`.
 
 Use:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\setup-ci-ssh.ps1
 ```
+
+After updating the key, re-run the deploy workflow from the Actions tab.
 
 ## One-time VPS setup
 

@@ -72,6 +72,21 @@ KEY
             exit 1
           fi
 
+      - name: Sanity check CI key is unencrypted
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cat > /tmp/ci_key <<'KEY'
+${{ secrets.VPS_SSH_KEY }}
+KEY
+          if ssh-keygen -y -f /tmp/ci_key > /dev/null; then
+            echo "OK: VPS_SSH_KEY is readable (not passphrase-protected)."
+          else
+            echo "ERROR: VPS_SSH_KEY is encrypted/passphrase-protected. CI cannot use it. Replace VPS_SSH_KEY with an unencrypted OpenSSH private key."
+            exit 1
+          fi
+
       - name: Setup SSH agent
         uses: webfactory/ssh-agent@v0.9.0
         with:
