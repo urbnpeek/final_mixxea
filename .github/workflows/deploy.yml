@@ -1,4 +1,4 @@
-﻿name: Deploy MIXXEA
+﻿name: Deploy MIXXEA (Vite)
 
 on:
   push:
@@ -9,114 +9,81 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      NODE_VERSION: "20"
 
     steps:
+      - name: Preflight required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ -z "${{ secrets.VPS_HOST }}" ] && echo "Missing secret: VPS_HOST" && exit 1
+          [ -z "${{ secrets.VPS_USER }}" ] && echo "Missing secret: VPS_USER" && exit 1
+          [ -z "${{ secrets.VPS_PATH }}" ] && echo "Missing secret: VPS_PATH" && exit 1
+          [ -z "${{ secrets.VPS_SSH_KEY }}" ] && echo "Missing secret: VPS_SSH_KEY" && exit 1
+
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node 20
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Detect package manager and stack
-        id: detect
-        run: |
-          if [ -f pnpm-lock.yaml ]; then
-            echo "pm=pnpm" >> "$GITHUB_OUTPUT"
-          else
-            echo "pm=npm" >> "$GITHUB_OUTPUT"
-          fi
-
-          if grep -q '"next"' package.json; then
-            echo "stack=next" >> "$GITHUB_OUTPUT"
-          elif grep -q '"vite"' package.json || grep -q 'vite' package.json; then
-            echo "stack=vite" >> "$GITHUB_OUTPUT"
-          else
-            echo "Unknown stack. Expected Next.js or Vite."
-            exit 1
-          fi
-
-      - name: Enable Corepack for pnpm
-        if: steps.detect.outputs.pm == 'pnpm'
-        run: |
-          corepack enable
-          corepack prepare pnpm@latest --activate
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
       - name: Install dependencies
+        shell: bash
         run: |
-          if [ "${{ steps.detect.outputs.pm }}" = "pnpm" ]; then
-            pnpm install --frozen-lockfile
-          else
-            if [ -f package-lock.json ]; then
-              npm ci
-            else
-              npm install
-            fi
-          fi
-
-      - name: Check figma asset imports
-        run: |
-          if [ "${{ steps.detect.outputs.pm }}" = "pnpm" ]; then
-            pnpm run check:figma-assets
-          else
-            npm run check:figma-assets
-          fi
-
-      - name: Build
-        run: |
-          if [ "${{ steps.detect.outputs.pm }}" = "pnpm" ]; then
-            pnpm build
-          else
-            npm run build
-          fi
-
-      - name: Setup SSH key
-        env:
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
-        run: |
-          mkdir -p ~/.ssh
-          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
-
-      - name: Rsync repository to VPS
-        run: |
-          rsync -az --delete \
-            --exclude ".git" \
-            --exclude ".github" \
-            --exclude "node_modules" \
-            --exclude "dist" \
-            --exclude ".next" \
-            -e "ssh -i ~/.ssh/id_rsa" \
-            ./ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}/current/"
-
-      - name: Build on VPS and restart/reload
-        run: |
-          ssh -i ~/.ssh/id_rsa "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
-          "APP_STACK='${{ steps.detect.outputs.stack }}' PM='${{ steps.detect.outputs.pm }}' VPS_PATH='${{ secrets.VPS_PATH }}' bash -s" <<'EOF'
           set -euo pipefail
-          cd "${VPS_PATH}/current"
-
-          if [ "${PM}" = "pnpm" ]; then
-            pnpm install --frozen-lockfile
-            pnpm run check:figma-assets
-            pnpm build
+          if [ -f package-lock.json ]; then
+            npm ci
           else
-            if [ -f package-lock.json ]; then
-              npm ci
-            else
-              npm install
-            fi
-            npm run check:figma-assets
-            npm run build
+            npm install
           fi
 
-          if [ "${APP_STACK}" = "next" ]; then
-            sudo systemctl restart mixxea.service
-            sudo systemctl status mixxea.service --no-pager --full | head -n 12
-          else
-            sudo nginx -t
-            sudo systemctl reload nginx
-          fi
-          EOF
+      - name: Validate figma asset imports
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run check:figma-assets
+
+      - name: Build Vite app
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run build
+          [ -d dist ] || (echo "Build output missing: ./dist" && exit 1)
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Add VPS to known_hosts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Ensure VPS directories exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "mkdir -p '${{ secrets.VPS_PATH }}/current/dist' '${{ secrets.VPS_PATH }}/releases' '${{ secrets.VPS_PATH }}/shared'"
+
+      - name: Deploy dist to VPS
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -az --delete -e "ssh" ./dist/ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}/current/dist/"
+
+      - name: Reload Nginx
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "sudo nginx -t && sudo systemctl reload nginx && echo 'Nginx reload OK'"

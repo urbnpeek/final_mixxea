@@ -1,74 +1,68 @@
-# MIXXEA Deployment Playbook
+﻿# MIXXEA Deploy Playbook (GitHub -> VPS)
 
-Detected stack: **Vite SPA (React)**  
-Detected package manager rule result: **npm** (no `pnpm-lock.yaml` found)
+## Deployment mode
 
-Default VPS path: `/var/www/mixxea`
+- Stack detected: **Vite SPA**
+- Build output: **dist/**
+- Runtime on VPS: **Nginx static hosting only** (no Node service required)
+- Default VPS path: **/home/code/mixxea**
+- VPS host: **185.185.82.93**
+- VPS user: **code**
 
-## Placeholders to edit first
+`figma:asset/*` reliability:
+- `vite.config.ts` includes `figmaAssetResolver` that resolves assets from:
+  - `src/assets/<file>`
+  - `public/assets/<file>`
+- CI runs `npm run check:figma-assets` before build.
 
-- `YOUR_DOMAIN` in `nginx.conf` and `vps-setup.sh`
-- `YOUR_EMAIL` in `vps-setup.sh`
-- `YOUR_VPS_HOST` in `deploy.sh` (or export `VPS_HOST`)
-- `VPS_USER` in `deploy.sh` (default is `mixxea`)
-- `SSH_KEY` in `deploy.sh` (default is `~/.ssh/id_rsa`)
-- GitHub secrets: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_PATH`
-- Repo URL placeholder in commands below
+## GitHub secrets (required)
 
-## Phase 1: Push repo to GitHub
+Set these in **GitHub repo -> Settings -> Secrets and variables -> Actions**:
+
+- `VPS_HOST` = `185.185.82.93`
+- `VPS_USER` = `code`
+- `VPS_PATH` = `/home/code/mixxea`
+- `VPS_SSH_KEY` = private key content for the deploy key/user
+
+## One-time VPS setup
+
+Run on your local machine (from repo root):
 
 ```bash
-git init
-git branch -M main
+scp ./nginx.conf ./vps-setup.sh code@185.185.82.93:/home/code/
+ssh code@185.185.82.93
+sudo DOMAIN=YOUR_DOMAIN EMAIL=YOUR_EMAIL bash /home/code/vps-setup.sh
+```
+
+Then verify:
+
+```bash
+ssh code@185.185.82.93 "ls -la /home/code/mixxea/current/dist && sudo nginx -t && sudo systemctl status nginx --no-pager"
+```
+
+## Deploy flow (fast)
+
+1. Push to `main`:
+
+```bash
 git add .
-git commit -m "chore: production deploy setup (nginx, vps bootstrap, ci deploy)"
-git remote add origin https://github.com/YOUR_GITHUB_USER/YOUR_REPO.git
-git push -u origin main
-```
-
-## Phase 2: VPS bootstrap (Ubuntu)
-
-```bash
-scp ./vps-setup.sh root@YOUR_VPS_HOST:/root/vps-setup.sh
-ssh root@YOUR_VPS_HOST
-chmod +x /root/vps-setup.sh
-nano /root/vps-setup.sh
-# set DOMAIN and EMAIL, save, then:
-bash /root/vps-setup.sh
-```
-
-Notes:
-- This creates dedicated Linux user `mixxea`.
-- UFW is enabled with `OpenSSH`, `80`, `443` only.
-- For Vite, Nginx serves `/var/www/mixxea/current/dist`.
-- For Next.js (if you switch later), `mixxea.service` is created/enabled.
-
-## Phase 3: Deploy app
-
-Option A: local one-command deploy
-```bash
-export VPS_HOST=YOUR_VPS_HOST
-export VPS_USER=mixxea
-export VPS_PATH=/var/www/mixxea
-export SSH_KEY=~/.ssh/id_rsa
-bash deploy.sh
-```
-
-Option B: GitHub Actions auto-deploy
-```bash
-# Add repo secrets in GitHub:
-# VPS_HOST, VPS_USER, VPS_SSH_KEY, VPS_PATH
-git add .
-git commit -m "chore: trigger deployment"
+git commit -m "deploy: update"
 git push origin main
 ```
 
-## Phase 4: Deploy Supabase Edge Function
+2. GitHub Actions does:
+- install deps
+- `npm run check:figma-assets`
+- `npm run build`
+- `rsync ./dist/` to `/home/code/mixxea/current/dist/`
+- `sudo nginx -t && sudo systemctl reload nginx`
 
-Edge Functions run on Supabase infrastructure, not on your VPS.
+## Manual redeploy (without new commit)
 
-```bash
-npm i -g supabase
-supabase login
-supabase functions deploy make-server-f4d1ffe4 --project-ref gotvednpnpkbcplurvvu
-```
+- GitHub -> Actions -> `Deploy MIXXEA (Vite)` -> `Run workflow`
+
+## Notes
+
+- If domain is not pointed yet, update DNS A record to `185.185.82.93` first.
+- SSL issuance requires domain DNS to already resolve to the VPS.
+- Keep `nginx.conf` in repo as source of truth; rerun `vps-setup.sh` safely after edits.
