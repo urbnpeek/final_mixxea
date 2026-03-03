@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../dashboard/AuthContext';
 import {
   LayoutDashboard, Ticket, Megaphone, Users, Shield, LogOut,
-  Menu, X, ChevronRight, Bell, Settings, ExternalLink, Zap, Activity
+  Menu, X, ChevronRight, Bell, Settings, ExternalLink, Zap, Activity, Search
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { path: '/admin/tickets',   label: 'Ticket Queue', icon: Ticket,          badge: 'queue' },
   { path: '/admin/campaigns', label: 'Fulfillment',  icon: Megaphone },
   { path: '/admin/users',     label: 'Users',        icon: Users },
+  { path: '/admin/seo',       label: 'SEO',          icon: Search },
   { path: '/admin/tracking',  label: 'Tracking',     icon: Activity },
 ];
 

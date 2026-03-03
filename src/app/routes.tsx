@@ -24,6 +24,7 @@ import { AdminCampaigns } from './components/admin/AdminCampaigns';
 import { AdminUsers } from './components/admin/AdminUsers';
 import { AdminBootstrap } from './components/admin/AdminBootstrap';
 import { TrackingDocs } from './components/tracking/TrackingDocs';
+import { SEODashboard } from './components/seo/SEODashboard';
 
 export const router = createBrowserRouter([
   {
@@ -74,6 +75,7 @@ export const router = createBrowserRouter([
           { path: 'campaigns',    Component: AdminCampaigns },
           { path: 'users',        Component: AdminUsers },
           { path: 'tracking',     Component: TrackingDocs },
+          { path: 'seo',          Component: SEODashboard },
         ],
       },
       // 404 catch-all

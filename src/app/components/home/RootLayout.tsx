@@ -5,6 +5,7 @@ import { AuthProvider } from '../dashboard/AuthContext';
 import { CurrencyProvider } from '../mixxea/CurrencyContext';
 import { TrackingProvider } from '../tracking/TrackingContext';
 import { CookieConsent } from '../tracking/CookieConsent';
+import { SEOProvider } from '../seo/SEOProvider';
 
 // ── MIXXEA SVG favicon injected at runtime ────────────────────────────────────
 const FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
@@ -58,20 +59,22 @@ export function RootLayout() {
     <AuthProvider>
       <CurrencyProvider>
         <TrackingProvider>
-          <Outlet />
-          <CookieConsent />
-          <Toaster
-            position="top-right"
-            theme="dark"
-            toastOptions={{
-              style: {
-                background: '#1A1A1A',
-                border: '1px solid rgba(255,255,255,0.08)',
-                color: '#fff',
-                borderRadius: '12px',
-              },
-            }}
-          />
+          <SEOProvider>
+            <Outlet />
+            <CookieConsent />
+            <Toaster
+              position="top-right"
+              theme="dark"
+              toastOptions={{
+                style: {
+                  background: '#1A1A1A',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  color: '#fff',
+                  borderRadius: '12px',
+                },
+              }}
+            />
+          </SEOProvider>
         </TrackingProvider>
       </CurrencyProvider>
     </AuthProvider>

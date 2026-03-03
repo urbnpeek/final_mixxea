@@ -12,10 +12,12 @@ import { Pricing } from './Pricing';
 import { FAQ } from './FAQ';
 import { FinalCTA } from './FinalCTA';
 import { Footer } from './Footer';
+import { HomeStructuredData } from '../seo/StructuredData';
 
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-black overflow-x-hidden">
+      <HomeStructuredData />
       <NavBar />
       <Hero />
       <PlatformMarquee />
