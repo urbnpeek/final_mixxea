@@ -1,123 +1,27 @@
-name: Deploy MIXXEA (Vite)
+name: CI (Vite)
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches: ["main", "dev", "staging"]
+  pull_request:
+    branches: ["main", "dev", "staging"]
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    env:
-      NODE_VERSION: "20"
 
     steps:
-      - name: Preflight required secrets
-        shell: bash
-        run: |
-          set -euo pipefail
-          missing=0
-          if [ -z "${{ secrets.VPS_HOST }}" ]; then echo "Missing VPS_HOST"; missing=1; fi
-          if [ -z "${{ secrets.VPS_USER }}" ]; then echo "Missing VPS_USER"; missing=1; fi
-          if [ -z "${{ secrets.VPS_PATH }}" ]; then echo "Missing VPS_PATH"; missing=1; fi
-          # Don't inline multi-line secrets into bash: check by expression only
-          if [ "${{ secrets.VPS_SSH_KEY != '' }}" != "true" ]; then echo "Missing VPS_SSH_KEY"; missing=1; fi
-          exit $missing
-
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+        run: npm ci
 
-      - name: Validate figma asset imports
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm run check:figma-assets
-
-      - name: Build Vite app
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm run build
-          test -d dist || (echo "Build output missing: ./dist" && exit 1)
-
-      - name: Sanity check CI key is NOT passphrase-protected
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          cat > /tmp/ci_key <<'KEY'
-${{ secrets.VPS_SSH_KEY }}
-KEY
-          # This will fail (or prompt) if the key is encrypted. In CI it must be readable without a passphrase.
-          if ssh-keygen -y -f /tmp/ci_key > /dev/null; then
-            echo "OK: VPS_SSH_KEY is readable (no passphrase)."
-          else
-            echo "ERROR: VPS_SSH_KEY is passphrase-protected or invalid. Use an unencrypted OpenSSH private key for CI."
-            exit 1
-          fi
-
-      - name: Sanity check CI key is unencrypted
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          cat > /tmp/ci_key <<'KEY'
-${{ secrets.VPS_SSH_KEY }}
-KEY
-          if ssh-keygen -y -f /tmp/ci_key > /dev/null; then
-            echo "OK: VPS_SSH_KEY is readable (not passphrase-protected)."
-          else
-            echo "ERROR: VPS_SSH_KEY is encrypted/passphrase-protected. CI cannot use it. Replace VPS_SSH_KEY with an unencrypted OpenSSH private key."
-            exit 1
-          fi
-
-      - name: Setup SSH agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
-
-      - name: Add VPS to known_hosts
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-
-      - name: Ensure VPS directories exist
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
-            "mkdir -p '${{ secrets.VPS_PATH }}/current/dist' '${{ secrets.VPS_PATH }}/releases' '${{ secrets.VPS_PATH }}/shared'"
-
-      - name: Deploy dist to VPS
-        shell: bash
-        run: |
-          set -euo pipefail
-          rsync -az --delete -e "ssh" ./dist/ \
-            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_PATH }}/current/dist/"
-
-      - name: Reload Nginx
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
-            "sudo nginx -t && sudo systemctl reload nginx && echo 'Nginx reload OK'"
+      - name: Build project
+        run: npm run build
