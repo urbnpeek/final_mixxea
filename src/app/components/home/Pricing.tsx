@@ -66,7 +66,7 @@ const plans = [
       '24/7 priority support',
     ],
     cta: 'Talk to Sales',
-    ctaHref: 'mailto:hello@mixxea.com',
+    ctaHref: 'mailto:onboarding@mixxea.com',
     ctaVariant: 'secondary' as const,
   },
 ];

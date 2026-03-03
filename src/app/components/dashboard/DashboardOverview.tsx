@@ -6,17 +6,19 @@ import * as api from './api';
 import { Music, Megaphone, BookOpen, Zap, TrendingUp, Play, Plus, ArrowRight, Globe, Scissors } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const StatCard = ({ icon: Icon, label, value, sub, color }: any) => (
+const StatCard = ({ icon: Icon, label, value, sub, color, trend }: any) => (
   <motion.div whileHover={{ y: -2 }} className="bg-[#111111] border border-white/[0.06] rounded-2xl p-5 relative overflow-hidden group">
     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: `linear-gradient(135deg, ${color}08, transparent)` }} />
     <div className="flex items-start justify-between mb-4">
       <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${color}20` }}>
         <Icon size={18} style={{ color }} />
       </div>
-      <div className="flex items-center gap-1 text-emerald-400 text-xs font-medium">
-        <TrendingUp size={11} />
-        <span>+12%</span>
-      </div>
+      {trend && (
+        <div className="flex items-center gap-1 text-emerald-400 text-xs font-medium">
+          <TrendingUp size={11} />
+          <span>{trend}</span>
+        </div>
+      )}
     </div>
     <div className="text-2xl font-bold text-white mb-1">{value}</div>
     <div className="text-sm text-white/50">{label}</div>
@@ -96,10 +98,31 @@ export function DashboardOverview() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard icon={Play} label="Total Streams" value={loading ? '—' : (analytics?.overview?.totalStreams?.toLocaleString() || '0')} sub="All time" color="#00C4FF" />
-        <StatCard icon={TrendingUp} label="Revenue" value={loading ? '—' : `$${analytics?.overview?.totalRevenue?.toFixed(2) || '0.00'}`} sub="All time" color="#10B981" />
-        <StatCard icon={Music} label="Releases" value={releases.length} sub={`${releases.filter(r => r.status === 'live').length} live`} color="#7B5FFF" />
-        <StatCard icon={Megaphone} label="Active Campaigns" value={campaigns.filter(c => c.status === 'active').length} sub={`${campaigns.length} total`} color="#D63DF6" />
+        <StatCard
+          icon={Play} label="Total Streams"
+          value={loading ? '—' : (analytics?.overview?.totalStreams?.toLocaleString() || '0')}
+          sub={analytics?.overview?.totalStreams > 0 ? 'All time · all platforms' : 'Upload & distribute a release'}
+          color="#00C4FF"
+          trend={analytics?.overview?.totalStreams > 0 ? undefined : undefined}
+        />
+        <StatCard
+          icon={TrendingUp} label="Revenue"
+          value={loading ? '—' : `$${analytics?.overview?.totalRevenue?.toFixed(2) || '0.00'}`}
+          sub={analytics?.overview?.totalRevenue > 0 ? 'Streaming + downloads + publishing' : 'Grows with your releases'}
+          color="#10B981"
+        />
+        <StatCard
+          icon={Music} label="Releases"
+          value={releases.length}
+          sub={releases.length > 0 ? `${releases.filter(r => r.status === 'live' || r.status === 'distributed').length} live / distributed` : 'No releases yet'}
+          color="#7B5FFF"
+        />
+        <StatCard
+          icon={Megaphone} label="Active Campaigns"
+          value={campaigns.filter(c => c.status === 'active').length}
+          sub={campaigns.length > 0 ? `${campaigns.length} total campaigns` : 'No campaigns yet'}
+          color="#D63DF6"
+        />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">

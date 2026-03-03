@@ -148,7 +148,7 @@ export function AdminBootstrap() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
-                  placeholder="hello@mixxea.com"
+                  placeholder="onboarding@mixxea.com"
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#D63DF6]/50 transition-colors"
                 />
               </div>

@@ -3,7 +3,11 @@
 // Pure black bg, gradient accent: Cyan #00C4FF → Purple #7B5FFF → Magenta #D63DF6 → Coral #FF5252
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-const FROM_EMAIL = 'MIXXEA <onboarding@resend.dev>';
+// ⚠️  Must use a domain verified in the Resend dashboard.
+// Resend's sandbox address (onboarding@resend.dev) only delivers
+// to the single inbox tied to your Resend account — all other
+// recipients are silently dropped.
+const FROM_EMAIL = 'MIXXEA <onboarding@mixxea.com>';
 
 // ──── Core Send Helper ────────────────────────────────────────────────────────
 export async function sendEmail(to: string, subject: string, html: string): Promise<void> {

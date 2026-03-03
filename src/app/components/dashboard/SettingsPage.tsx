@@ -161,7 +161,17 @@ export function SettingsPage() {
       });
       window.location.href = portalUrl;
     } catch (err: any) {
-      toast.error(err.message || 'Could not open subscription portal');
+      const msg: string = err.message || 'Could not open subscription portal';
+      if (msg.includes('not yet configured') || msg.includes('portal') || msg.includes('configuration')) {
+        toast.error(
+          '⚙️ Stripe Customer Portal not set up yet. Go to stripe.com/dashboard → Settings → Billing → Customer Portal to activate it.',
+          { duration: 8000 }
+        );
+      } else if (msg.includes('No active subscription') || msg.includes('stripeCustomerId')) {
+        toast.error('No active Stripe subscription found. Subscribe to a plan first, then manage it here.');
+      } else {
+        toast.error(msg);
+      }
       setOpeningPortal(false);
     }
   };
@@ -223,7 +233,7 @@ export function SettingsPage() {
                 <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">Email</label>
                 <input value={user?.email} disabled
                   className="w-full bg-white/[0.02] border border-white/[0.05] rounded-xl px-4 py-2.5 text-sm text-white/40 cursor-not-allowed" />
-                <p className="text-xs text-white/30 mt-1">Email cannot be changed. Contact support if needed.</p>
+                <p className="text-xs text-white/30 mt-1">Email cannot be changed. Contact us at <a href="mailto:onboarding@mixxea.com" className="text-[#7B5FFF]/70 hover:text-[#7B5FFF] transition-colors">onboarding@mixxea.com</a> if needed.</p>
               </div>
               <div>
                 <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">Bio</label>
@@ -236,7 +246,7 @@ export function SettingsPage() {
                 <div className="flex items-center gap-3 p-3 bg-white/[0.03] rounded-xl border border-white/[0.05]">
                   <RoleIcon size={16} className="text-[#7B5FFF]" />
                   <span className="text-sm text-white capitalize">{user?.role}</span>
-                  <span className="ml-auto text-xs text-white/30">Contact support to change</span>
+                  <a href="mailto:onboarding@mixxea.com" className="ml-auto text-xs text-[#7B5FFF]/50 hover:text-[#7B5FFF] transition-colors">onboarding@mixxea.com</a>
                 </div>
               </div>
               <button onClick={handleSaveProfile} disabled={saving}
@@ -340,7 +350,7 @@ export function SettingsPage() {
                   </div>
                 ) : (
                   <p className="text-xs text-white/40 mt-1">
-                    {user?.plan === 'starter' ? 'You are on the free Starter plan.' : 'Subscription details not found — contact support if billing is active.'}
+                    {user?.plan === 'starter' ? 'You are on the free Starter plan.' : <>Subscription details not found — email <a href="mailto:onboarding@mixxea.com" className="text-[#7B5FFF]/70 hover:text-[#7B5FFF] transition-colors">onboarding@mixxea.com</a> if billing is active.</>}
                   </p>
                 )}
 

@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { ArrowRight, Mail, MessageCircle, MapPin } from 'lucide-react';
-import mixxeaLogo from '../../../assets/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
+import mixxeaLogo from 'figma:asset/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
 
 // ─── Social Icons (inline SVGs to avoid lucide naming mismatch) ──────────────
 
@@ -59,9 +59,9 @@ const footerLinks = {
     { label: 'About MIXXEA',  href: '#platform' },
     { label: 'Case Studies',  href: '#platform' },
     { label: 'Blog & Insights', href: '#platform' },
-    { label: 'Careers',       href: 'mailto:hello@mixxea.com' },
-    { label: 'Press Kit',     href: 'mailto:press@mixxea.com' },
-    { label: 'Contact Us',    href: 'mailto:hello@mixxea.com' },
+    { label: 'Careers',       href: 'mailto:onboarding@mixxea.com' },
+    { label: 'Press Kit',     href: 'mailto:onboarding@mixxea.com' },
+    { label: 'Contact Us',    href: 'mailto:onboarding@mixxea.com' },
   ],
   Legal: [
     { label: 'Terms of Service', href: '/auth' },
@@ -80,8 +80,8 @@ const socialLinks = [
 ];
 
 const contactInfo = [
-  { icon: Mail, label: 'hello@mixxea.com', href: 'mailto:hello@mixxea.com' },
-  { icon: MessageCircle, label: 'support@mixxea.com', href: 'mailto:support@mixxea.com' },
+  { icon: Mail, label: 'onboarding@mixxea.com', href: 'mailto:onboarding@mixxea.com' },
+  { icon: MessageCircle, label: 'onboarding@mixxea.com', href: 'mailto:onboarding@mixxea.com' },
   { icon: MapPin, label: 'London, UK · Los Angeles, CA', href: '#' },
 ];
 

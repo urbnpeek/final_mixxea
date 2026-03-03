@@ -14,8 +14,8 @@
 
 export const TRACKING_CONFIG = {
   ga4: {
-    /** Google Analytics 4 Measurement ID  e.g.  "G-ABCDE12345" */
-    measurementId: 'G-XXXXXXXXXX',
+    /** Google Analytics 4 Measurement ID */
+    measurementId: 'G-MEVRRCQQ5T',
     enabled: true,
   },
   metaPixel: {
