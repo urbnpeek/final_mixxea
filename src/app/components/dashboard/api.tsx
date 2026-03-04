@@ -41,7 +41,7 @@ export const updateProfile = (token: string, d: any) => req('PUT', '/profile', d
 // ──── Plan ────────────────────────────────────────────────────────────────────
 export const upgradePlan = (token: string, plan: string) => req('POST', '/plan/upgrade', { plan }, token);
 
-// ──── Onboarding ─────────────────────────────────────────────────────────────
+// ──── Onboarding ─────────────────────────────────────────────────────────���───
 export const completeOnboarding = (token: string, d: any) => req('POST', '/onboarding/complete', d, token);
 
 // ──── Releases ────────────────────────────────────────────────────────────────
@@ -119,6 +119,18 @@ export const adminUpdateCampaign    = (token: string, id: string, d: any) => req
 export const adminApproveCampaign   = (token: string, id: string, d?: { adminNotes?: string }) => req('POST', `/admin/campaigns/${id}/approve`, d || {}, token);
 export const adminRejectCampaign    = (token: string, id: string, d: { reason: string; adminNotes?: string }) => req('POST', `/admin/campaigns/${id}/reject`, d, token);
 export const adminRequestInfo       = (token: string, id: string, d: { message: string }) => req('POST', `/admin/campaigns/${id}/request-info`, d, token);
-export const adminGetUsers       = (token: string) => req('GET', '/admin/users', undefined, token);
-export const adminAdjustCredits  = (token: string, userId: string, d: { amount: number; reason: string }) => req('PUT', `/admin/users/${userId}/credits`, d, token);
-export const adminUpdateUser     = (token: string, userId: string, d: any) => req('PUT', `/admin/users/${userId}`, d, token);
+export const adminGetUsers           = (token: string) => req('GET', '/admin/users', undefined, token);
+export const adminAdjustCredits      = (token: string, userId: string, d: { amount: number; reason: string }) => req('PUT', `/admin/users/${userId}/credits`, d, token);
+export const adminUpdateUser         = (token: string, userId: string, d: any) => req('PUT', `/admin/users/${userId}`, d, token);
+export const adminGetReleases        = (token: string) => req('GET', '/admin/releases', undefined, token);
+export const adminUpdateRelease      = (token: string, id: string, d: any) => req('PUT', `/admin/releases/${id}`, d, token);
+export const adminGetNotifications   = (token: string) => req('GET', '/admin/notifications', undefined, token);
+export const adminReadNotifications  = (token: string, ids?: string[]) => req('POST', '/admin/notifications/read', { ids: ids || [] }, token);
+
+// ──── User Notifications ───────────────────────────────────────────────────────
+export const getNotifications  = (token: string) => req('GET', '/notifications', undefined, token);
+export const readNotifications = (token: string, ids?: string[]) => req('POST', '/notifications/read', { ids: ids || [] }, token);
+
+// ──── Album Art Generator ─────────────────────────────────────────────────────
+export const getAlbumArtStatus = (token: string) => req('GET', '/album-art/status', undefined, token);
+export const generateAlbumArt  = (token: string) => req('POST', '/album-art/generate', {}, token);

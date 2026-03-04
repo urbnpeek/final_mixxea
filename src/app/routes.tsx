@@ -23,6 +23,7 @@ import { AdminTickets } from './components/admin/AdminTickets';
 import { AdminCampaigns } from './components/admin/AdminCampaigns';
 import { AdminUsers } from './components/admin/AdminUsers';
 import { AdminBootstrap } from './components/admin/AdminBootstrap';
+import { AdminReleases } from './components/admin/AdminReleases';
 import { TrackingDocs } from './components/tracking/TrackingDocs';
 import { SEODashboard } from './components/seo/SEODashboard';
 
@@ -71,6 +72,7 @@ export const router = createBrowserRouter([
         Component: AdminLayout,
         children: [
           { index: true,          Component: AdminOverview },
+          { path: 'releases',     Component: AdminReleases },
           { path: 'tickets',      Component: AdminTickets },
           { path: 'campaigns',    Component: AdminCampaigns },
           { path: 'users',        Component: AdminUsers },

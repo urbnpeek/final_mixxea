@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from './AuthContext';
@@ -7,9 +7,9 @@ import * as api from './api';
 import {
   LayoutDashboard, Music, Megaphone, BookOpen, BarChart3, Globe, Scissors,
   MessageSquare, Zap, Settings, ChevronDown, LogOut, Menu, Bell, ChevronRight,
-  User, Shield, Radio, Users, Lock
+  User, Shield, Radio, Users, Lock, X, CheckCircle, Clock, AlertCircle, ExternalLink
 } from 'lucide-react';
-import mixxeaLogo from '../../../assets/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
+import mixxeaLogo from 'figma:asset/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
 import { planHasAccess } from './PlanGate';
 import { CurrencySelector } from '../mixxea/CurrencySelector';
 
@@ -75,6 +75,57 @@ export function DashboardLayout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  // Load notifications
+  useEffect(() => {
+    if (!token) return;
+    const load = () => api.getNotifications(token).then(d => setNotifications(d.notifications || [])).catch(() => {});
+    load();
+    const interval = setInterval(load, 30000); // poll every 30s
+    return () => clearInterval(interval);
+  }, [token]);
+
+  // Close notif panel on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleOpenNotifs = () => {
+    setNotifOpen(o => !o);
+    if (!notifOpen && unreadCount > 0) {
+      api.readNotifications(token!, []).then(() => {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      }).catch(() => {});
+    }
+  };
+
+  const notifIcon = (type: string) => {
+    if (type?.includes('live') || type?.includes('distributed')) return <CheckCircle size={14} className="text-[#10B981]" />;
+    if (type?.includes('rejected')) return <AlertCircle size={14} className="text-[#FF5252]" />;
+    if (type?.includes('submitted')) return <Clock size={14} className="text-[#F59E0B]" />;
+    return <Bell size={14} className="text-[#7B5FFF]" />;
+  };
+
+  const formatNotifTime = (iso: string) => {
+    if (!iso) return '';
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    const hrs = Math.floor(mins / 60);
+    const days = Math.floor(hrs / 24);
+    if (days > 0) return `${days}d ago`;
+    if (hrs > 0) return `${hrs}h ago`;
+    if (mins > 0) return `${mins}m ago`;
+    return 'Just now';
+  };
 
   // ── Session guard ─────────────────────────────────────────────────────────
   // After AuthContext finishes loading, verify the session is actually valid.
@@ -293,10 +344,75 @@ export function DashboardLayout() {
           </div>
           {/* Currency selector */}
           <CurrencySelector variant="dark" />
-          <button className="relative text-white/50 hover:text-white transition-colors">
-            <Bell size={18} />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#D63DF6] rounded-full text-[9px] flex items-center justify-center text-white font-bold">3</span>
-          </button>
+          {/* ── Notification Bell ── */}
+          <div className="relative" ref={notifRef}>
+            <button onClick={handleOpenNotifs}
+              className="relative text-white/50 hover:text-white transition-colors p-1">
+              <Bell size={18} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-[#D63DF6] rounded-full text-[9px] flex items-center justify-center text-white font-bold px-0.5">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            <AnimatePresence>
+              {notifOpen && (
+                <motion.div initial={{ opacity: 0, y: 8, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.97 }}
+                  className="absolute right-0 top-full mt-2 w-80 bg-[#111111] border border-white/[0.08] rounded-2xl shadow-2xl z-50 overflow-hidden">
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+                    <span className="text-sm font-bold text-white">Notifications</span>
+                    <div className="flex items-center gap-2">
+                      {notifications.length > 0 && (
+                        <button onClick={() => {
+                          api.readNotifications(token!, []).then(() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))).catch(() => {});
+                        }} className="text-[10px] text-white/40 hover:text-white transition-colors">
+                          Mark all read
+                        </button>
+                      )}
+                      <button onClick={() => setNotifOpen(false)} className="text-white/30 hover:text-white"><X size={14} /></button>
+                    </div>
+                  </div>
+
+                  {/* Notifications list */}
+                  <div className="max-h-80 overflow-y-auto divide-y divide-white/[0.04]">
+                    {notifications.length === 0 ? (
+                      <div className="px-4 py-8 text-center">
+                        <Bell size={24} className="text-white/20 mx-auto mb-2" />
+                        <p className="text-white/40 text-sm">No notifications yet</p>
+                        <p className="text-white/25 text-xs mt-1">We'll notify you about your releases and campaigns</p>
+                      </div>
+                    ) : notifications.slice(0, 20).map(n => (
+                      <div key={n.id}
+                        className={`px-4 py-3 hover:bg-white/[0.03] transition-colors cursor-pointer ${!n.read ? 'bg-[#7B5FFF]/05' : ''}`}
+                        onClick={() => { setNotifOpen(false); if (n.link) navigate(n.link); }}>
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 mt-0.5">{notifIcon(n.type)}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className={`text-xs font-semibold leading-tight ${!n.read ? 'text-white' : 'text-white/70'}`}>{n.title}</p>
+                              {!n.read && <div className="w-1.5 h-1.5 rounded-full bg-[#D63DF6] flex-shrink-0 mt-1" />}
+                            </div>
+                            <p className="text-[11px] text-white/40 mt-0.5 leading-relaxed line-clamp-2">{n.message}</p>
+                            <p className="text-[10px] text-white/25 mt-1">{formatNotifTime(n.createdAt)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="px-4 py-2.5 border-t border-white/[0.06]">
+                    <button onClick={() => { setNotifOpen(false); navigate('/dashboard/messages'); }}
+                      className="w-full text-center text-xs text-[#7B5FFF] hover:text-[#D63DF6] transition-colors flex items-center justify-center gap-1">
+                      View all messages <ExternalLink size={10} />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <div className="flex items-center gap-2 pl-2 border-l border-white/[0.08]">
             <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${roleColors[user.role] || 'from-[#7B5FFF] to-[#D63DF6]'} flex items-center justify-center`}>
               <span className="text-white text-[11px] font-bold">{user.name?.charAt(0)?.toUpperCase()}</span>

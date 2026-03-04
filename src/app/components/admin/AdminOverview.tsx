@@ -5,7 +5,7 @@ import * as api from '../dashboard/api';
 import { useNavigate } from 'react-router';
 import {
   Users, Ticket, Megaphone, Zap, TrendingUp, Clock,
-  AlertCircle, CheckCircle, Circle, ArrowRight, Activity
+  AlertCircle, CheckCircle, Circle, ArrowRight, Activity, Music
 } from 'lucide-react';
 
 const statusConfig: Record<string, any> = {
@@ -103,6 +103,24 @@ export function AdminOverview() {
         <p className="text-white/40 text-sm mt-1">Platform overview · {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
       </div>
 
+      {/* Pending releases banner */}
+      {(stats?.pendingReleases || 0) > 0 && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+          className="mb-4 p-4 bg-[#7B5FFF]/10 border border-[#7B5FFF]/30 rounded-2xl flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-[#7B5FFF]/20 flex items-center justify-center flex-shrink-0">
+            <Music size={15} className="text-[#7B5FFF]" />
+          </div>
+          <div className="flex-1">
+            <span className="text-white font-semibold text-sm">{stats.pendingReleases} release{stats.pendingReleases !== 1 ? 's' : ''} pending distribution review</span>
+            <span className="text-white/40 text-xs ml-2">Artists are waiting for approval</span>
+          </div>
+          <button onClick={() => navigate('/admin/releases')}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#7B5FFF]/20 border border-[#7B5FFF]/30 rounded-lg text-[#7B5FFF] text-xs font-semibold hover:bg-[#7B5FFF]/30 transition-all">
+            Review <ArrowRight size={12} />
+          </button>
+        </motion.div>
+      )}
+
       {/* Pending campaigns banner */}
       {pendingCampaigns > 0 && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
@@ -140,9 +158,10 @@ export function AdminOverview() {
       )}
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <StatCard title="Total Users"       value={stats?.totalUsers || 0}                        sub="on platform"      icon={Users}    color="#00C4FF" delay={0} />
-        <StatCard title="Open Tickets"      value={stats?.openTickets || 0}                       sub={`${stats?.totalTickets || 0} total`} icon={Ticket}   color="#D63DF6" delay={0.05} />
+        <StatCard title="Pending Releases"  value={stats?.pendingReleases || 0}                   sub={`${stats?.totalReleases || 0} total releases`} icon={Music} color="#7B5FFF" delay={0.05} />
+        <StatCard title="Open Tickets"      value={stats?.openTickets || 0}                       sub={`${stats?.totalTickets || 0} total`} icon={Ticket}   color="#D63DF6" delay={0.08} />
         <StatCard title="Pending Campaigns" value={pendingCampaigns}                               sub={`${stats?.activeCampaigns || 0} active · ${stats?.totalCampaigns || 0} total`} icon={Megaphone} color="#F59E0B" delay={0.1} />
         <StatCard title="Credits in System" value={(stats?.totalCreditsInSystem || 0).toLocaleString()} sub="across all users" icon={Zap}     color="#FF5252" delay={0.15} />
       </div>
@@ -233,10 +252,10 @@ export function AdminOverview() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
         className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
+          { label: 'Distribution Inbox', sub: `${stats?.pendingReleases || 0} pending`, path: '/admin/releases', color: '#7B5FFF', icon: Music },
+          { label: 'Campaign Management', sub: `${stats?.pendingCampaigns || 0} pending`, path: '/admin/campaigns', color: '#F59E0B', icon: Megaphone },
           { label: 'Ticket Queue', sub: `${stats?.openTickets || 0} open`, path: '/admin/tickets', color: '#D63DF6', icon: Ticket },
-          { label: 'Fulfillment', sub: `${stats?.activeCampaigns || 0} active`, path: '/admin/campaigns', color: '#7B5FFF', icon: Megaphone },
           { label: 'User Management', sub: `${stats?.totalUsers || 0} users`, path: '/admin/users', color: '#00C4FF', icon: Users },
-          { label: 'Activity Monitor', sub: 'Live platform', path: '/admin', color: '#10B981', icon: Activity },
         ].map(item => (
           <button key={item.path} onClick={() => navigate(item.path)}
             className="p-4 bg-[#0D0D0D] border border-white/[0.06] rounded-2xl hover:border-white/15 transition-all text-left group">

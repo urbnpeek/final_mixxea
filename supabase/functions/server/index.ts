@@ -424,7 +424,8 @@ app.post(`${PREFIX}/plan/subscribe`, async (c) => {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
-      automatic_payment_methods: { enabled: true },
+      // ✅ automatic_payment_methods is NOT valid for checkout.sessions.create.
+      //    Checkout automatically shows all methods enabled in your Stripe Dashboard.
       billing_address_collection: "auto",
       allow_promotion_codes: true,
       line_items: [{
@@ -686,7 +687,9 @@ app.put(`${PREFIX}/releases/:releaseId`, async (c) => {
     if (release.userId !== userId) return c.json({ error: "Forbidden" }, 403);
     const updates = await c.req.json();
     const wasDistributed = release.status !== "distributed" && updates.status === "distributed";
-    const updated = { ...release, ...updates, id: rId, userId, updatedAt: new Date().toISOString() };
+    const wasSubmitted = release.status !== "submitted" && updates.status === "submitted";
+    const now = new Date().toISOString();
+    const updated = { ...release, ...updates, id: rId, userId, updatedAt: now };
     await kv.set(`release:${rId}`, JSON.stringify(updated));
 
     // Email when status changes to distributed
@@ -700,6 +703,31 @@ app.put(`${PREFIX}/releases/:releaseId`, async (c) => {
           releaseDistributedEmail(user.name, updated.title, updated.type, updated.stores, updated.releaseDate)
         ).catch(console.error);
       }
+    }
+
+    // ── When submitted: notify user + write to admin_notifications ────────────
+    if (wasSubmitted) {
+      const userNotif = {
+        id: generateId(), type: "release_submitted",
+        title: "Release Submitted for Review",
+        message: `"${updated.title}" is now pending review. We'll notify you once approved.`,
+        read: false, link: "/dashboard/distribution", createdAt: now,
+      };
+      const unStr = await kv.get(`notifications:${userId}`);
+      const uNotifs = unStr ? JSON.parse(unStr) : [];
+      uNotifs.unshift(userNotif);
+      await kv.set(`notifications:${userId}`, JSON.stringify(uNotifs.slice(0, 50)));
+
+      const adminNotif = {
+        id: generateId(), type: "release_submitted",
+        title: "New Release Submission",
+        message: `${updated.artist} submitted "${updated.title}" (${updated.type}) for distribution.`,
+        read: false, link: "/admin/releases", releaseId: rId, userId, createdAt: now,
+      };
+      const anStr = await kv.get("admin_notifications");
+      const aNotifs = anStr ? JSON.parse(anStr) : [];
+      aNotifs.unshift(adminNotif);
+      await kv.set("admin_notifications", JSON.stringify(aNotifs.slice(0, 100)));
     }
 
     return c.json({ release: updated });
@@ -723,6 +751,199 @@ app.delete(`${PREFIX}/releases/:releaseId`, async (c) => {
     return c.json({ success: true });
   } catch (err) {
     return c.json({ error: `Release delete error: ${err}` }, 500);
+  }
+});
+
+// ── Notifications (user) ───────────────────────────────────────────────────────
+app.get(`${PREFIX}/notifications`, async (c) => {
+  try {
+    const userId = await verifyToken(c);
+    if (!userId) return c.json({ error: "Unauthorized" }, 401);
+    const nStr = await kv.get(`notifications:${userId}`);
+    const notifications = nStr ? JSON.parse(nStr) : [];
+    return c.json({ notifications });
+  } catch (err) {
+    return c.json({ error: `Notifications fetch error: ${err}` }, 500);
+  }
+});
+
+app.post(`${PREFIX}/notifications/read`, async (c) => {
+  try {
+    const userId = await verifyToken(c);
+    if (!userId) return c.json({ error: "Unauthorized" }, 401);
+    const { ids } = await c.req.json().catch(() => ({ ids: [] as string[] }));
+    const nStr = await kv.get(`notifications:${userId}`);
+    const notifs = nStr ? JSON.parse(nStr) : [];
+    const updated = notifs.map((n: any) => ({
+      ...n, read: !ids || ids.length === 0 || ids.includes(n.id) ? true : n.read,
+    }));
+    await kv.set(`notifications:${userId}`, JSON.stringify(updated));
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: `Notifications read error: ${err}` }, 500);
+  }
+});
+
+// ── Admin notifications ────────────────────────────────────────────────────────
+app.get(`${PREFIX}/admin/notifications`, async (c) => {
+  try {
+    const adminId = await verifyAdmin(c);
+    if (!adminId) return c.json({ error: "Admin access required" }, 403);
+    const nStr = await kv.get("admin_notifications");
+    const notifications = nStr ? JSON.parse(nStr) : [];
+    return c.json({ notifications });
+  } catch (err) {
+    return c.json({ error: `Admin notifications error: ${err}` }, 500);
+  }
+});
+
+app.post(`${PREFIX}/admin/notifications/read`, async (c) => {
+  try {
+    const adminId = await verifyAdmin(c);
+    if (!adminId) return c.json({ error: "Admin access required" }, 403);
+    const { ids } = await c.req.json().catch(() => ({ ids: [] as string[] }));
+    const nStr = await kv.get("admin_notifications");
+    const notifs = nStr ? JSON.parse(nStr) : [];
+    const updated = notifs.map((n: any) => ({
+      ...n, read: !ids || ids.length === 0 || ids.includes(n.id) ? true : n.read,
+    }));
+    await kv.set("admin_notifications", JSON.stringify(updated));
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: `Admin notifications read error: ${err}` }, 500);
+  }
+});
+
+// ── Admin: Releases (Distribution Inbox) ──────────────────────────────────────
+app.get(`${PREFIX}/admin/releases`, async (c) => {
+  try {
+    const adminId = await verifyAdmin(c);
+    if (!adminId) return c.json({ error: "Admin access required" }, 403);
+    const allReleases = (await kv.getByPrefix("release:"))
+      .map((s: string) => { try { return JSON.parse(s); } catch { return null; } })
+      .filter(Boolean);
+    const enriched = await Promise.all(allReleases.map(async (r: any) => {
+      const userStr = await kv.get(`user:${r.userId}`);
+      const user = userStr ? JSON.parse(userStr) : { name: "Unknown", email: "" };
+      return { ...r, userName: user.name, userEmail: user.email };
+    }));
+    const priority: Record<string, number> = { submitted: 0, needs_info: 1, live: 2, distributed: 3, rejected: 4, draft: 5 };
+    return c.json({ releases: enriched.sort((a: any, b: any) => {
+      const pa = priority[a.status] ?? 9, pb = priority[b.status] ?? 9;
+      if (pa !== pb) return pa - pb;
+      return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
+    }) });
+  } catch (err) {
+    return c.json({ error: `Admin releases error: ${err}` }, 500);
+  }
+});
+
+app.put(`${PREFIX}/admin/releases/:releaseId`, async (c) => {
+  try {
+    const adminId = await verifyAdmin(c);
+    if (!adminId) return c.json({ error: "Admin access required" }, 403);
+    const rId = c.req.param("releaseId");
+    const s = await kv.get(`release:${rId}`);
+    if (!s) return c.json({ error: "Release not found" }, 404);
+    const release = JSON.parse(s);
+    const updates = await c.req.json();
+    const now = new Date().toISOString();
+    const updated = { ...release, ...updates, id: rId, updatedAt: now };
+    await kv.set(`release:${rId}`, JSON.stringify(updated));
+
+    // Notify artist of status change
+    if (updates.status && updates.status !== release.status) {
+      const msgMap: Record<string, { title: string; message: string }> = {
+        live:        { title: "🎉 Release is Live!", message: `"${release.title}" has been approved and is now live on streaming platforms.` },
+        distributed: { title: "🌍 Release Fully Distributed!", message: `"${release.title}" is now live across all selected platforms. Congratulations!` },
+        rejected:    { title: "Release Needs Changes", message: `"${release.title}" was not approved. ${updates.adminNotes || "Please check your dashboard for details."}` },
+        needs_info:  { title: "More Info Needed", message: `We need more info about "${release.title}". ${updates.adminNotes || "Please check your dashboard."}` },
+      };
+      const notifMsg = msgMap[updates.status];
+      if (notifMsg) {
+        const userNotif = {
+          id: generateId(), type: `release_${updates.status}`,
+          title: notifMsg.title, message: notifMsg.message,
+          read: false, link: "/dashboard/distribution", createdAt: now,
+        };
+        const unStr = await kv.get(`notifications:${release.userId}`);
+        const uNotifs = unStr ? JSON.parse(unStr) : [];
+        uNotifs.unshift(userNotif);
+        await kv.set(`notifications:${release.userId}`, JSON.stringify(uNotifs.slice(0, 50)));
+      }
+    }
+
+    return c.json({ release: updated });
+  } catch (err) {
+    return c.json({ error: `Admin release update error: ${err}` }, 500);
+  }
+});
+
+// ===================== ALBUM ART GENERATOR =====================
+
+const ALBUM_ART_PLAN: Record<string, { freePerMonth: number; creditCost: number }> = {
+  starter: { freePerMonth: 0, creditCost: 5 },
+  growth:  { freePerMonth: 3, creditCost: 3 },
+  pro:     { freePerMonth: 10, creditCost: 2 },
+};
+
+app.get(`${PREFIX}/album-art/status`, async (c) => {
+  try {
+    const userId = await verifyToken(c);
+    if (!userId) return c.json({ error: "Unauthorized" }, 401);
+    const userStr = await kv.get(`user:${userId}`);
+    const user = userStr ? JSON.parse(userStr) : {};
+    const plan = (user.plan || "starter") as string;
+    const cfg = ALBUM_ART_PLAN[plan] || ALBUM_ART_PLAN.starter;
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
+    const usedStr = await kv.get(`album_art_free:${userId}:${monthKey}`);
+    const used = parseInt(usedStr || "0");
+    const freeRemaining = Math.max(0, cfg.freePerMonth - used);
+    return c.json({ plan, freeRemaining, freePerMonth: cfg.freePerMonth, creditCost: cfg.creditCost, credits: user.credits || 0 });
+  } catch (err) {
+    return c.json({ error: `Album art status error: ${err}` }, 500);
+  }
+});
+
+app.post(`${PREFIX}/album-art/generate`, async (c) => {
+  try {
+    const userId = await verifyToken(c);
+    if (!userId) return c.json({ error: "Unauthorized" }, 401);
+    const userStr = await kv.get(`user:${userId}`);
+    if (!userStr) return c.json({ error: "User not found" }, 404);
+    const user = JSON.parse(userStr);
+    const plan = (user.plan || "starter") as string;
+    const cfg = ALBUM_ART_PLAN[plan] || ALBUM_ART_PLAN.starter;
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
+    const freeKey = `album_art_free:${userId}:${monthKey}`;
+    const usedStr = await kv.get(freeKey);
+    const used = parseInt(usedStr || "0");
+    const freeRemaining = Math.max(0, cfg.freePerMonth - used);
+    let creditsCost = 0;
+    if (freeRemaining > 0) {
+      await kv.set(freeKey, String(used + 1));
+    } else {
+      creditsCost = cfg.creditCost;
+      const credStr = await kv.get(`credits:${userId}`);
+      const currentCreds = parseInt(credStr || "0");
+      if (currentCreds < creditsCost) {
+        return c.json({ error: `Not enough credits. Need ${creditsCost}, you have ${currentCreds}. Buy credits to continue.`, required: creditsCost, available: currentCreds }, 402);
+      }
+      const newCreds = currentCreds - creditsCost;
+      await kv.set(`credits:${userId}`, String(newCreds));
+      user.credits = newCreds;
+      await kv.set(`user:${userId}`, JSON.stringify(user));
+      const txnStr = await kv.get(`credit_txns:${userId}`);
+      const txns = txnStr ? JSON.parse(txnStr) : [];
+      txns.unshift({ id: generateId(), amount: -creditsCost, type: "use", description: "Album Art Generation", createdAt: now.toISOString() });
+      await kv.set(`credit_txns:${userId}`, JSON.stringify(txns.slice(0, 100)));
+    }
+    return c.json({ approved: true, creditsCost, freeRemaining: Math.max(0, freeRemaining - 1), creditsBalance: user.credits, plan });
+  } catch (err) {
+    console.log("Album art generate error:", err);
+    return c.json({ error: `Album art generate error: ${err}` }, 500);
   }
 });
 
@@ -1076,9 +1297,9 @@ app.post(`${PREFIX}/credits/create-checkout`, async (c) => {
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      // ✅ automatic_payment_methods enables: card, Apple Pay, Google Pay, Link,
-      //    bank transfers, Klarna, Afterpay — based on customer location & Stripe settings
-      automatic_payment_methods: { enabled: true },
+      // ✅ automatic_payment_methods is NOT a valid param for checkout.sessions.create
+      //    (it belongs on paymentIntents.create). Checkout automatically shows all
+      //    methods enabled in your Stripe Dashboard: Cards, Apple Pay, Google Pay, Link, etc.
       billing_address_collection: "auto",
       allow_promotion_codes: true,
       invoice_creation: { enabled: true },
@@ -1147,12 +1368,32 @@ app.post(`${PREFIX}/webhooks/stripe`, async (c) => {
 
       // ── Credit purchase (one-time payment) ──────────────────────────────────
       if (eventType === "credit_purchase" || session.mode === "payment") {
+        // ✅ IDEMPOTENCY: skip if this Checkout Session was already processed.
+        //    Stripe can deliver the same webhook more than once on retries.
+        const dedupKey   = `webhook_processed:${session.id}`;
+        const alreadyDone = await kv.get(dedupKey);
+        if (alreadyDone) {
+          console.log(`[Webhook] ⚠️  Duplicate skipped: session=${session.id} event=${event.id}`);
+          return c.json({ received: true });
+        }
+
+        // ✅ PAYMENT GUARD: only credit when payment is actually confirmed.
+        //    For async methods (ACH, SEPA, etc.) payment_status may be "unpaid"
+        //    at session.completed — credits arrive via payment_intent.succeeded.
+        if (session.payment_status !== "paid") {
+          console.log(`[Webhook] ⏳ payment_status="${session.payment_status}" — awaiting payment_intent.succeeded for session=${session.id}`);
+          return c.json({ received: true });
+        }
+
         const userId      = session.metadata?.mixxeaUserId || session.metadata?.userId;
         const creditAmount = parseInt(session.metadata?.creditAmount || "0");
         const packageName  = session.metadata?.packageName || "Credits";
         const amountPaid   = `$${((session.amount_total ?? 0) / 100).toFixed(2)}`;
 
         if (userId && creditAmount > 0) {
+          // Mark processed BEFORE writing credits to prevent race-condition double-add
+          await kv.set(dedupKey, event.id);
+
           const credStr  = await kv.get(`credits:${userId}`);
           const current  = parseInt(credStr || "0");
           const newBalance = current + creditAmount;
@@ -1175,7 +1416,7 @@ app.post(`${PREFIX}/webhooks/stripe`, async (c) => {
           const txns   = txnStr ? JSON.parse(txnStr) : [];
           txns.unshift(txn);
           await kv.set(`credit_txns:${userId}`, JSON.stringify(txns));
-          console.log(`[Webhook] ✅ ${creditAmount} credits → user ${userId} (${packageName})`);
+          console.log(`[Webhook] ✅ ${creditAmount} credits → user ${userId} (${packageName}) session=${session.id}`);
         }
       }
 
@@ -1983,18 +2224,26 @@ app.get(`${PREFIX}/admin/stats`, async (c) => {
     const allTickets = (await kv.getByPrefix("ticket:")).map((s: string) => { try { return JSON.parse(s); } catch { return null; } }).filter(Boolean);
     const allCampaigns = (await kv.getByPrefix("campaign:")).map((s: string) => { try { return JSON.parse(s); } catch { return null; } }).filter(Boolean);
     const allPitches = (await kv.getByPrefix("pitch:")).map((s: string) => { try { return JSON.parse(s); } catch { return null; } }).filter(Boolean);
+    const allReleases = (await kv.getByPrefix("release:")).map((s: string) => { try { return JSON.parse(s); } catch { return null; } }).filter(Boolean);
     const openTickets = allTickets.filter((t: any) => t.status === "open").length;
     const inProgressTickets = allTickets.filter((t: any) => t.status === "in_progress").length;
     const activeCampaigns = allCampaigns.filter((c: any) => c.status === "active").length;
     const pendingCampaigns = allCampaigns.filter((c: any) => c.status === "pending_review" || c.status === "needs_info").length;
+    const pendingReleases = allReleases.filter((r: any) => r.status === "submitted" || r.status === "needs_info").length;
     const totalCreditsInSystem = allUsers.reduce((s: number, u: any) => s + (u.credits || 0), 0);
+    // Admin unread notification count
+    const anStr = await kv.get("admin_notifications");
+    const adminNotifs = anStr ? JSON.parse(anStr) : [];
+    const unreadAdminNotifs = adminNotifs.filter((n: any) => !n.read).length;
     return c.json({
       totalUsers: allUsers.length, totalTickets: allTickets.length,
       openTickets, inProgressTickets, totalCampaigns: allCampaigns.length,
       activeCampaigns, pendingCampaigns, totalCreditsInSystem, totalPitches: allPitches.length,
       pendingPitches: allPitches.filter((p: any) => p.status === "pending").length,
+      pendingReleases, totalReleases: allReleases.length, unreadAdminNotifs,
       recentUsers: allUsers.sort((a: any, b: any) => new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime()).slice(0, 5),
       recentTickets: allTickets.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5),
+      recentReleases: allReleases.filter((r: any) => r.status === "submitted").sort((a: any, b: any) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime()).slice(0, 5),
     });
   } catch (err) {
     console.log("Admin stats error:", err);
