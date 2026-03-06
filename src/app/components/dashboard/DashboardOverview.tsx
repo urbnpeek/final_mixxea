@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useId } from 'react';
 import { Link } from 'react-router';
 import { motion } from 'motion/react';
 import { useAuth } from './AuthContext';
@@ -63,6 +63,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function DashboardOverview() {
   const { user, token } = useAuth();
+  const uid = useId().replace(/:/g, '');
+  const streamGradId = `streamGrad-${uid}`;
+  const saveGradId = `saveGrad-${uid}`;
   const [analytics, setAnalytics] = useState<any>(null);
   const [releases, setReleases] = useState<any[]>([]);
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -144,11 +147,11 @@ export function DashboardOverview() {
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={analytics?.streamData || []} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
                 <defs>
-                  <linearGradient id="streamGrad" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id={streamGradId} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#7B5FFF" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="#7B5FFF" stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient id="saveGrad" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id={saveGradId} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#00C4FF" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="#00C4FF" stopOpacity={0} />
                   </linearGradient>
@@ -157,8 +160,8 @@ export function DashboardOverview() {
                 <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="streams" stroke="#7B5FFF" strokeWidth={2} fill="url(#streamGrad)" />
-                <Area type="monotone" dataKey="saves" stroke="#00C4FF" strokeWidth={2} fill="url(#saveGrad)" />
+                <Area key="streams" type="monotone" dataKey="streams" stroke="#7B5FFF" strokeWidth={2} fill={`url(#${streamGradId})`} />
+                <Area key="saves" type="monotone" dataKey="saves" stroke="#00C4FF" strokeWidth={2} fill={`url(#${saveGradId})`} />
               </AreaChart>
             </ResponsiveContainer>
           )}

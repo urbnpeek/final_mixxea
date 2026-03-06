@@ -26,6 +26,7 @@ import { AdminBootstrap } from './components/admin/AdminBootstrap';
 import { AdminReleases } from './components/admin/AdminReleases';
 import { TrackingDocs } from './components/tracking/TrackingDocs';
 import { SEODashboard } from './components/seo/SEODashboard';
+import { DailySEOManager } from './components/seo/DailySEOManager';
 
 export const router = createBrowserRouter([
   {
@@ -78,6 +79,7 @@ export const router = createBrowserRouter([
           { path: 'users',        Component: AdminUsers },
           { path: 'tracking',     Component: TrackingDocs },
           { path: 'seo',          Component: SEODashboard },
+          { path: 'seo/daily',    Component: DailySEOManager },
         ],
       },
       // 404 catch-all

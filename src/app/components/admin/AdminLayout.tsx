@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router';
+import { useNavigate, NavLink, Outlet } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../dashboard/AuthContext';
 import * as api from '../dashboard/api';
 import {
   LayoutDashboard, Ticket, Megaphone, Users, Shield, LogOut,
-  Menu, X, ChevronRight, Bell, Settings, ExternalLink, Zap, Activity, Search, Music
+  Menu, X, ChevronRight, Bell, Settings, ExternalLink, Zap, Activity, Search, Music, TrendingUp
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -14,7 +14,8 @@ const NAV_ITEMS = [
   { path: '/admin/tickets',    label: 'Ticket Queue', icon: Ticket,          badge: 'queue' },
   { path: '/admin/campaigns',  label: 'Campaigns',    icon: Megaphone },
   { path: '/admin/users',      label: 'Users',        icon: Users },
-  { path: '/admin/seo',        label: 'SEO',          icon: Search },
+  { path: '/admin/seo',        label: 'SEO Config',   icon: Search },
+  { path: '/admin/seo/daily',  label: 'Daily SEO',    icon: TrendingUp },
   { path: '/admin/tracking',   label: 'Tracking',     icon: Activity },
 ];
 

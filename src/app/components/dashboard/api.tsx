@@ -134,3 +134,9 @@ export const readNotifications = (token: string, ids?: string[]) => req('POST', 
 // ──── Album Art Generator ─────────────────────────────────────────────────────
 export const getAlbumArtStatus = (token: string) => req('GET', '/album-art/status', undefined, token);
 export const generateAlbumArt  = (token: string) => req('POST', '/album-art/generate', {}, token);
+
+// ──── Daily SEO Manager ───────────────────────────────────────────────────────
+export const seoGetCycles    = (token: string) => req('GET', '/admin/seo/cycles', undefined, token);
+export const seoGetCycle     = (token: string, id: string) => req('GET', `/admin/seo/cycles/${id}`, undefined, token);
+export const seoGetLatest    = (token: string) => req('GET', '/admin/seo/latest', undefined, token);
+export const seoRunCycle     = (token: string, focus?: string) => req('POST', '/admin/seo/run-cycle', { focus }, token);

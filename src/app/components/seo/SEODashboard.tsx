@@ -625,6 +625,10 @@ export function SEODashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <a href="/admin/seo/daily"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white/70 hover:text-white bg-[#7B5FFF]/15 hover:bg-[#7B5FFF]/25 border border-[#7B5FFF]/30 transition-all">
+            <TrendingUp size={13} /> Daily SEO Manager
+          </a>
           <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white/60 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-all">
             <ExternalLink size={13} /> Search Console
