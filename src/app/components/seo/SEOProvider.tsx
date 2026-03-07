@@ -11,7 +11,9 @@ import { GlobalStructuredData } from './StructuredData';
 
 // Normalise dynamic segments (/p/my-slug → /p/:slug)
 function matchRoute(pathname: string): string {
-  if (pathname.startsWith('/p/')) return '/p/:slug';
+  if (pathname.startsWith('/p/'))    return '/p/:slug';
+  if (pathname.startsWith('/blog/')) return '/blog/:slug'; // BlogPost handles its own useSEO
+  if (pathname === '/blog')          return '/blog';
   if (pathname.startsWith('/dashboard')) return '/dashboard';
   if (pathname.startsWith('/admin')) return '/admin';
   return pathname;

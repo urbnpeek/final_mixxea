@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router';
+=import { createBrowserRouter } from 'react-router';
 import { RootLayout } from './components/home/RootLayout';
 import { LandingPage } from './components/home/LandingPage';
 import { NotFound } from './components/home/NotFound';
@@ -27,6 +27,8 @@ import { AdminReleases } from './components/admin/AdminReleases';
 import { TrackingDocs } from './components/tracking/TrackingDocs';
 import { SEODashboard } from './components/seo/SEODashboard';
 import { DailySEOManager } from './components/seo/DailySEOManager';
+import { BlogIndex } from './components/blog/BlogIndex';
+import { BlogPost } from './components/blog/BlogPost';
 
 export const router = createBrowserRouter([
   {
@@ -82,6 +84,9 @@ export const router = createBrowserRouter([
           { path: 'seo/daily',    Component: DailySEOManager },
         ],
       },
+      // Blog
+      { path: '/blog',       Component: BlogIndex },
+      { path: '/blog/:slug', Component: BlogPost  },
       // 404 catch-all
       { path: '*', Component: NotFound },
     ],

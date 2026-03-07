@@ -108,6 +108,29 @@ export const SEO_PAGES: Record<string, SEOConfig> = {
     noIndex: true,
     schema: 'none',
   },
+
+  // ── Blog index ───────────────────────────────────────────────────────────
+  '/blog': {
+    title: 'Music Industry Blog — MIXXEA | Distribution, Promotion & Publishing Guides',
+    description: 'Expert guides for independent artists and labels. Learn music distribution, Spotify growth, TikTok promotion, playlist pitching, publishing administration, and more.',
+    keywords: [
+      'music industry blog', 'music distribution guide', 'spotify growth tips',
+      'music marketing blog', 'independent artist tips', 'playlist pitching guide',
+      'tiktok music strategy', 'music publishing guide', 'royalty management tips',
+    ],
+    canonical: `${SITE_URL}/blog`,
+    hreflang: buildHreflang('/blog'),
+    schema: 'none',
+  },
+
+  // ── Blog post (dynamic — BlogPost.tsx applies its own useSEO per post) ──
+  '/blog/:slug': {
+    title: 'MIXXEA Blog — Music Industry Guides',
+    description: 'Expert guides for independent artists and labels.',
+    keywords: ['music industry', 'music distribution', 'mixxea'],
+    noIndex: false,
+    schema: 'none',
+  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -199,6 +222,7 @@ export const INTERNATIONAL_MARKETS = [
 export const SITEMAP_URLS = [
   { loc: '/',     changefreq: 'weekly',  priority: '1.0' },
   { loc: '/auth', changefreq: 'monthly', priority: '0.8' },
+  { loc: '/blog', changefreq: 'weekly',  priority: '0.9' },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -13,7 +13,8 @@ import {
   Search, TrendingUp, Target, FileText, CheckCircle, Link2,
   Share2, ExternalLink, BarChart3, RotateCcw, Copy, Check,
   AlertCircle, Star, Zap, Globe, Megaphone, BookOpen,
-  ArrowUpRight, Calendar, Hash, Layers, Radio,
+  ArrowUpRight, Calendar, Hash, Layers, Radio, Globe2,
+  Send, Eye,
 } from 'lucide-react';
 
 // ── colour helpers ─────────────────────────────────────────────────────────────
@@ -184,12 +185,44 @@ function Step2({ data }: { data: any }) {
 // ─────────────────────────────────────────────────────────────────────────────
 //  STEP 3: Content Strategy
 // ─────────────────────────────────────────────────────────────────────────────
-function Step3({ data }: { data: any }) {
+function Step3({ data, token, cycleId }: { data: any; token?: string; cycleId?: string }) {
   const [open, setOpen] = useState<number | null>(0);
+  const [publishing, setPublishing] = useState<number | null>(null);
+  const [published, setPublished] = useState<Set<string>>(new Set());
+
+  const handlePublish = async (brief: any, i: number) => {
+    if (!token) return;
+    setPublishing(i);
+    try {
+      await api.blogPublish(token, {
+        slug: brief.slug,
+        metaTitle: brief.metaTitle,
+        metaDescription: brief.metaDescription,
+        title: brief.title,
+        targetKeyword: brief.targetKeyword,
+        secondaryKeywords: brief.secondaryKeywords,
+        h1: brief.h1 || brief.title,
+        h2s: brief.h2s,
+        intro: brief.intro,
+        faqSchema: brief.faqSchema,
+        internalLinks: brief.internalLinks,
+        outboundSources: brief.outboundSources,
+        wordCount: brief.wordCount,
+        category: data?.focus || 'Music Industry',
+        cycleId,
+      });
+      setPublished(prev => new Set([...prev, brief.slug]));
+      toast.success(`✅ "${brief.title}" published at /blog/${brief.slug}`);
+    } catch (err: any) {
+      toast.error(`Publish failed: ${err.message}`);
+    } finally { setPublishing(null); }
+  };
+
   return (
     <div className="space-y-3">
       {(data?.briefs || []).map((brief: any, i: number) => {
         const { copied, copy } = useCopy(brief.metaTitle + '\n' + brief.metaDescription + '\n' + brief.slug);
+        const isPublished = published.has(brief.slug);
         return (
           <div key={i} className="bg-[#0D0D0D] border border-white/[0.07] rounded-2xl overflow-hidden">
             <button onClick={() => setOpen(open === i ? null : i)}
@@ -205,6 +238,20 @@ function Step3({ data }: { data: any }) {
                   <span>·</span>
                   <span className="truncate">{brief.targetKeyword}</span>
                 </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                {isPublished ? (
+                  <a href={`/blog/${brief.slug}`} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-[#10B981] bg-[#10B981]/15 border border-[#10B981]/30 hover:bg-[#10B981]/25 transition-all">
+                    <Eye size={10} /> Live
+                  </a>
+                ) : (
+                  <button onClick={() => handlePublish(brief, i)} disabled={publishing === i}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold text-white disabled:opacity-50 transition-all hover:opacity-90"
+                    style={{ background: 'linear-gradient(135deg,#7B5FFF,#D63DF6)' }}>
+                    {publishing === i ? <><RefreshCw size={10} className="animate-spin" /> Publishing…</> : <><Send size={10} /> Publish</>}
+                  </button>
+                )}
               </div>
               {open === i ? <ChevronUp size={14} className="text-white/30 flex-shrink-0" /> : <ChevronDown size={14} className="text-white/30 flex-shrink-0" />}
             </button>
@@ -268,8 +315,41 @@ function Step3({ data }: { data: any }) {
 // ─────────────────────────────────────────────────────────────────────────────
 //  STEP 4: SEO Article
 // ─────────────────────────────────────────────────────────────────────────────
-function Step4({ data }: { data: any }) {
+function Step4({ data, token, cycleId, step3Data }: { data: any; token?: string; cycleId?: string; step3Data?: any }) {
   const [tab, setTab] = useState<'meta' | 'outline' | 'faq' | 'full'>('meta');
+  const [publishing, setPublishing] = useState(false);
+  const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
+
+  const handlePublish = async () => {
+    if (!token || !data) return;
+    setPublishing(true);
+    try {
+      // Merge article data with brief data from Step 3 if available
+      const brief = step3Data?.briefs?.[0] || {};
+      await api.blogPublish(token, {
+        slug: data.slug,
+        metaTitle: data.metaTitle,
+        metaDescription: data.metaDescription,
+        title: data.metaTitle,
+        targetKeyword: brief.targetKeyword || data.slug.replace(/-/g, ' '),
+        secondaryKeywords: brief.secondaryKeywords || [],
+        h1: brief.h1 || data.metaTitle,
+        h2s: brief.h2s || data.outline?.filter((l: string) => l.startsWith('H2:')).map((l: string) => l.replace('H2:', '').trim()) || [],
+        intro: brief.intro || data.featuredSnippet || '',
+        faqSchema: data.faqBlock || brief.faqSchema || [],
+        internalLinks: data.internalLinks || brief.internalLinks || [],
+        fullOutlineMarkdown: data.fullOutlineMarkdown || '',
+        wordCount: data.estimatedWordCount || 1500,
+        featuredSnippet: data.featuredSnippet || '',
+        category: 'Music Industry',
+        cycleId,
+      });
+      setPublishedSlug(data.slug);
+      toast.success(`✅ Article published at /blog/${data.slug}`);
+    } catch (err: any) {
+      toast.error(`Publish failed: ${err.message}`);
+    } finally { setPublishing(false); }
+  };
   const { copied, copy } = useCopy(
     tab === 'full' ? data?.fullOutlineMarkdown || '' :
     tab === 'faq'  ? JSON.stringify(data?.faqBlock, null, 2) :
@@ -279,6 +359,34 @@ function Step4({ data }: { data: any }) {
 
   return (
     <div className="space-y-4">
+      {/* Publish to Blog banner */}
+      <div className="flex items-center justify-between gap-4 p-4 rounded-2xl border"
+        style={{ background: publishedSlug ? 'rgba(16,185,129,0.08)' : 'rgba(123,95,255,0.08)', borderColor: publishedSlug ? 'rgba(16,185,129,0.25)' : 'rgba(123,95,255,0.25)' }}>
+        <div>
+          <div className="text-sm font-bold text-white mb-0.5">
+            {publishedSlug ? '✅ Published to Website' : 'Publish Article to Website'}
+          </div>
+          <div className="text-xs text-white/40">
+            {publishedSlug
+              ? `Live at /blog/${publishedSlug} — Google can now crawl and index this article`
+              : 'Make this article live at /blog/' + data.slug + ' — crawlable by Google'
+            }
+          </div>
+        </div>
+        {publishedSlug ? (
+          <a href={`/blog/${publishedSlug}`} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-[#10B981] bg-[#10B981]/15 border border-[#10B981]/30 hover:bg-[#10B981]/25 transition-all flex-shrink-0">
+            <Eye size={13} /> View Live
+          </a>
+        ) : (
+          <button onClick={handlePublish} disabled={publishing}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white disabled:opacity-50 transition-all hover:opacity-90 flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg,#7B5FFF,#D63DF6)' }}>
+            {publishing ? <><RefreshCw size={13} className="animate-spin" /> Publishing…</> : <><Send size={13} /> Publish to /blog</>}
+          </button>
+        )}
+      </div>
+
       <div className="p-4 bg-[#10B981]/10 border border-[#10B981]/25 rounded-2xl">
         <div className="flex items-center gap-2 mb-2">
           <Star size={12} className="text-[#10B981]" />
@@ -901,8 +1009,8 @@ export function DailySEOManager() {
               <div className="p-5">
                 {activeStep === 1  && <Step1  data={stepData[1]}  />}
                 {activeStep === 2  && <Step2  data={stepData[2]}  />}
-                {activeStep === 3  && <Step3  data={stepData[3]}  />}
-                {activeStep === 4  && <Step4  data={stepData[4]}  />}
+                {activeStep === 3  && <Step3  data={stepData[3]}  token={token!} cycleId={cycle?.id} />}
+                {activeStep === 4  && <Step4  data={stepData[4]}  token={token!} cycleId={cycle?.id} step3Data={stepData[3]} />}
                 {activeStep === 5  && <Step5  data={stepData[5]}  />}
                 {activeStep === 6  && <Step6  data={stepData[6]}  />}
                 {activeStep === 7  && <Step7  data={stepData[7]}  />}

@@ -1027,6 +1027,100 @@ app.get(`${PREFIX}/admin/seo/latest`, async (c) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  BLOG — Public endpoints (no auth required)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// GET /blog/posts — list all published blog posts
+app.get(`${PREFIX}/blog/posts`, async (c) => {
+  try {
+    const indexStr = await kv.get("blog:index");
+    const index: any[] = indexStr ? JSON.parse(indexStr) : [];
+    index.sort((a: any, b: any) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    return c.json({ posts: index });
+  } catch (err) {
+    return c.json({ error: `Blog list error: ${err}` }, 500);
+  }
+});
+
+// GET /blog/posts/:slug — get single published post
+app.get(`${PREFIX}/blog/posts/:slug`, async (c) => {
+  try {
+    const slug = c.req.param("slug");
+    const postStr = await kv.get(`blog:post:${slug}`);
+    if (!postStr) return c.json({ error: "Post not found" }, 404);
+    const post = JSON.parse(postStr);
+    if (post.status !== "published") return c.json({ error: "Post not published" }, 404);
+    return c.json({ post });
+  } catch (err) {
+    return c.json({ error: `Blog post fetch error: ${err}` }, 500);
+  }
+});
+
+// POST /admin/seo/blog/publish — publish a brief/article from a cycle (admin only)
+app.post(`${PREFIX}/admin/seo/blog/publish`, async (c) => {
+  try {
+    const adminId = await verifyAdmin(c);
+    if (!adminId) return c.json({ error: "Admin access required" }, 403);
+    const body = await c.req.json();
+    const {
+      slug, metaTitle, metaDescription, title, targetKeyword, secondaryKeywords,
+      h1, h2s, intro, faqSchema, internalLinks, outboundSources,
+      fullOutlineMarkdown, wordCount, category, cycleId, featuredSnippet,
+    } = body;
+    if (!slug || !metaTitle || !title) return c.json({ error: "slug, metaTitle, and title are required" }, 400);
+    const now = new Date().toISOString();
+    const post = {
+      slug, metaTitle, metaDescription: metaDescription || "",
+      title, targetKeyword: targetKeyword || "", secondaryKeywords: secondaryKeywords || [],
+      h1: h1 || title, h2s: h2s || [], intro: intro || "",
+      faqSchema: faqSchema || [], internalLinks: internalLinks || [],
+      outboundSources: outboundSources || [], fullOutlineMarkdown: fullOutlineMarkdown || "",
+      wordCount: wordCount || 1500, category: category || "Music Industry",
+      cycleId: cycleId || null, featuredSnippet: featuredSnippet || "",
+      status: "published", publishedAt: now, updatedAt: now,
+    };
+    await kv.set(`blog:post:${slug}`, JSON.stringify(post));
+    const indexStr = await kv.get("blog:index");
+    const index: any[] = indexStr ? JSON.parse(indexStr) : [];
+    const existing = index.findIndex((p: any) => p.slug === slug);
+    const summary = {
+      slug, metaTitle, metaDescription: metaDescription || "",
+      title, targetKeyword: targetKeyword || "", category: category || "Music Industry",
+      wordCount: wordCount || 1500, publishedAt: now,
+    };
+    if (existing >= 0) { index[existing] = summary; } else { index.unshift(summary); }
+    await kv.set("blog:index", JSON.stringify(index));
+    console.log(`[Blog] ✅ Published: ${slug}`);
+    return c.json({ post, message: `Post "${title}" published at /blog/${slug}` });
+  } catch (err) {
+    return c.json({ error: `Blog publish error: ${err}` }, 500);
+  }
+});
+
+// DELETE /admin/seo/blog/:slug — unpublish (admin only)
+app.delete(`${PREFIX}/admin/seo/blog/:slug`, async (c) => {
+  try {
+    const adminId = await verifyAdmin(c);
+    if (!adminId) return c.json({ error: "Admin access required" }, 403);
+    const slug = c.req.param("slug");
+    const postStr = await kv.get(`blog:post:${slug}`);
+    if (!postStr) return c.json({ error: "Post not found" }, 404);
+    const post = JSON.parse(postStr);
+    post.status = "draft";
+    post.updatedAt = new Date().toISOString();
+    await kv.set(`blog:post:${slug}`, JSON.stringify(post));
+    const indexStr = await kv.get("blog:index");
+    if (indexStr) {
+      const index = JSON.parse(indexStr).filter((p: any) => p.slug !== slug);
+      await kv.set("blog:index", JSON.stringify(index));
+    }
+    return c.json({ success: true, message: `Post "${slug}" unpublished` });
+  } catch (err) {
+    return c.json({ error: `Blog unpublish error: ${err}` }, 500);
+  }
+});
+
 // ===================== CAMPAIGNS / PROMOTIONS =====================
 
 app.get(`${PREFIX}/campaigns`, async (c) => {

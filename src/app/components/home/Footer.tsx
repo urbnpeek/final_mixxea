@@ -58,7 +58,7 @@ const footerLinks = {
   Company: [
     { label: 'About MIXXEA',  href: '#platform' },
     { label: 'Case Studies',  href: '#platform' },
-    { label: 'Blog & Insights', href: '#platform' },
+    { label: 'Blog & Insights', href: '/blog' },
     { label: 'Careers',       href: 'mailto:onboarding@mixxea.com' },
     { label: 'Press Kit',     href: 'mailto:onboarding@mixxea.com' },
     { label: 'Contact Us',    href: 'mailto:onboarding@mixxea.com' },

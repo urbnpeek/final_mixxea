@@ -140,3 +140,11 @@ export const seoGetCycles    = (token: string) => req('GET', '/admin/seo/cycles'
 export const seoGetCycle     = (token: string, id: string) => req('GET', `/admin/seo/cycles/${id}`, undefined, token);
 export const seoGetLatest    = (token: string) => req('GET', '/admin/seo/latest', undefined, token);
 export const seoRunCycle     = (token: string, focus?: string) => req('POST', '/admin/seo/run-cycle', { focus }, token);
+
+// ──── Blog (admin publish / unpublish) ────────────────────────────────────────
+export const blogPublish     = (token: string, post: any) => req('POST', '/admin/seo/blog/publish', post, token);
+export const blogUnpublish   = (token: string, slug: string) => req('DELETE', `/admin/seo/blog/${slug}`, undefined, token);
+
+// ──── Blog (public — no token) ────────────────────────────────────────────────
+export const blogGetPosts    = () => req('GET', '/blog/posts');
+export const blogGetPost     = (slug: string) => req('GET', `/blog/posts/${slug}`);
