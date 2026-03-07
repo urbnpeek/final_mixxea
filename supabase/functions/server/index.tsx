@@ -4,6 +4,7 @@ import { logger } from "npm:hono/logger";
 import Stripe from "npm:stripe";
 import * as kv from "./kv_store.tsx";
 import { generateSEOCycle } from "./seo-engine.tsx";
+import { featuresApp, triggerDripSequence, claimReferralCode } from "./features.tsx";
 import {
   sendEmail,
   welcomeEmail,
@@ -274,7 +275,8 @@ async function verifyToken(c: any): Promise<string | null> {
 
 app.post(`${PREFIX}/auth/signup`, async (c) => {
   try {
-    const { name, email, password, role, inviteCode } = await c.req.json();
+    const body = await c.req.json();
+    const { name, email, password, role, inviteCode, refCode } = body;
     if (!name || !email || !password || !role) return c.json({ error: "Missing required fields" }, 400);
     const existing = await kv.get(`user_email:${email.toLowerCase()}`);
     if (existing) return c.json({ error: "Email already registered" }, 409);
@@ -308,6 +310,11 @@ app.post(`${PREFIX}/auth/signup`, async (c) => {
     await kv.set(`user_password:${userId}`, passwordHash);
     await kv.set(`credits:${userId}`, "100");
 
+    // Add to global users index (used by drip processing & admin)
+    const allUsersStr = await kv.get("users:all");
+    const allUsers: string[] = allUsersStr ? JSON.parse(allUsersStr) : [];
+    if (!allUsers.includes(userId)) { allUsers.push(userId); await kv.set("users:all", JSON.stringify(allUsers)); }
+
     const welcomeTxn = [{ id: generateId(), amount: 100, type: "bonus", description: "Welcome bonus — 100 free credits!", createdAt: now }];
     await kv.set(`credit_txns:${userId}`, JSON.stringify(welcomeTxn));
 
@@ -316,6 +323,14 @@ app.post(`${PREFIX}/auth/signup`, async (c) => {
 
     // Send welcome email (non-blocking)
     sendEmail(email.toLowerCase(), "🎵 Welcome to MIXXEA — You have 100 free credits!", welcomeEmail(name, role)).catch(console.error);
+
+    // Trigger drip email sequence (Day 1 sent immediately, rest scheduled via cron)
+    triggerDripSequence(userId, email.toLowerCase(), name).catch(console.error);
+
+    // Auto-claim referral if code was provided at signup
+    if (refCode) {
+      claimReferralCode(refCode, userId, email.toLowerCase()).catch(console.error);
+    }
 
     return c.json({ token, user });
   } catch (err) {
@@ -2744,5 +2759,8 @@ app.put(`${PREFIX}/admin/users/:userId`, async (c) => {
     return c.json({ error: `Admin user update error: ${err}` }, 500);
   }
 });
+
+// ── Mount all extended features (referral, trial, community, academy, etc.) ──
+app.route('', featuresApp);
 
 Deno.serve(app.fetch);

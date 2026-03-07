@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Music, Radio, BookOpen, ArrowLeft, Zap, Tag } from 'lucide-react';
 import { Link } from 'react-router';
-const mixxeaLogo = '/assets/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
+import mixxeaLogo from 'figma:asset/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
 
 const roles = [
   { id: 'artist', label: 'Artist', icon: Music, desc: 'Independent artist, singer, producer, or DJ' },
@@ -16,6 +16,7 @@ const roles = [
 export function AuthPage() {
   const [searchParams] = useSearchParams();
   const inviteCodeFromUrl = searchParams.get('invite') || '';
+  const refCodeFromUrl    = searchParams.get('ref') || '';
   const tabParam = searchParams.get('tab');
 
   const [mode, setMode] = useState<'login' | 'signup'>(tabParam === 'signup' ? 'signup' : 'login');
@@ -25,7 +26,7 @@ export function AuthPage() {
   const { login, signup, user, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: '', inviteCode: inviteCodeFromUrl });
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: '', inviteCode: inviteCodeFromUrl, refCode: refCodeFromUrl });
 
   // ── Reactive navigation ──────────────────────────────────────────────────
   // Navigate to dashboard ONLY after the user state is truly committed in
@@ -56,7 +57,7 @@ export function AuthPage() {
     if (!form.role) { toast.error('Please select your role'); return; }
     setLoading(true);
     try {
-      await signup(form.name, form.email, form.password, form.role, form.inviteCode);
+      await signup(form.name, form.email, form.password, form.role, form.inviteCode, form.refCode);
       toast.success('Welcome to MIXXEA! You have 100 free credits.');
       // Navigation is handled by the useEffect above — do NOT call navigate() here.
     } catch (err: any) {

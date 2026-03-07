@@ -5,18 +5,20 @@ import { useAuth } from '../dashboard/AuthContext';
 import * as api from '../dashboard/api';
 import {
   LayoutDashboard, Ticket, Megaphone, Users, Shield, LogOut,
-  Menu, X, ChevronRight, Bell, Settings, ExternalLink, Zap, Activity, Search, Music, TrendingUp
+  Menu, X, ChevronRight, Bell, Settings, ExternalLink, Zap, Activity, Search, Music, TrendingUp, BarChart2, Eye
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { path: '/admin',            label: 'Overview',     icon: LayoutDashboard, exact: true },
-  { path: '/admin/releases',   label: 'Releases',     icon: Music,           badge: 'releases' },
-  { path: '/admin/tickets',    label: 'Ticket Queue', icon: Ticket,          badge: 'queue' },
-  { path: '/admin/campaigns',  label: 'Campaigns',    icon: Megaphone },
-  { path: '/admin/users',      label: 'Users',        icon: Users },
-  { path: '/admin/seo',        label: 'SEO Config',   icon: Search },
-  { path: '/admin/seo/daily',  label: 'Daily SEO',    icon: TrendingUp },
-  { path: '/admin/tracking',   label: 'Tracking',     icon: Activity },
+  { path: '/admin',                  label: 'Overview',       icon: LayoutDashboard, exact: true },
+  { path: '/admin/releases',         label: 'Releases',       icon: Music,           badge: 'releases' },
+  { path: '/admin/tickets',          label: 'Ticket Queue',   icon: Ticket,          badge: 'queue' },
+  { path: '/admin/campaigns',        label: 'Campaigns',      icon: Megaphone },
+  { path: '/admin/users',            label: 'Users',          icon: Users },
+  { path: '/admin/seo',              label: 'SEO Config',     icon: Search },
+  { path: '/admin/seo/daily',        label: 'Daily SEO',      icon: TrendingUp },
+  { path: '/admin/seo/competitors',  label: 'Competitor Spy', icon: Eye },
+  { path: '/admin/ab-tests',         label: 'A/B Tests',      icon: BarChart2 },
+  { path: '/admin/tracking',         label: 'Tracking',       icon: Activity },
 ];
 
 export function AdminLayout() {

@@ -7,8 +7,10 @@ import * as api from './api';
 import {
   LayoutDashboard, Music, Megaphone, BookOpen, BarChart3, Globe, Scissors,
   MessageSquare, Zap, Settings, ChevronDown, LogOut, Menu, Bell, ChevronRight,
-  User, Shield, Radio, Users, Lock, X, CheckCircle, Clock, AlertCircle, ExternalLink
+  User, Shield, Radio, Users, Lock, X, CheckCircle, Clock, AlertCircle, ExternalLink,
+  CalendarDays, FileText, Fingerprint, PieChart, UserRound, GraduationCap, Gift,
 } from 'lucide-react';
+import { TrialBanner } from './TrialBanner';
 import mixxeaLogo from 'figma:asset/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
 import { planHasAccess } from './PlanGate';
 import { CurrencySelector } from '../mixxea/CurrencySelector';
@@ -36,6 +38,24 @@ function buildNavSections(role: string) {
       items: [
         { label: 'Publishing Admin', icon: BookOpen, path: '/dashboard/publishing',    requiredPlan: 'growth' },
         { label: 'Royalty Splits',   icon: Scissors, path: '/dashboard/royalty-splits', requiredPlan: 'growth' },
+      ],
+    },
+    {
+      title: 'Grow',
+      items: [
+        { label: 'Demographics',    icon: PieChart,       path: '/dashboard/demographics' },
+        { label: 'Content ID',      icon: Fingerprint,    path: '/dashboard/content-id' },
+        { label: 'Academy',         icon: GraduationCap,  path: '/dashboard/academy' },
+        { label: 'Community',       icon: UserRound,      path: '/dashboard/community' },
+      ],
+    },
+    {
+      title: 'Tools',
+      items: [
+        { label: 'Release Calendar', icon: CalendarDays,  path: '/dashboard/calendar' },
+        { label: 'Royalty Reports',  icon: FileText,      path: '/dashboard/royalties' },
+        { label: 'Curator Network',  icon: Radio,         path: '/dashboard/curators', requiredPlan: 'growth' },
+        { label: 'Referral Program', icon: Gift,          path: '/dashboard/referrals' },
       ],
     },
     {
@@ -426,6 +446,7 @@ export function DashboardLayout() {
 
         {/* Content */}
         <main className="flex-1 overflow-auto">
+          <TrialBanner />
           <Outlet />
         </main>
       </div>

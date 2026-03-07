@@ -1,4 +1,4 @@
-=import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter } from 'react-router';
 import { RootLayout } from './components/home/RootLayout';
 import { LandingPage } from './components/home/LandingPage';
 import { NotFound } from './components/home/NotFound';
@@ -29,6 +29,17 @@ import { SEODashboard } from './components/seo/SEODashboard';
 import { DailySEOManager } from './components/seo/DailySEOManager';
 import { BlogIndex } from './components/blog/BlogIndex';
 import { BlogPost } from './components/blog/BlogPost';
+import { ReferralPage } from './components/dashboard/ReferralPage';
+import { ReleaseCalendarPage } from './components/dashboard/ReleaseCalendarPage';
+import { RoyaltyStatementsPage } from './components/dashboard/RoyaltyStatementsPage';
+import { ContentIDPage } from './components/dashboard/ContentIDPage';
+import { DemographicsPage } from './components/dashboard/DemographicsPage';
+import { CommunityPage } from './components/dashboard/CommunityPage';
+import { CuratorDirectoryPage } from './components/dashboard/CuratorDirectoryPage';
+import { AcademyPage } from './components/dashboard/AcademyPage';
+import { StatusPage } from './components/StatusPage';
+import { AdminABTests } from './components/admin/AdminABTests';
+import { AdminCompetitorSpy } from './components/admin/AdminCompetitorSpy';
 
 export const router = createBrowserRouter([
   {
@@ -64,6 +75,14 @@ export const router = createBrowserRouter([
           { path: 'settings',       Component: SettingsPage },
           { path: 'marketplace',    Component: PlaylistMarketplacePage },
           { path: 'team',           Component: TeamPage },
+          { path: 'referrals',      Component: ReferralPage },
+          { path: 'calendar',       Component: ReleaseCalendarPage },
+          { path: 'royalties',      Component: RoyaltyStatementsPage },
+          { path: 'content-id',     Component: ContentIDPage },
+          { path: 'demographics',   Component: DemographicsPage },
+          { path: 'community',      Component: CommunityPage },
+          { path: 'curators',       Component: CuratorDirectoryPage },
+          { path: 'academy',        Component: AcademyPage },
         ],
       },
       {
@@ -74,16 +93,20 @@ export const router = createBrowserRouter([
         path: '/admin',
         Component: AdminLayout,
         children: [
-          { index: true,          Component: AdminOverview },
-          { path: 'releases',     Component: AdminReleases },
-          { path: 'tickets',      Component: AdminTickets },
-          { path: 'campaigns',    Component: AdminCampaigns },
-          { path: 'users',        Component: AdminUsers },
-          { path: 'tracking',     Component: TrackingDocs },
-          { path: 'seo',          Component: SEODashboard },
-          { path: 'seo/daily',    Component: DailySEOManager },
+          { index: true,             Component: AdminOverview },
+          { path: 'releases',        Component: AdminReleases },
+          { path: 'tickets',         Component: AdminTickets },
+          { path: 'campaigns',       Component: AdminCampaigns },
+          { path: 'users',           Component: AdminUsers },
+          { path: 'tracking',        Component: TrackingDocs },
+          { path: 'seo',             Component: SEODashboard },
+          { path: 'seo/daily',       Component: DailySEOManager },
+          { path: 'seo/competitors', Component: AdminCompetitorSpy },
+          { path: 'ab-tests',        Component: AdminABTests },
         ],
       },
+      // Public Status Page
+      { path: '/status', Component: StatusPage },
       // Blog
       { path: '/blog',       Component: BlogIndex },
       { path: '/blog/:slug', Component: BlogPost  },

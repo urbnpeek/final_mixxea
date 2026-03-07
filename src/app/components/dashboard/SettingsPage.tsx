@@ -9,6 +9,8 @@ import {
   Calendar, TrendingUp, Crown, Loader2, CheckCircle2, AlertTriangle,
 } from 'lucide-react';
 import { useCurrency } from '../mixxea/CurrencyContext';
+import { TwoFactorSettings } from './TwoFactorSettings';
+import { VerificationSettings } from './VerificationSettings';
 
 // ── Plan definitions ────────────────────────────────────────────────────────
 const PLANS = [
@@ -464,6 +466,10 @@ export function SettingsPage() {
                   <strong className="text-white/60">Pro:</strong> + PR, Meta/Google Ads, multi-artist
                 </p>
               </div>
+
+              {/* 2FA + Verification */}
+              <TwoFactorSettings />
+              <VerificationSettings />
             </motion.div>
           )}
 

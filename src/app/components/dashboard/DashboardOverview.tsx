@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { motion } from 'motion/react';
 import { useAuth } from './AuthContext';
 import * as api from './api';
-import { Music, Megaphone, BookOpen, Zap, TrendingUp, Play, Plus, ArrowRight, Globe, Scissors } from 'lucide-react';
+import { Music, Megaphone, BookOpen, Zap, TrendingUp, Play, Plus, ArrowRight, Globe, Scissors, GraduationCap, Users, CalendarDays, Gift } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const StatCard = ({ icon: Icon, label, value, sub, color, trend }: any) => (
@@ -176,6 +176,10 @@ export function DashboardOverview() {
             <QuickActionCard icon={BookOpen} label="Register Work" desc="Collect your publishing royalties" to="/dashboard/publishing" color="#00C4FF" />
             <QuickActionCard icon={Globe} label="Edit Smart Page" desc="Your public artist profile" to="/dashboard/smart-pages" color="#FF5252" />
             <QuickActionCard icon={Scissors} label="Create Split" desc="Manage collaborator splits" to="/dashboard/royalty-splits" color="#10B981" />
+            <QuickActionCard icon={GraduationCap} label="MIXXEA Academy" desc="Learn music business essentials" to="/dashboard/academy" color="#F59E0B" />
+            <QuickActionCard icon={Users} label="Community" desc="Connect with fellow artists" to="/dashboard/community" color="#7B5FFF" />
+            <QuickActionCard icon={Gift} label="Referral Program" desc="Earn credits for every invite" to="/dashboard/referrals" color="#D63DF6" />
+            <QuickActionCard icon={CalendarDays} label="Release Calendar" desc="View all scheduled releases" to="/dashboard/calendar" color="#00C4FF" />
           </div>
         </div>
       </div>

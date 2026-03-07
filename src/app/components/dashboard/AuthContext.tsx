@@ -18,7 +18,7 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, role: string, inviteCode?: string) => Promise<void>;
+  signup: (name: string, email: string, password: string, role: string, inviteCode?: string, refCode?: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
@@ -80,10 +80,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signup = async (name: string, email: string, password: string, role: string, inviteCode?: string) => {
+  const signup = async (name: string, email: string, password: string, role: string, inviteCode?: string, refCode?: string) => {
     setIsLoading(true);
     try {
-      const { token: t, user: u } = await api.signup({ name, email, password, role, inviteCode });
+      const { token: t, user: u } = await api.signup({ name, email, password, role, inviteCode, refCode });
       localStorage.setItem('mixxea_token', t);
       setToken(t);
       setUser(u);

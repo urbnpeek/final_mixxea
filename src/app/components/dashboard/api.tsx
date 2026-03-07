@@ -148,3 +148,64 @@ export const blogUnpublish   = (token: string, slug: string) => req('DELETE', `/
 // ──── Blog (public — no token) ────────────────────────────────────────────────
 export const blogGetPosts    = () => req('GET', '/blog/posts');
 export const blogGetPost     = (slug: string) => req('GET', `/blog/posts/${slug}`);
+
+// ──── Feature 1: Referral ────────────────────────────────────────────────────
+export const getReferral         = (token: string) => req('GET', '/referral', undefined, token);
+export const getReferralLeaderboard = (token: string) => req('GET', '/referral/leaderboard', undefined, token);
+export const claimReferral       = (code: string, newUserId: string) => req('POST', '/referral/claim', { code, newUserId });
+
+// ──── Feature 2: Pay-per-campaign ────────────────────────────────────────────
+export const getCampaignPackages = () => req('GET', '/checkout/campaign-packages');
+export const campaignCheckout    = (token: string, packageId: string, successUrl?: string, cancelUrl?: string) => req('POST', '/checkout/campaign-one-time', { packageId, successUrl, cancelUrl }, token);
+
+// ──── Feature 3: Trial ───────────────────────────────────────────────────────
+export const getTrialStatus   = (token: string) => req('GET', '/trial/status', undefined, token);
+export const activateTrial    = (token: string) => req('POST', '/trial/activate', {}, token);
+
+// ──── Feature 7: Content ID ──────────────────────────────────────────────────
+export const getContentID     = (token: string) => req('GET', '/content-id', undefined, token);
+export const registerContentID = (token: string, data: any) => req('POST', '/content-id/register', data, token);
+export const deleteContentID  = (token: string, trackId: string) => req('DELETE', `/content-id/${trackId}`, undefined, token);
+
+// ──── Feature 8: Demographics ────────────────────────────────────────────────
+export const getDemographics  = (token: string) => req('GET', '/analytics/demographics', undefined, token);
+
+// ──── Feature 9: Competitor SEO ──────────────────────────────────────────────
+export const getCompetitors   = (token: string) => req('GET', '/admin/seo/competitors', undefined, token);
+
+// ──── Feature 10: A/B Tests ──────────────────────────────────────────────────
+export const getABTests       = (token: string) => req('GET', '/admin/ab-tests', undefined, token);
+export const createABTest     = (token: string, data: any) => req('POST', '/admin/ab-tests', data, token);
+export const updateABTest     = (token: string, id: string, data: any) => req('PUT', `/admin/ab-tests/${id}`, data, token);
+export const recordABEvent    = (testId: string, variant: string, event: string) => req('POST', '/ab-tests/event', { testId, variant, event });
+
+// ──── Feature 11: Community ──────────────────────────────────────────────────
+export const getCommunityPosts   = (token: string) => req('GET', '/community/posts', undefined, token);
+export const createCommunityPost = (token: string, data: any) => req('POST', '/community/posts', data, token);
+export const likePost            = (token: string, postId: string) => req('POST', `/community/posts/${postId}/like`, {}, token);
+export const deletePost          = (token: string, postId: string) => req('DELETE', `/community/posts/${postId}`, undefined, token);
+
+// ──── Feature 12: Curators ───────────────────────────────────────────────────
+export const getCurators      = (token: string, genre?: string, tier?: string) => req('GET', `/curators${genre || tier ? '?' + new URLSearchParams({ ...(genre ? { genre } : {}), ...(tier ? { tier } : {}) }).toString() : ''}`, undefined, token);
+export const directPitch      = (token: string, data: any) => req('POST', '/curators/direct-pitch', data, token);
+
+// ──── Feature 13: Academy ────────────────────────────────────────────────────
+export const getAcademyProgress  = (token: string) => req('GET', '/academy/progress', undefined, token);
+export const completeLesson      = (token: string, lessonId: string, xpEarned: number) => req('POST', '/academy/progress', { lessonId, xpEarned }, token);
+
+// ──── Feature 14: Status ─────────────────────────────────────────────────────
+export const getStatus           = () => req('GET', '/status');
+
+// ──── Feature 15: Verification ───────────────────────────────────────────────
+export const getVerificationStatus = (token: string) => req('GET', '/verification/status', undefined, token);
+export const applyVerification     = (token: string, data: any) => req('POST', '/verification/apply', data, token);
+export const adminVerifyUser       = (token: string, userId: string, verified: boolean, badge?: string) => req('PUT', `/admin/users/${userId}/verify`, { verified, badge }, token);
+
+// ──── Feature 16: 2FA ────────────────────────────────────────────────────────
+export const get2FAStatus    = (token: string) => req('GET', '/auth/2fa/status', undefined, token);
+export const setup2FA        = (token: string) => req('POST', '/auth/2fa/setup', {}, token);
+export const confirm2FA      = (token: string, code: string) => req('POST', '/auth/2fa/confirm', { code }, token);
+export const disable2FA      = (token: string, code: string) => req('DELETE', '/auth/2fa/disable', { code }, token);
+
+// ──── Feature 18: Win Notifications ─────────────────────────────────────────
+export const checkMilestones = (token: string, totalStreams: number) => req('POST', '/campaigns/check-milestones', { totalStreams }, token);
