@@ -27,8 +27,7 @@ import { AdminReleases } from './components/admin/AdminReleases';
 import { TrackingDocs } from './components/tracking/TrackingDocs';
 import { SEODashboard } from './components/seo/SEODashboard';
 import { DailySEOManager } from './components/seo/DailySEOManager';
-import { BlogIndex } from './components/blog/BlogIndex';
-import { BlogPost } from './components/blog/BlogPost';
+import { BlogIndex, BlogPost } from './components/BlogPages';
 import { ReferralPage } from './components/dashboard/ReferralPage';
 import { ReleaseCalendarPage } from './components/dashboard/ReleaseCalendarPage';
 import { RoyaltyStatementsPage } from './components/dashboard/RoyaltyStatementsPage';
@@ -43,22 +42,11 @@ import { AdminCompetitorSpy } from './components/admin/AdminCompetitorSpy';
 
 export const router = createBrowserRouter([
   {
-    // Root layout provides AuthProvider + Toaster to the entire app
     Component: RootLayout,
     children: [
-      {
-        path: '/',
-        Component: LandingPage,
-      },
-      {
-        path: '/auth',
-        Component: AuthPage,
-      },
-      // Public Smart Pages
-      {
-        path: '/p/:slug',
-        Component: PublicSmartPage,
-      },
+      { path: '/',       Component: LandingPage },
+      { path: '/auth',   Component: AuthPage },
+      { path: '/p/:slug', Component: PublicSmartPage },
       {
         path: '/dashboard',
         Component: DashboardLayout,
@@ -85,10 +73,7 @@ export const router = createBrowserRouter([
           { path: 'academy',        Component: AcademyPage },
         ],
       },
-      {
-        path: '/admin/bootstrap',
-        Component: AdminBootstrap,
-      },
+      { path: '/admin/bootstrap', Component: AdminBootstrap },
       {
         path: '/admin',
         Component: AdminLayout,
@@ -105,13 +90,10 @@ export const router = createBrowserRouter([
           { path: 'ab-tests',        Component: AdminABTests },
         ],
       },
-      // Public Status Page
-      { path: '/status', Component: StatusPage },
-      // Blog
+      { path: '/status',     Component: StatusPage },
       { path: '/blog',       Component: BlogIndex },
-      { path: '/blog/:slug', Component: BlogPost  },
-      // 404 catch-all
-      { path: '*', Component: NotFound },
+      { path: '/blog/:slug', Component: BlogPost },
+      { path: '*',           Component: NotFound },
     ],
   },
 ]);
