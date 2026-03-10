@@ -147,21 +147,21 @@ export function DashboardOverview() {
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={analytics?.streamData || []} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
                 <defs>
-                  <linearGradient id={streamGradId} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#7B5FFF" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#7B5FFF" stopOpacity={0} />
+                  <linearGradient key={streamGradId} id={streamGradId} x1="0" y1="0" x2="0" y2="1">
+                    <stop key={`${streamGradId}-5`} offset="5%" stopColor="#7B5FFF" stopOpacity={0.3} />
+                    <stop key={`${streamGradId}-95`} offset="95%" stopColor="#7B5FFF" stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient id={saveGradId} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00C4FF" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#00C4FF" stopOpacity={0} />
+                  <linearGradient key={saveGradId} id={saveGradId} x1="0" y1="0" x2="0" y2="1">
+                    <stop key={`${saveGradId}-5`} offset="5%" stopColor="#00C4FF" stopOpacity={0.3} />
+                    <stop key={`${saveGradId}-95`} offset="95%" stopColor="#00C4FF" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
-                <Tooltip content={<CustomTooltip />} />
-                <Area key="streams" type="monotone" dataKey="streams" stroke="#7B5FFF" strokeWidth={2} fill={`url(#${streamGradId})`} />
-                <Area key="saves" type="monotone" dataKey="saves" stroke="#00C4FF" strokeWidth={2} fill={`url(#${saveGradId})`} />
+                <CartesianGrid key="grid" strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis key="xaxis" dataKey="month" tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis key="yaxis" tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
+                <Tooltip key="tooltip" content={<CustomTooltip />} />
+                <Area key="area-streams" type="monotone" dataKey="streams" stroke="#7B5FFF" strokeWidth={2} fill={`url(#${streamGradId})`} />
+                <Area key="area-saves" type="monotone" dataKey="saves" stroke="#00C4FF" strokeWidth={2} fill={`url(#${saveGradId})`} />
               </AreaChart>
             </ResponsiveContainer>
           )}

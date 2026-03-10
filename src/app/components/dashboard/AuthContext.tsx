@@ -11,6 +11,7 @@ export interface User {
   avatar: string | null;
   bio: string;
   joinedAt: string;
+  isAdmin?: boolean;
 }
 
 interface AuthContextType {

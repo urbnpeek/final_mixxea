@@ -1,7 +1,7 @@
+import { projectId, publicAnonKey } from '../../../../utils/supabase/info';
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router';
 import { motion } from 'motion/react';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
 import {
   Music, Instagram, Youtube, Twitter, Radio, Globe, ExternalLink,
   Play, Calendar, Disc3, AlertCircle, Loader2, Share2, Heart

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Music, Radio, BookOpen, ArrowLeft, Zap, Tag } from 'lucide-react';
+import { Eye, EyeOff, Music, Radio, BookOpen, ArrowLeft, Zap, Tag, Star, TrendingUp, Globe } from 'lucide-react';
 import { Link } from 'react-router';
 import mixxeaLogo from 'figma:asset/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
 
@@ -11,6 +11,34 @@ const roles = [
   { id: 'artist', label: 'Artist', icon: Music, desc: 'Independent artist, singer, producer, or DJ' },
   { id: 'label', label: 'Label', icon: Radio, desc: 'Record label or music company managing multiple artists' },
   { id: 'curator', label: 'Curator', icon: BookOpen, desc: 'Playlist curator, blogger, or music tastemaker' },
+];
+
+// ── Keyword-rich social proof testimonials ────────────────────────────────────
+const testimonials = [
+  {
+    quote: "MIXXEA's music distribution got my tracks live on Spotify, Apple Music, and TikTok within 24 hours. As an independent artist, that speed is everything.",
+    name: 'Marcus T.',
+    role: 'Independent Hip-Hop Artist',
+    metric: '2.4M streams',
+    color: '#00C4FF',
+    icon: Globe,
+  },
+  {
+    quote: "The playlist pitching service landed my song on 14 independent playlists in the first month. My Spotify monthly listeners went from 800 to 28,000.",
+    name: 'Sofia R.',
+    role: 'Electronic Music Producer',
+    metric: '+27,200 listeners',
+    color: '#7B5FFF',
+    icon: TrendingUp,
+  },
+  {
+    quote: "Best music marketing agency I've used. The TikTok creator campaign went viral — 1.2M views in 4 days. Now my music is finally being heard.",
+    name: 'Jamal K.',
+    role: 'R&B Independent Artist',
+    metric: '1.2M TikTok views',
+    color: '#D63DF6',
+    icon: Star,
+  },
 ];
 
 export function AuthPage() {
@@ -29,12 +57,15 @@ export function AuthPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '', role: '', inviteCode: inviteCodeFromUrl, refCode: refCodeFromUrl });
 
   // ── Reactive navigation ──────────────────────────────────────────────────
-  // Navigate to dashboard ONLY after the user state is truly committed in
-  // AuthContext — avoids the race where navigate() fires before setUser()
-  // propagates and DashboardLayout's auth-guard kicks the user back to /auth.
+  // Navigate to admin panel if isAdmin, otherwise to dashboard.
+  // Only fires after AuthContext has fully committed the user state.
   useEffect(() => {
     if (!isLoading && user) {
-      navigate('/dashboard', { replace: true });
+      if (user.isAdmin) {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     }
   }, [user, isLoading, navigate]);
 
@@ -239,6 +270,50 @@ export function AuthPage() {
         <p className="text-center text-white/30 text-xs mt-6">
           <Link to="/" className="hover:text-white/60 transition-colors">← Back to MIXXEA.com</Link>
         </p>
+
+        {/* ── Social proof — keyword-rich testimonials ─────────────────────── */}
+        <div className="mt-12 w-full space-y-3">
+          <p className="text-center text-[10px] text-white/20 uppercase tracking-widest mb-4 font-semibold">
+            Independent artists already growing with MIXXEA
+          </p>
+          {testimonials.map((t, i) => {
+            const Icon = t.icon;
+            return (
+              <div
+                key={i}
+                className="rounded-2xl border border-white/[0.06] p-4 bg-white/[0.02]"
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                    style={{ background: `${t.color}18`, border: `1px solid ${t.color}30` }}
+                  >
+                    <Icon size={14} style={{ color: t.color }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-white/60 leading-relaxed mb-2">"{t.quote}"</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-xs font-semibold text-white">{t.name}</span>
+                        <span className="text-[10px] text-white/30 ml-2">· {t.role}</span>
+                      </div>
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+                        style={{ color: t.color, background: `${t.color}15` }}
+                      >
+                        {t.metric}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          <p className="text-center text-[10px] text-white/15 mt-4 leading-relaxed px-2">
+            Join 50,000+ independent artists using MIXXEA for music distribution,
+            Spotify promotion, and publishing administration worldwide.
+          </p>
+        </div>
       </div>
     </div>
   );

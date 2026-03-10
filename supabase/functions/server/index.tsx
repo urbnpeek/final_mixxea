@@ -5,6 +5,8 @@ import Stripe from "npm:stripe";
 import * as kv from "./kv_store.tsx";
 import { generateSEOCycle } from "./seo-engine.tsx";
 import { featuresApp, triggerDripSequence, claimReferralCode } from "./features.tsx";
+import { adminOpsApp } from "./admin-ops.tsx";
+import { spotifyApp } from "./spotify.tsx";
 import {
   sendEmail,
   welcomeEmail,
@@ -16,6 +18,7 @@ import {
   releaseDistributedEmail,
   teamInviteEmail,
   pitchStatusEmail,
+  adminEventEmail,
 } from "./email.tsx";
 
 const app = new Hono();
@@ -326,6 +329,23 @@ app.post(`${PREFIX}/auth/signup`, async (c) => {
 
     // Trigger drip email sequence (Day 1 sent immediately, rest scheduled via cron)
     triggerDripSequence(userId, email.toLowerCase(), name).catch(console.error);
+
+    // Notify admin of new signup (email + in-platform bell)
+    pushAdminNotif({
+      type: "new_signup",
+      title: "New User Signup",
+      message: `${name} (${role}) just joined MIXXEA`,
+      link: "/admin/users",
+      userEmail: email.toLowerCase(),
+      userId,
+      details: {
+        "Name": name,
+        "Email": email.toLowerCase(),
+        "Account Type": role.toUpperCase(),
+        "Plan": "Starter",
+        "Welcome Credits": "100 ⚡",
+      },
+    }).catch(console.error);
 
     // Auto-claim referral if code was provided at signup
     if (refCode) {
@@ -734,16 +754,27 @@ app.put(`${PREFIX}/releases/:releaseId`, async (c) => {
       uNotifs.unshift(userNotif);
       await kv.set(`notifications:${userId}`, JSON.stringify(uNotifs.slice(0, 50)));
 
-      const adminNotif = {
-        id: generateId(), type: "release_submitted",
+      // Fetch user details for admin notification
+      const releaseUserStr = await kv.get(`user:${userId}`);
+      const releaseUser = releaseUserStr ? JSON.parse(releaseUserStr) : { name: updated.artist, email: "" };
+      pushAdminNotif({
+        type: "release_submitted",
         title: "New Release Submission",
-        message: `${updated.artist} submitted "${updated.title}" (${updated.type}) for distribution.`,
-        read: false, link: "/admin/releases", releaseId: rId, userId, createdAt: now,
-      };
-      const anStr = await kv.get("admin_notifications");
-      const aNotifs = anStr ? JSON.parse(anStr) : [];
-      aNotifs.unshift(adminNotif);
-      await kv.set("admin_notifications", JSON.stringify(aNotifs.slice(0, 100)));
+        message: `${updated.artist} submitted "${updated.title}" (${updated.type}) for distribution`,
+        link: "/admin/releases",
+        userEmail: releaseUser.email,
+        userId,
+        releaseId: rId,
+        details: {
+          "Artist": updated.artist,
+          "Email": releaseUser.email,
+          "Release Title": updated.title,
+          "Release Type": updated.type?.charAt(0).toUpperCase() + updated.type?.slice(1),
+          "Genre": updated.genre || "—",
+          "Stores": `${(updated.stores || []).length} stores`,
+          "Release Date": updated.releaseDate || "As soon as approved",
+        },
+      }).catch(console.error);
     }
 
     return c.json({ release: updated });
@@ -830,6 +861,22 @@ app.post(`${PREFIX}/admin/notifications/read`, async (c) => {
   }
 });
 
+app.delete(`${PREFIX}/admin/notifications/:notifId`, async (c) => {
+  try {
+    const adminId = await verifyAdmin(c);
+    if (!adminId) return c.json({ error: "Admin access required" }, 403);
+    const notifId = c.req.param("notifId");
+    const nStr = await kv.get("admin_notifications");
+    const notifs = nStr ? JSON.parse(nStr) : [];
+    // "all" deletes everything; otherwise filter by id
+    const updated = notifId === "all" ? [] : notifs.filter((n: any) => n.id !== notifId);
+    await kv.set("admin_notifications", JSON.stringify(updated));
+    return c.json({ success: true });
+  } catch (err) {
+    return c.json({ error: `Admin notification delete error: ${err}` }, 500);
+  }
+});
+
 // ── Admin: Releases (Distribution Inbox) ──────────────────────────────────────
 app.get(`${PREFIX}/admin/releases`, async (c) => {
   try {
@@ -854,6 +901,23 @@ app.get(`${PREFIX}/admin/releases`, async (c) => {
   }
 });
 
+// ── Admin: Single Release Detail ──────────────────────────────────────────────
+app.get(`${PREFIX}/admin/releases/:releaseId`, async (c) => {
+  try {
+    const adminId = await verifyAdmin(c);
+    if (!adminId) return c.json({ error: "Admin access required" }, 403);
+    const rId = c.req.param("releaseId");
+    const s = await kv.get(`release:${rId}`);
+    if (!s) return c.json({ error: "Release not found" }, 404);
+    const release = JSON.parse(s);
+    const userStr = await kv.get(`user:${release.userId}`);
+    const user = userStr ? JSON.parse(userStr) : { name: "Unknown", email: "" };
+    return c.json({ release: { ...release, userName: user.name, userEmail: user.email } });
+  } catch (err) {
+    return c.json({ error: `Admin release detail error: ${err}` }, 500);
+  }
+});
+
 app.put(`${PREFIX}/admin/releases/:releaseId`, async (c) => {
   try {
     const adminId = await verifyAdmin(c);
@@ -864,34 +928,85 @@ app.put(`${PREFIX}/admin/releases/:releaseId`, async (c) => {
     const release = JSON.parse(s);
     const updates = await c.req.json();
     const now = new Date().toISOString();
-    const updated = { ...release, ...updates, id: rId, updatedAt: now };
+    const statusChanged = updates.status && updates.status !== release.status;
+
+    // Append to status history
+    const history = Array.isArray(release.statusHistory) ? release.statusHistory : [];
+    if (statusChanged) {
+      history.push({ id: generateId(), from: release.status, to: updates.status, changedAt: now, adminId, note: updates.adminNotes || "" });
+    }
+
+    // Merge AMPsuite bridge data (deep merge, don't overwrite whole object)
+    const ampsuite = { ...(release.ampsuite || {}), ...(updates.ampsuite || {}) };
+    // Strip nested ampsuite from top-level updates so it doesn't double-write
+    const restUpdates = Object.fromEntries(Object.entries(updates).filter(([k]) => k !== "ampsuite"));
+
+    const updated = { ...release, ...restUpdates, ampsuite, statusHistory: history, id: rId, updatedAt: now };
     await kv.set(`release:${rId}`, JSON.stringify(updated));
 
-    // Notify artist of status change
-    if (updates.status && updates.status !== release.status) {
-      const msgMap: Record<string, { title: string; message: string }> = {
-        live:        { title: "🎉 Release is Live!", message: `"${release.title}" has been approved and is now live on streaming platforms.` },
-        distributed: { title: "🌍 Release Fully Distributed!", message: `"${release.title}" is now live across all selected platforms. Congratulations!` },
-        rejected:    { title: "Release Needs Changes", message: `"${release.title}" was not approved. ${updates.adminNotes || "Please check your dashboard for details."}` },
-        needs_info:  { title: "More Info Needed", message: `We need more info about "${release.title}". ${updates.adminNotes || "Please check your dashboard."}` },
+    // Full 14-status notification map
+    if (statusChanged) {
+      const notifMap: Record<string, { title: string; message: string }> = {
+        in_progress:           { title: "Release Saved", message: `"${release.title}" has been saved as in progress.` },
+        under_review:          { title: "👀 Your Release Is Being Reviewed", message: `Our team has started reviewing "${release.title}". We'll update you shortly.` },
+        needs_changes:         { title: "⚠️ Action Required on Your Release", message: `"${release.title}" needs some changes before it can proceed. ${updates.adminNotes || "Please check your dashboard for details."}` },
+        needs_info:            { title: "⚠️ Action Required on Your Release", message: `"${release.title}" needs some changes. ${updates.adminNotes || "Please check your dashboard."}` },
+        approved:              { title: "✅ Release Approved by MIXXEA", message: `Great news! "${release.title}" has been approved and will be queued for distribution shortly.` },
+        queued_for_submission: { title: "📋 Queued for Distribution", message: `"${release.title}" is now in our distribution queue and will be submitted to our distributor very soon.` },
+        submitted_to_ampsuite: { title: "🚀 Submitted to Distributor", message: `"${release.title}" has been submitted to our distribution partner. Delivery to streaming platforms has begun.` },
+        delivery_in_progress:  { title: "📡 Delivery in Progress", message: `"${release.title}" is being delivered to streaming platforms. This typically takes 24–72 hours.` },
+        delivered_to_dsp:      { title: "✅ Delivered to All Platforms", message: `"${release.title}" has been delivered to all selected platforms. It will go live on your scheduled date.` },
+        scheduled:             { title: "📅 Release Scheduled & Confirmed", message: `"${release.title}" is scheduled and confirmed on all platforms. It will go live on ${release.releaseDate || "your release date"}.` },
+        live:                  { title: "🎉 Your Release Is Live!", message: `Congratulations! "${release.title}" is now live on all selected streaming platforms!` },
+        distributed:           { title: "🌍 Release Fully Distributed!", message: `"${release.title}" is now live across all selected platforms. Congratulations!` },
+        rejected:              { title: "❌ Release Not Approved", message: `"${release.title}" was not approved for distribution. ${updates.adminNotes || "Please check your dashboard for full details."}` },
+        on_hold:               { title: "⏸ Your Release Is On Hold", message: `"${release.title}" has been placed on hold. ${updates.adminNotes || "Our team will be in touch with more details."}` },
+        takedown_requested:    { title: "🔄 Takedown Initiated", message: `A takedown request has been submitted for "${release.title}". It will be removed from streaming platforms within 5–10 business days.` },
+        takedown_completed:    { title: "✅ Release Taken Down", message: `"${release.title}" has been successfully removed from all streaming platforms.` },
       };
-      const notifMsg = msgMap[updates.status];
-      if (notifMsg) {
-        const userNotif = {
-          id: generateId(), type: `release_${updates.status}`,
-          title: notifMsg.title, message: notifMsg.message,
-          read: false, link: "/dashboard/distribution", createdAt: now,
-        };
+      const notif = notifMap[updates.status];
+      if (notif) {
+        const userNotif = { id: generateId(), type: `release_${updates.status}`, title: notif.title, message: notif.message, read: false, link: "/dashboard/distribution", createdAt: now };
         const unStr = await kv.get(`notifications:${release.userId}`);
         const uNotifs = unStr ? JSON.parse(unStr) : [];
         uNotifs.unshift(userNotif);
         await kv.set(`notifications:${release.userId}`, JSON.stringify(uNotifs.slice(0, 50)));
+        // Email for key status milestones
+        const emailTriggers = ["live", "distributed", "rejected", "needs_changes", "approved", "submitted_to_ampsuite", "on_hold"];
+        if (emailTriggers.includes(updates.status)) {
+          const userStr2 = await kv.get(`user:${release.userId}`);
+          if (userStr2) {
+            const u2 = JSON.parse(userStr2);
+            sendEmail(u2.email, notif.title, `<div style="font-family:sans-serif;background:#000;color:#fff;padding:32px;border-radius:12px;"><h2 style="color:#7B5FFF;">${notif.title}</h2><p>${notif.message}</p><p style="color:#666;font-size:12px;margin-top:24px;">Log in to your MIXXEA dashboard for full details: <a href="https://www.mixxea.com/dashboard/distribution" style="color:#00C4FF;">mixxea.com/dashboard</a></p></div>`).catch(console.error);
+          }
+        }
       }
     }
-
     return c.json({ release: updated });
   } catch (err) {
     return c.json({ error: `Admin release update error: ${err}` }, 500);
+  }
+});
+
+// ── Admin: Add internal note to release ───────────────────────────────────────
+app.post(`${PREFIX}/admin/releases/:releaseId/note`, async (c) => {
+  try {
+    const adminId = await verifyAdmin(c);
+    if (!adminId) return c.json({ error: "Admin access required" }, 403);
+    const rId = c.req.param("releaseId");
+    const s = await kv.get(`release:${rId}`);
+    if (!s) return c.json({ error: "Release not found" }, 404);
+    const release = JSON.parse(s);
+    const { text, tag } = await c.req.json();
+    if (!text?.trim()) return c.json({ error: "Note text is required" }, 400);
+    const now = new Date().toISOString();
+    const note = { id: generateId(), text: text.trim(), tag: tag || "general", createdAt: now, adminId };
+    const notes = [...(Array.isArray(release.internalNotes) ? release.internalNotes : []), note];
+    const updated = { ...release, internalNotes: notes, updatedAt: now };
+    await kv.set(`release:${rId}`, JSON.stringify(updated));
+    return c.json({ note, release: updated });
+  } catch (err) {
+    return c.json({ error: `Add release note error: ${err}` }, 500);
   }
 });
 
@@ -1136,6 +1251,93 @@ app.delete(`${PREFIX}/admin/seo/blog/:slug`, async (c) => {
   }
 });
 
+// GET /admin/seo/competitors — competitor keyword intelligence data
+app.get(`${PREFIX}/admin/seo/competitors`, async (c) => {
+  try {
+    const adminId = await verifyAdmin(c);
+    if (!adminId) return c.json({ error: "Admin access required" }, 403);
+
+    const competitors = [
+      {
+        name: "DistroKid",
+        domain: "distrokid.com",
+        estimatedTraffic: "1.2M",
+        topKeywords: [
+          { keyword: "music distribution",             volume: "22,000", theirRank: 1, ourRank: "Not ranking", gap: "Critical" },
+          { keyword: "upload music to spotify",         volume: "18,500", theirRank: 2, ourRank: "Not ranking", gap: "Critical" },
+          { keyword: "keep 100% royalties music",       volume: "9,200",  theirRank: 3, ourRank: "Not ranking", gap: "High"     },
+          { keyword: "music distribution review",       volume: "7,800",  theirRank: 1, ourRank: "Not ranking", gap: "High"     },
+          { keyword: "distrokid alternative",           volume: "5,400",  theirRank: 1, ourRank: "Not ranking", gap: "Critical" },
+          { keyword: "unlimited music distribution",    volume: "8,100",  theirRank: 2, ourRank: "Not ranking", gap: "High"     },
+          { keyword: "release music on tiktok",         volume: "11,200", theirRank: 3, ourRank: "Not ranking", gap: "High"     },
+          { keyword: "how to get on spotify playlists", volume: "14,300", theirRank: 4, ourRank: "Not ranking", gap: "Medium"   },
+        ],
+      },
+      {
+        name: "TuneCore",
+        domain: "tunecore.com",
+        estimatedTraffic: "890K",
+        topKeywords: [
+          { keyword: "music publishing administration", volume: "6,800",  theirRank: 2, ourRank: "Not ranking", gap: "Critical" },
+          { keyword: "royalty collection service",      volume: "4,200",  theirRank: 1, ourRank: "Not ranking", gap: "High"     },
+          { keyword: "sync licensing for artists",      volume: "5,500",  theirRank: 3, ourRank: "Not ranking", gap: "High"     },
+          { keyword: "music distribution for labels",   volume: "2,100",  theirRank: 2, ourRank: "Not ranking", gap: "Medium"   },
+          { keyword: "ISRC code generator",             volume: "7,800",  theirRank: 1, ourRank: "Not ranking", gap: "Critical" },
+          { keyword: "distribute music to apple music", volume: "9,400",  theirRank: 2, ourRank: "Not ranking", gap: "High"     },
+          { keyword: "music streaming royalty rates",   volume: "11,200", theirRank: 3, ourRank: "Not ranking", gap: "High"     },
+          { keyword: "UPC barcode for music release",   volume: "5,100",  theirRank: 2, ourRank: "Not ranking", gap: "Medium"   },
+        ],
+      },
+      {
+        name: "CD Baby",
+        domain: "cdbaby.com",
+        estimatedTraffic: "620K",
+        topKeywords: [
+          { keyword: "independent music distribution",  volume: "12,000", theirRank: 1, ourRank: "Not ranking", gap: "Critical" },
+          { keyword: "music distribution for artists",  volume: "8,400",  theirRank: 2, ourRank: "Not ranking", gap: "High"     },
+          { keyword: "sell music online",               volume: "9,900",  theirRank: 1, ourRank: "Not ranking", gap: "High"     },
+          { keyword: "music distribution Africa",       volume: "5,600",  theirRank: 4, ourRank: "Not ranking", gap: "Critical" },
+          { keyword: "how to release an EP",            volume: "6,200",  theirRank: 2, ourRank: "Not ranking", gap: "Medium"   },
+          { keyword: "physical music distribution",     volume: "3,800",  theirRank: 1, ourRank: "Not ranking", gap: "Low"      },
+          { keyword: "music distribution Nigeria",      volume: "1,900",  theirRank: 3, ourRank: "Not ranking", gap: "High"     },
+          { keyword: "best music distributor review",   volume: "7,300",  theirRank: 2, ourRank: "Not ranking", gap: "High"     },
+        ],
+      },
+      {
+        name: "Amuse",
+        domain: "amuse.io",
+        estimatedTraffic: "180K",
+        topKeywords: [
+          { keyword: "free music distribution",             volume: "14,600", theirRank: 2, ourRank: "Not ranking", gap: "Critical" },
+          { keyword: "music distribution app",              volume: "6,100",  theirRank: 1, ourRank: "Not ranking", gap: "High"     },
+          { keyword: "distribute music from phone",         volume: "3,400",  theirRank: 1, ourRank: "Not ranking", gap: "Medium"   },
+          { keyword: "split royalties with band",           volume: "2,800",  theirRank: 2, ourRank: "Not ranking", gap: "Medium"   },
+          { keyword: "music distribution no fees 2026",     volume: "5,200",  theirRank: 3, ourRank: "Not ranking", gap: "High"     },
+          { keyword: "release music for free on spotify",   volume: "8,900",  theirRank: 2, ourRank: "Not ranking", gap: "Critical" },
+          { keyword: "music label deal alternative",        volume: "3,100",  theirRank: 1, ourRank: "Not ranking", gap: "Medium"   },
+          { keyword: "independent artist label",            volume: "4,400",  theirRank: 3, ourRank: "Not ranking", gap: "Medium"   },
+        ],
+      },
+    ];
+
+    const opportunityKeywords = [
+      { keyword: "amapiano music distribution",           volume: "2,800",  opportunity: "Critical", reason: "Zero competition — first-mover advantage in fast-growing genre" },
+      { keyword: "afrobeats playlist pitching",           volume: "3,900",  opportunity: "Critical", reason: "Competitors ignore African genres — massive growth market" },
+      { keyword: "music distribution marketing bundle",   volume: "1,600",  opportunity: "High",     reason: "No competitor bundles distribution + marketing in one plan" },
+      { keyword: "TikTok music agency 2026",              volume: "14,600", opportunity: "Critical", reason: "MIXXEA's agency services are a unique differentiator vs pure distributors" },
+      { keyword: "music publishing for beatmakers",       volume: "4,100",  opportunity: "High",     reason: "Underserved beatmaker market — none of the big distributors target this" },
+      { keyword: "smart link music presave campaign",     volume: "3,800",  opportunity: "High",     reason: "MIXXEA Smart Pages is a unique product feature for content targeting" },
+      { keyword: "music distribution all in one platform",volume: "3,500",  opportunity: "Critical", reason: "Competitors are single-service — MIXXEA's all-in-one positioning wins here" },
+      { keyword: "music royalty splits calculator",       volume: "6,100",  opportunity: "High",     reason: "Competitors don't offer an integrated splits tool" },
+    ];
+
+    return c.json({ competitors, opportunityKeywords });
+  } catch (err) {
+    console.log("Competitor spy error:", err);
+    return c.json({ error: `Competitor spy error: ${err}` }, 500);
+  }
+});
+
 // ===================== CAMPAIGNS / PROMOTIONS =====================
 
 app.get(`${PREFIX}/campaigns`, async (c) => {
@@ -1206,6 +1408,24 @@ app.post(`${PREFIX}/campaigns`, async (c) => {
           <p style="color:#666;font-size:13px">— The MIXXEA Team</p>
         </div>`
       ).catch(console.error);
+
+      // Notify admin of new campaign request (email + in-platform bell)
+      pushAdminNotif({
+        type: "campaign_submitted",
+        title: "New Campaign Request",
+        message: `${user.name} submitted a "${(body.type||"").replace(/_/g," ")}" campaign`,
+        link: "/admin/campaigns",
+        userEmail: user.email,
+        userId,
+        campaignId: id,
+        details: {
+          "Artist": user.name,
+          "Email": user.email,
+          "Campaign Name": body.name,
+          "Service Type": (body.type||"").replace(/_/g," ").replace(/\b\w/g, (l: string) => l.toUpperCase()),
+          "Credits Held": `${creditCost} ⚡`,
+        },
+      }).catch(console.error);
     }
 
     return c.json({ campaign, newCreditBalance: newCredits });
@@ -1835,6 +2055,25 @@ app.post(`${PREFIX}/tickets`, async (c) => {
       ticketCreatedEmail(user.name, ticketRef, body.subject, body.category || "General")
     ).catch(console.error);
 
+    // Notify admin of new support ticket (email + in-platform bell)
+    pushAdminNotif({
+      type: "ticket_created",
+      title: `New Support Ticket #${ticketRef}`,
+      message: `${user.name} opened a ticket: "${body.subject}"`,
+      link: "/admin/tickets",
+      userEmail: user.email,
+      userId,
+      ticketId: id,
+      details: {
+        "Ticket Ref": `#${ticketRef}`,
+        "User": user.name,
+        "Email": user.email,
+        "Subject": body.subject,
+        "Category": body.category || "General",
+        "Priority": body.priority || "Medium",
+      },
+    }).catch(console.error);
+
     return c.json({ ticket });
   } catch (err) {
     return c.json({ error: `Ticket create error: ${err}` }, 500);
@@ -2376,6 +2615,40 @@ app.delete(`${PREFIX}/team/:memberId`, async (c) => {
 
 const ADMIN_SECRET = Deno.env.get("MIXXEA_ADMIN_SECRET") || "mixxea_admin_2024";
 
+// Admin notification email — set ADMIN_NOTIFICATION_EMAIL env var to receive at a custom address.
+// Falls back to onboarding@mixxea.com (the platform inbox the team already monitors).
+const ADMIN_NOTIFICATION_EMAIL = Deno.env.get("ADMIN_NOTIFICATION_EMAIL") || "onboarding@mixxea.com";
+
+// ── Push an admin notification to KV feed + send admin email ──────────────────
+async function pushAdminNotif(data: {
+  type: string;
+  title: string;
+  message: string;
+  link?: string;
+  details?: Record<string, string>;
+  userEmail?: string;
+  [key: string]: any;
+}): Promise<void> {
+  const now = new Date().toISOString();
+  // 1. Write to KV admin notification feed
+  const notif = { id: generateId(), ...data, read: false, createdAt: now };
+  const anStr = await kv.get("admin_notifications");
+  const aNotifs = anStr ? JSON.parse(anStr) : [];
+  aNotifs.unshift(notif);
+  await kv.set("admin_notifications", JSON.stringify(aNotifs.slice(0, 200)));
+
+  // 2. Send email to admin
+  if (ADMIN_NOTIFICATION_EMAIL) {
+    const ctaBase = "https://www.mixxea.com";
+    const ctaLink = `${ctaBase}${data.link || "/admin"}`;
+    sendEmail(
+      ADMIN_NOTIFICATION_EMAIL,
+      `[MIXXEA Admin] ${data.title}`,
+      adminEventEmail(data.type, data.title, data.message, data.userEmail || "", data.details || {}, ctaLink)
+    ).catch(e => console.log("[Admin Notif Email Error]", e));
+  }
+}
+
 async function verifyAdmin(c: any): Promise<string | null> {
   const userId = await verifyToken(c);
   if (!userId) return null;
@@ -2762,5 +3035,192 @@ app.put(`${PREFIX}/admin/users/:userId`, async (c) => {
 
 // ── Mount all extended features (referral, trial, community, academy, etc.) ──
 app.route('', featuresApp);
+app.route('', adminOpsApp);
+app.route('', spotifyApp);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  OG IMAGE — Branded Open Graph image (1200×630) served as SVG
+// ─────────────────────────────────────────────────────────────────────────────
+app.get(`${PREFIX}/og-image`, (c) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#000000"/>
+      <stop offset="100%" style="stop-color:#0A0A12"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00C4FF"/>
+      <stop offset="33%" style="stop-color:#7B5FFF"/>
+      <stop offset="66%" style="stop-color:#D63DF6"/>
+      <stop offset="100%" style="stop-color:#FF5252"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#7B5FFF"/>
+      <stop offset="100%" style="stop-color:#D63DF6"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="30" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g opacity="0.025">
+    <line x1="0" y1="80" x2="1200" y2="80" stroke="white" stroke-width="1"/>
+    <line x1="0" y1="160" x2="1200" y2="160" stroke="white" stroke-width="1"/>
+    <line x1="0" y1="240" x2="1200" y2="240" stroke="white" stroke-width="1"/>
+    <line x1="0" y1="320" x2="1200" y2="320" stroke="white" stroke-width="1"/>
+    <line x1="0" y1="400" x2="1200" y2="400" stroke="white" stroke-width="1"/>
+    <line x1="0" y1="480" x2="1200" y2="480" stroke="white" stroke-width="1"/>
+    <line x1="0" y1="560" x2="1200" y2="560" stroke="white" stroke-width="1"/>
+    <line x1="80" y1="0" x2="80" y2="630" stroke="white" stroke-width="1"/>
+    <line x1="240" y1="0" x2="240" y2="630" stroke="white" stroke-width="1"/>
+    <line x1="400" y1="0" x2="400" y2="630" stroke="white" stroke-width="1"/>
+    <line x1="560" y1="0" x2="560" y2="630" stroke="white" stroke-width="1"/>
+    <line x1="720" y1="0" x2="720" y2="630" stroke="white" stroke-width="1"/>
+    <line x1="880" y1="0" x2="880" y2="630" stroke="white" stroke-width="1"/>
+    <line x1="1040" y1="0" x2="1040" y2="630" stroke="white" stroke-width="1"/>
+  </g>
+  <ellipse cx="180" cy="315" rx="320" ry="220" fill="#7B5FFF" opacity="0.12" filter="url(#glow)"/>
+  <ellipse cx="1050" cy="315" rx="260" ry="180" fill="#D63DF6" opacity="0.10" filter="url(#glow)"/>
+  <ellipse cx="600" cy="580" rx="400" ry="120" fill="#00C4FF" opacity="0.06" filter="url(#glow)"/>
+  <rect x="0" y="0" width="1200" height="5" fill="url(#accent)"/>
+  <circle cx="980" cy="240" r="160" fill="none" stroke="url(#accent)" stroke-width="1.5" opacity="0.18"/>
+  <circle cx="980" cy="240" r="110" fill="none" stroke="url(#accent)" stroke-width="1" opacity="0.12"/>
+  <circle cx="980" cy="240" r="60" fill="none" stroke="url(#accent)" stroke-width="1" opacity="0.08"/>
+  <circle cx="980" cy="240" r="22" fill="url(#accent)" opacity="0.15"/>
+  <rect x="80" y="68" width="270" height="36" rx="18" fill="rgba(123,95,255,0.15)" stroke="rgba(123,95,255,0.35)" stroke-width="1"/>
+  <text x="215" y="91" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="13" font-weight="700" fill="#D63DF6" text-anchor="middle" letter-spacing="3">MIXXEA PLATFORM</text>
+  <text x="80" y="220" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="124" font-weight="900" fill="url(#textGrad)" letter-spacing="-5">MIXXEA</text>
+  <text x="80" y="288" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="29" font-weight="400" fill="rgba(255,255,255,0.55)" letter-spacing="0.5">Music Distribution &amp; Promotion for Independent Artists</text>
+  <text x="80" y="336" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="21" font-weight="400" fill="rgba(255,255,255,0.28)">The all-in-one platform: Distribute · Promote · Publish · Monetize</text>
+  <rect x="80" y="375" width="580" height="1" fill="rgba(255,255,255,0.08)"/>
+  <rect x="80" y="398" width="108" height="34" rx="17" fill="rgba(29,185,84,0.18)" stroke="rgba(29,185,84,0.35)" stroke-width="1"/>
+  <text x="134" y="420" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="13" font-weight="700" fill="#1DB954" text-anchor="middle">Spotify</text>
+  <rect x="202" y="398" width="128" height="34" rx="17" fill="rgba(252,60,68,0.18)" stroke="rgba(252,60,68,0.35)" stroke-width="1"/>
+  <text x="266" y="420" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="13" font-weight="700" fill="#FC3C44" text-anchor="middle">Apple Music</text>
+  <rect x="344" y="398" width="130" height="34" rx="17" fill="rgba(255,0,0,0.18)" stroke="rgba(255,0,0,0.35)" stroke-width="1"/>
+  <text x="409" y="420" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="13" font-weight="700" fill="#FF4444" text-anchor="middle">YouTube Music</text>
+  <rect x="488" y="398" width="92" height="34" rx="17" fill="rgba(105,201,208,0.18)" stroke="rgba(105,201,208,0.35)" stroke-width="1"/>
+  <text x="534" y="420" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="13" font-weight="700" fill="#69C9D0" text-anchor="middle">TikTok</text>
+  <text x="80" y="500" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="42" font-weight="900" fill="white">150+</text>
+  <text x="80" y="528" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="13" font-weight="500" fill="rgba(255,255,255,0.35)">Platforms</text>
+  <text x="240" y="500" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="42" font-weight="900" fill="white">50K+</text>
+  <text x="240" y="528" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="13" font-weight="500" fill="rgba(255,255,255,0.35)">Artists</text>
+  <text x="390" y="500" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="42" font-weight="900" fill="white">$2M+</text>
+  <text x="390" y="528" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="13" font-weight="500" fill="rgba(255,255,255,0.35)">Royalties Paid</text>
+  <rect x="80" y="554" width="196" height="50" rx="14" fill="url(#accent)"/>
+  <text x="178" y="584" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="17" font-weight="800" fill="white" text-anchor="middle">Get Started Free</text>
+  <text x="1118" y="605" font-family="-apple-system,BlinkMacSystemFont,Helvetica,sans-serif" font-size="19" font-weight="600" fill="rgba(255,255,255,0.22)" text-anchor="end">www.mixxea.com</text>
+  <rect x="0" y="625" width="1200" height="5" fill="url(#accent)" opacity="0.5"/>
+</svg>`;
+  return new Response(svg, {
+    headers: {
+      "Content-Type": "image/svg+xml",
+      "Cache-Control": "public, max-age=86400, stale-while-revalidate=3600",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  SEED STARTER BLOG ARTICLES (admin only) — publishes 3 foundational SEO posts
+// ─────────────────────────────────────────────────────────────────────────────
+app.post(`${PREFIX}/admin/seo/seed-starter-articles`, async (c) => {
+  try {
+    const adminId = await verifyAdmin(c);
+    if (!adminId) return c.json({ error: "Admin access required" }, 403);
+    const now = new Date().toISOString();
+
+    const articles = [
+      {
+        slug: "music-distribution-for-independent-artists-2026",
+        metaTitle: "Music Distribution for Independent Artists in 2026 — Complete Guide | MIXXEA",
+        metaDescription: "Everything independent artists need to know about music distribution in 2026. Get your music on Spotify, Apple Music, TikTok, and 150+ platforms with MIXXEA.",
+        title: "Music Distribution for Independent Artists: The Complete 2026 Guide",
+        targetKeyword: "music distribution for independent artists",
+        secondaryKeywords: ["independent music distribution", "distribute music online", "upload music to spotify", "best music distributor 2026"],
+        h1: "Music Distribution for Independent Artists: The Complete 2026 Guide",
+        h2s: ["What Is Music Distribution and Why Does It Matter?","How Music Distribution Works for Independent Artists","The Top Streaming Platforms in 2026","How to Choose the Right Music Distributor","Step-by-Step: Distribute Your Music with MIXXEA","Music Distribution Costs Explained","Getting on Spotify, Apple Music, and TikTok","Maximising Your Revenue After Distribution","Common Mistakes to Avoid","Frequently Asked Questions"],
+        intro: "Independent music distribution has never been more powerful — or more competitive. In 2026, more than 120,000 tracks are uploaded to Spotify every single day. How you distribute your music can be the difference between invisibility and breakthrough. This guide covers everything: how distribution works, the best platforms, maximising royalties, and the step-by-step process for getting your music on 150+ streaming platforms worldwide.",
+        faqSchema: [
+          { question: "How do independent artists distribute music?", answer: "Independent artists use a distribution service like MIXXEA, which delivers music to Spotify, Apple Music, TikTok, and 150+ platforms globally. You upload your audio, artwork, and metadata, then MIXXEA handles delivery within 24-48 hours." },
+          { question: "How much does music distribution cost?", answer: "MIXXEA offers a free tier with revenue sharing, plus pro plans from $29/year for unlimited releases with 100% royalty retention." },
+          { question: "How long does it take to get music on Spotify?", answer: "Typically 3-7 business days. Submit at least 3 weeks early to be eligible for Spotify editorial playlist consideration." },
+          { question: "Do I keep my rights with music distribution?", answer: "Yes — MIXXEA does not take any ownership of your music. You retain 100% of your master rights." },
+        ],
+        internalLinks: ["/", "/auth"],
+        fullOutlineMarkdown: `# Music Distribution for Independent Artists: The Complete 2026 Guide\n\nIn 2026, 120,000+ tracks are uploaded to Spotify daily. Distribution is the foundation of your music career — here's everything you need to know.\n\n## What Is Music Distribution?\n\nMusic distribution is the process of delivering your music to streaming platforms like Spotify, Apple Music, Amazon Music, TikTok, and YouTube Music. Without a distributor, your music cannot appear on any of these platforms.\n\n## How Distribution Works\n\n1. Upload to MIXXEA (audio WAV/FLAC + 3000×3000px artwork)\n2. Fill in metadata (title, ISRC codes, genre, release date)\n3. MIXXEA delivers to all 150+ platforms within 24-48 hours\n4. Streams generate royalties paid monthly to your account\n\n## Top Platforms in 2026\n\n- Spotify (600M+ users), Apple Music (88M+), Amazon Music (100M+), YouTube Music (80M+), TikTok (1B+), Deezer, Tidal, Pandora\n\n## Choosing the Right Distributor\n\nLook for: 100% royalty retention, editorial pitching support, real-time analytics, publishing admin integration, and transparent pricing with no hidden fees.\n\n## Distribution Cost Breakdown\n\n- Free tier: unlimited releases, revenue share\n- Pro ($29-49/yr): 100% royalties, priority pitching\n- Label plan: custom pricing for 10+ artists\n\n## Maximising Revenue\n\nCollect all revenue streams: streaming royalties, mechanical royalties (via publishing admin), performance royalties (via PRO), sync fees, and YouTube Content ID.\n\n## FAQ\n\n**How do I distribute music as an independent artist?** Sign up at mixxea.com, upload your music, and we deliver it to 150+ platforms within 24-48 hours.\n\n[Start distributing your music free today at MIXXEA](https://www.mixxea.com/auth)`,
+        wordCount: 1580,
+        category: "Music Distribution",
+        featuredSnippet: "Music distribution is the process of delivering your music to streaming platforms like Spotify, Apple Music, and TikTok. Independent artists use a distribution service like MIXXEA to upload their music, which is then automatically delivered to 150+ platforms globally within 24-48 hours.",
+      },
+      {
+        slug: "spotify-playlist-pitching-guide-independent-artists",
+        metaTitle: "Spotify Playlist Pitching: How Independent Artists Get Placements in 2026 | MIXXEA",
+        metaDescription: "Learn how to pitch your music to Spotify editorial and independent playlists in 2026. Step-by-step guide for independent artists to get playlist placements and grow streams.",
+        title: "Spotify Playlist Pitching: The Complete Guide for Independent Artists (2026)",
+        targetKeyword: "spotify playlist pitching service",
+        secondaryKeywords: ["playlist pitching for artists", "how to get on spotify playlists", "spotify editorial playlist", "music promotion service"],
+        h1: "Spotify Playlist Pitching: The Complete Guide for Independent Artists (2026)",
+        h2s: ["Why Spotify Playlist Placement Is the #1 Growth Lever","The Two Types of Spotify Playlists","How to Pitch to Spotify Editorial Playlists","How to Pitch to Independent Curators","What Makes a Perfect Playlist Pitch","The MIXXEA Playlist Pitching Service","Realistic Expectations from Playlist Placements","Building a Playlist Strategy Around Your Release","Red Flags to Avoid","Frequently Asked Questions"],
+        intro: "A placement on a mid-size editorial playlist (100K+ followers) can add 50,000-500,000 streams to a release within the first week. But playlist pitching is more than sending emails — it's a strategic, data-driven process that requires understanding Spotify's algorithm, curator relationships, and your release cycle timing. This guide covers everything: editorial pitches, independent curator outreach, what MIXXEA's service delivers, and how to build a long-term playlist strategy.",
+        faqSchema: [
+          { question: "How do I pitch my music to Spotify playlists?", answer: "Use Spotify for Artists to submit unreleased tracks for editorial consideration at least 7 days before release. For independent playlists, use MIXXEA's pitching service, which reaches 5,000+ active curators with personalised outreach." },
+          { question: "How much does Spotify playlist pitching cost?", answer: "Editorial pitching via Spotify for Artists is free. MIXXEA's independent curator campaigns start from $49, covering outreach to 50-500+ curators." },
+          { question: "Does playlist pitching really work?", answer: "Yes — artists using professional pitching services see 3-10x more streams in the first 30 days compared to artists who don't pitch. The key is targeting genre-relevant playlists." },
+          { question: "How long does it take to get on a Spotify playlist?", answer: "Editorial decisions take 7 days post-submission. Independent curator placements from MIXXEA campaigns typically start within 24-72 hours of launch." },
+        ],
+        internalLinks: ["/", "/auth", "/blog/music-distribution-for-independent-artists-2026"],
+        fullOutlineMarkdown: `# Spotify Playlist Pitching: The Complete Guide for Independent Artists (2026)\n\nPlaylist placement is the #1 growth lever for independent artists on Spotify. Here's the complete system.\n\n## Why Playlists Matter\n\nSpotify's algorithm uses playlist data as a quality signal. Playlist placement → algorithm exposure → more streams → more placements. For independent artists without major label budgets, this compounding cycle is your most efficient growth path.\n\n## The Two Types of Playlists\n\n**Editorial Playlists** (managed by Spotify's team): RapCaviar, New Music Friday, Fresh Finds — millions of followers, career-defining placement.\n\n**Independent/Curator Playlists** (managed by individuals): 1,000-500,000+ followers in every genre. More accessible, still powerful for algorithmic signals.\n\n## How to Pitch Editorial Playlists\n\n1. Distribute through MIXXEA at least 7 days pre-release\n2. In Spotify for Artists → Music → Pitch a Song\n3. Fill in genre, mood, instrumentation, artist story\n4. Submit — Spotify responds within 7 days\n\n## How to Pitch Independent Curators\n\n1. Find relevant playlists in your genre (5K-500K followers)\n2. Find curator contact info (Instagram, SubmitHub, playlist description)\n3. Write a personalised pitch (150-200 words max)\n4. Follow up once after 2 weeks\n\n## MIXXEA Pitching Service\n\nMIXXEA's campaign system pitches 50-5,000+ curators per campaign with personalised outreach. Typical results: 8-25% placement rate, 3-15 new playlist placements per campaign.\n\n## Realistic Results by Playlist Size\n\n- Small (1K-10K followers): 200-2,000 streams\n- Medium (10K-100K followers): 2,000-30,000 streams\n- Large (100K-1M followers): 30,000-300,000 streams\n\n## Release Cycle Strategy\n\n6 weeks out: identify playlists | 3 weeks out: editorial pitch | 2 weeks out: MIXXEA campaign launch | Release day: social activation\n\n## Red Flags\n\nAvoid services promising guaranteed placements, "1M streams for $50" (fake/bot streams), or no transparent reporting.\n\n[Launch your playlist pitching campaign at MIXXEA](https://www.mixxea.com/auth)`,
+        wordCount: 1620,
+        category: "Spotify Growth",
+        featuredSnippet: "To pitch your music to Spotify editorial playlists, submit through Spotify for Artists at least 7 days before release. For independent playlists, MIXXEA's pitching service reaches 5,000+ active curators with personalised outreach, generating 3-15 playlist placements per campaign.",
+      },
+      {
+        slug: "music-marketing-agency-for-independent-artists",
+        metaTitle: "Music Marketing Agency for Independent Artists: What to Look For in 2026 | MIXXEA",
+        metaDescription: "How to choose the right music marketing agency as an independent artist. Spotify promotion, TikTok campaigns, playlist pitching, YouTube ads, and PR explained for 2026.",
+        title: "Music Marketing Agency for Independent Artists: The 2026 Selection Guide",
+        targetKeyword: "music marketing agency for artists",
+        secondaryKeywords: ["music promotion agency", "tiktok music promotion service", "instagram music promotion", "music pr agency", "music marketing for independent artists"],
+        h1: "Music Marketing Agency for Independent Artists: The 2026 Selection Guide",
+        h2s: ["Why Independent Artists Need a Music Marketing Agency","The 5 Core Services a Real Music Agency Provides","Spotify Streaming Growth Campaigns","TikTok Creator Campaigns: The #1 Tool in 2026","Instagram & YouTube Music Promotion","Music PR & Press Coverage","How to Evaluate a Music Marketing Agency","Red Flags: What Bad Agencies Do","MIXXEA's All-in-One Marketing Approach","Building a Long-Term Strategy"],
+        intro: "The music industry is more accessible than ever — and more competitive. With 120,000+ songs uploaded to Spotify daily, great music alone isn't enough. You need a strategic music marketing agency that understands streaming algorithms, social media growth, creator seeding, and data-driven campaigns. This guide breaks down what a music marketing agency should deliver in 2026, how to evaluate agencies before spending, and what MIXXEA's integrated approach delivers for independent artists.",
+        faqSchema: [
+          { question: "Do independent artists need a music marketing agency?", answer: "Professional marketing significantly accelerates growth. Artists who invest in strategic campaigns (Spotify pitching, TikTok creator seeding, IG promotion) typically see 5-20x more streams compared to organic-only strategies." },
+          { question: "How much does music marketing cost for independent artists?", answer: "Campaigns range from $49 for basic playlist pitching to $5,000+/month for full-service promotion. MIXXEA's starter packages begin at $149 combining multiple channels." },
+          { question: "What is TikTok music promotion?", answer: "TikTok music promotion involves paying content creators to use your song in their videos. When multiple creators use a sound simultaneously, TikTok's algorithm amplifies it to millions. MIXXEA places your music with verified genre-relevant creators." },
+          { question: "How long does music promotion take to show results?", answer: "Playlist pitching shows results in 7-14 days. TikTok campaigns show results in 48-72 hours. YouTube ads drive measurable results in 7 days. PR takes 4-8 weeks for major placements." },
+        ],
+        internalLinks: ["/", "/auth", "/blog/spotify-playlist-pitching-guide-independent-artists"],
+        fullOutlineMarkdown: `# Music Marketing Agency for Independent Artists: The 2026 Selection Guide\n\nGreat music is necessary but not sufficient. Here's how to choose and work with a music marketing agency that delivers real results.\n\n## Why Marketing Matters\n\nSpotify and TikTok algorithms are neutral — they promote music that's *already* getting engagement. A marketing agency generates the initial momentum that triggers algorithmic amplification. Done right, $500 in professional promotion can unlock $5,000 worth of algorithmic exposure.\n\n## The 5 Core Services\n\n1. **Spotify & Streaming Promotion** — Playlist pitching, DSP marketing, pre-save campaigns\n2. **TikTok Creator Campaigns** — Genre-relevant creator seeding\n3. **Social Media Growth** — Instagram, YouTube, Facebook ads\n4. **Music PR & Press** — Blog placements, podcast features, press releases\n5. **Publishing & Sync** — Licensing for TV, film, games, advertising\n\n## TikTok in 2026\n\nTikTok is the #1 music discovery platform. Songs that go viral routinely see 500% Spotify stream increases within days. MIXXEA's TikTok campaigns work with 800+ verified creators across all major genres.\n\n## Evaluating an Agency\n\n✅ Show me real campaign results for similar artists\n✅ Prove you use real playlists and real creators (no bots)\n✅ Transparent weekly reporting with stream data and placement links\n✅ Genre specialisation — not "all genres"\n✅ Clear pricing with no hidden fees\n\n## Red Flags\n\n🚩 Guaranteed chart positions | 🚩 "1M streams for $50" | 🚩 No transparent reporting | 🚩 Vague pricing | 🚩 No genre specialisation\n\n## MIXXEA's Integrated Approach\n\nMIXXEA combines distribution + playlist pitching + TikTok campaigns + YouTube ads + publishing in one platform. All channels coordinate around your release window for maximum impact from a single dashboard.\n\n## 12-Month Marketing Framework\n\n- Months 1-3: Establish distribution, grow social to 1,000+, 2-3 singles with small campaigns\n- Months 4-6: Playlist pitching campaign, press outreach\n- Months 7-9: TikTok creator campaign, EP release, YouTube ads\n- Months 10-12: Full album campaign with all channels active\n\n[Start marketing your music professionally with MIXXEA](https://www.mixxea.com/auth)`,
+        wordCount: 1640,
+        category: "Music Marketing Agency",
+        featuredSnippet: "A music marketing agency for independent artists provides Spotify playlist pitching, TikTok creator campaigns, Instagram/YouTube promotion, and PR outreach. Choose agencies with transparent reporting, real (not fake) streams, genre specialisation, and proven results for similar artists.",
+      },
+    ];
+
+    const indexStr = await kv.get("blog:index");
+    const existingIndex: any[] = indexStr ? JSON.parse(indexStr) : [];
+    const published: any[] = [];
+
+    for (const article of articles) {
+      const exists = existingIndex.some((p: any) => p.slug === article.slug);
+      if (exists) { published.push({ slug: article.slug, status: "already_exists" }); continue; }
+      const post = { ...article, status: "published", publishedAt: now, updatedAt: now, cycleId: "starter-seed" };
+      await kv.set(`blog:post:${article.slug}`, JSON.stringify(post));
+      const summary = { slug: article.slug, metaTitle: article.metaTitle, metaDescription: article.metaDescription, title: article.title, targetKeyword: article.targetKeyword, category: article.category, wordCount: article.wordCount, publishedAt: now };
+      existingIndex.unshift(summary);
+      published.push({ slug: article.slug, status: "published" });
+      console.log(`[Blog Seed] Published: ${article.slug}`);
+    }
+
+    await kv.set("blog:index", JSON.stringify(existingIndex));
+    return c.json({ success: true, message: `Seeded ${published.filter(p => p.status === "published").length} starter articles`, articles: published });
+  } catch (err) {
+    console.log("Seed starter articles error:", err);
+    return c.json({ error: `Seed articles error: ${err}` }, 500);
+  }
+});
 
 Deno.serve(app.fetch);

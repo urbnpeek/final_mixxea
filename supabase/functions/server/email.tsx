@@ -679,5 +679,67 @@ export function pitchStatusEmail(
     ${small(`You received this because you submitted a playlist pitch on MIXXEA. Pitch reference: ${artistName} → ${playlistName}`)}
   `;
 
-  return base(content, `Pitch update: "${trackTitle}" → ${playlistName} — ${s.label}`);
+  return base(content, `Pitch update: \"${trackTitle}\" → ${playlistName} — ${s.label}`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TEMPLATE 10 — Admin Event Notification (internal — sent to MIXXEA admin)
+// Types: 'new_signup' | 'campaign_submitted' | 'ticket_created' | 'release_submitted'
+// ═══════════════════════════════════════════════════════════════════════════════
+export function adminEventEmail(
+  eventType: 'new_signup' | 'campaign_submitted' | 'ticket_created' | 'release_submitted' | string,
+  title: string,
+  message: string,
+  userEmail: string,
+  details: Record<string, string>,
+  ctaLink: string
+): string {
+  const typeConfig: Record<string, { emoji: string; color: string; badge: string }> = {
+    new_signup:          { emoji: '🎉', color: '#00C4FF', badge: 'NEW SIGNUP'         },
+    campaign_submitted:  { emoji: '🎯', color: '#F59E0B', badge: 'CAMPAIGN REQUEST'   },
+    ticket_created:      { emoji: '🎫', color: '#D63DF6', badge: 'SUPPORT TICKET'     },
+    release_submitted:   { emoji: '🎵', color: '#7B5FFF', badge: 'RELEASE SUBMITTED'  },
+    pitch_submitted:     { emoji: '🎸', color: '#10B981', badge: 'PITCH REQUEST'      },
+    order_created:       { emoji: '📦', color: '#FF5252', badge: 'NEW ORDER'          },
+  };
+  const cfg = typeConfig[eventType] || { emoji: '🔔', color: '#7B5FFF', badge: 'ADMIN ALERT' };
+
+  const detailRows = Object.entries(details)
+    .map(([k, v]) => infoRow(k, v))
+    .join('');
+
+  const content = `
+    <!-- Alert header bar -->
+    <div style="background:${cfg.color}18;border:1px solid ${cfg.color}30;border-radius:14px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:16px;">
+      <div style="font-size:36px;flex-shrink:0;">${cfg.emoji}</div>
+      <div>
+        <div style="display:inline-block;background:${cfg.color}22;border:1px solid ${cfg.color}44;color:${cfg.color};font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">${cfg.badge}</div>
+        <div style="color:#ffffff;font-size:18px;font-weight:800;line-height:1.3;">${title}</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:4px;">${message}</div>
+      </div>
+    </div>
+
+    ${gradientLine()}
+
+    <!-- Event Details -->
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:24px;margin-bottom:24px;">
+      ${h2('Event Details')}
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-top:12px;">
+        ${infoRow('Event', cfg.badge)}
+        ${infoRow('Timestamp', new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' }))}
+        ${detailRows}
+      </table>
+    </div>
+
+    <!-- Quick action -->
+    ${ctaBtn('🔍 View in Admin Panel →', ctaLink || 'https://mixxea.com/admin')}
+
+    ${gradientLine()}
+
+    <div style="background:rgba(123,95,255,0.06);border-left:3px solid #7B5FFF;border-radius:0 10px 10px 0;padding:14px 18px;">
+      ${small('This is an automated admin alert from MIXXEA. Only admin accounts receive these notifications. To manage notification preferences, visit your admin settings.')}
+    </div>
+  `;
+
+  return base(content, `[MIXXEA Admin] ${cfg.badge}: ${message}`);
 }

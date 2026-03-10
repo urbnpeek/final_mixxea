@@ -1,4 +1,4 @@
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId, publicAnonKey } from '../../../../utils/supabase/info';
 
 const BASE = `https://${projectId}.supabase.co/functions/v1/make-server-f4d1ffe4`;
 
@@ -41,7 +41,7 @@ export const updateProfile = (token: string, d: any) => req('PUT', '/profile', d
 // ──── Plan ────────────────────────────────────────────────────────────────────
 export const upgradePlan = (token: string, plan: string) => req('POST', '/plan/upgrade', { plan }, token);
 
-// ──── Onboarding ─────────────────────────────────────────────────────────���───
+// ──── Onboarding ────────────────────────────────────────────────────────────
 export const completeOnboarding = (token: string, d: any) => req('POST', '/onboarding/complete', d, token);
 
 // ──── Releases ────────────────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ export const getCampaigns   = (token: string) => req('GET', '/campaigns', undefi
 export const createCampaign = (token: string, d: any) => req('POST', '/campaigns', d, token);
 export const updateCampaign = (token: string, id: string, d: any) => req('PUT', `/campaigns/${id}`, d, token);
 
-// ──── Works ─────────────────────────────────────────────────────────────���─────
+// ──── Works ──────────────────────────────────────────────────────────────────
 export const getWorks   = (token: string) => req('GET', '/works', undefined, token);
 export const createWork = (token: string, d: any) => req('POST', '/works', d, token);
 export const updateWork = (token: string, id: string, d: any) => req('PUT', `/works/${id}`, d, token);
@@ -70,7 +70,7 @@ export const getSmartPage      = (token: string) => req('GET', '/smart-page', un
 export const updateSmartPage   = (token: string, d: any) => req('PUT', '/smart-page', d, token);
 export const getSmartPageStats = (token: string) => req('GET', '/smart-page/stats', undefined, token);
 
-// ──── Credits ─────────────────────────────────────────────────────────────────
+// ──── Credits ────────────────────────────────────────────────────────────────
 export const getCredits           = (token: string) => req('GET', '/credits', undefined, token);
 export const purchaseCredits      = (token: string, d: { amount: number; packageName: string }) => req('POST', '/credits/purchase', d, token);
 export const createStripeCheckout = (token: string, d: { packageId: string; successUrl: string; cancelUrl: string }) => req('POST', '/credits/create-checkout', d, token);
@@ -107,7 +107,7 @@ export const getTeam          = (token: string) => req('GET', '/team', undefined
 export const inviteTeamMember = (token: string, email: string, artistName: string) => req('POST', '/team/invite', { email, artistName }, token);
 export const removeTeamMember = (token: string, memberId: string) => req('DELETE', `/team/${memberId}`, undefined, token);
 
-// ──── Admin ───────────────────────────────────────────────────────────────────
+// ───��� Admin ───────────────────────────────────────────────────────────────────
 export const adminBootstrap      = (email: string, adminSecret: string) => req('POST', '/admin/bootstrap', { email, adminSecret });
 export const adminGetStats       = (token: string) => req('GET', '/admin/stats', undefined, token);
 export const adminGetTickets     = (token: string) => req('GET', '/admin/tickets', undefined, token);
@@ -126,6 +126,7 @@ export const adminGetReleases        = (token: string) => req('GET', '/admin/rel
 export const adminUpdateRelease      = (token: string, id: string, d: any) => req('PUT', `/admin/releases/${id}`, d, token);
 export const adminGetNotifications   = (token: string) => req('GET', '/admin/notifications', undefined, token);
 export const adminReadNotifications  = (token: string, ids?: string[]) => req('POST', '/admin/notifications/read', { ids: ids || [] }, token);
+export const adminDeleteNotification = (token: string, notifId: string) => req('DELETE', `/admin/notifications/${notifId}`, undefined, token);
 
 // ──── User Notifications ───────────────────────────────────────────────────────
 export const getNotifications  = (token: string) => req('GET', '/notifications', undefined, token);
@@ -179,7 +180,7 @@ export const createABTest     = (token: string, data: any) => req('POST', '/admi
 export const updateABTest     = (token: string, id: string, data: any) => req('PUT', `/admin/ab-tests/${id}`, data, token);
 export const recordABEvent    = (testId: string, variant: string, event: string) => req('POST', '/ab-tests/event', { testId, variant, event });
 
-// ──── Feature 11: Community ──────────────────────────────────────────────────
+// ──── Feature 11: Community ─────────────────────────────────────────────────
 export const getCommunityPosts   = (token: string) => req('GET', '/community/posts', undefined, token);
 export const createCommunityPost = (token: string, data: any) => req('POST', '/community/posts', data, token);
 export const likePost            = (token: string, postId: string) => req('POST', `/community/posts/${postId}/like`, {}, token);
@@ -207,5 +208,117 @@ export const setup2FA        = (token: string) => req('POST', '/auth/2fa/setup',
 export const confirm2FA      = (token: string, code: string) => req('POST', '/auth/2fa/confirm', { code }, token);
 export const disable2FA      = (token: string, code: string) => req('DELETE', '/auth/2fa/disable', { code }, token);
 
-// ──── Feature 18: Win Notifications ─────────────────────────────────────────
+// ──── Feature 18: Win Notifications ───────────────���─────────────────────────
 export const checkMilestones = (token: string, totalStreams: number) => req('POST', '/campaigns/check-milestones', { totalStreams }, token);
+
+// ──── Admin Ops: Orders Queue ─────────────────────────────────────────────────
+export const adminGetOrders         = (token: string) => req('GET', '/admin/orders', undefined, token);
+export const adminGetOrderChecklist = (token: string, id: string) => req('GET', `/admin/orders/${id}/checklist`, undefined, token);
+export const adminUpdateChecklist   = (token: string, id: string, d: any) => req('PUT', `/admin/orders/${id}/checklist`, d, token);
+export const adminGetActivity       = (token: string, id: string) => req('GET', `/admin/orders/${id}/activity`, undefined, token);
+export const adminLogActivity       = (token: string, id: string, d: any) => req('POST', `/admin/orders/${id}/activity`, d, token);
+
+// ──── Admin Ops: Pitches ──────────────────────────────────────────────────────
+export const adminGetAllPitches    = (token: string) => req('GET', '/admin/pitches', undefined, token);
+export const adminUpdatePitchStatus = (token: string, id: string, d: any) => req('PUT', `/admin/pitches/${id}`, d, token);
+
+// ──── Admin Ops: Curator Network ──────────────────────────────────────────────
+export const adminGetCuratorsNetwork    = (token: string) => req('GET', '/admin/curators-network', undefined, token);
+export const adminAddCuratorNetwork     = (token: string, d: any) => req('POST', '/admin/curators-network', d, token);
+export const adminUpdateCuratorNetwork  = (token: string, id: string, d: any) => req('PUT', `/admin/curators-network/${id}`, d, token);
+export const adminDeleteCuratorNetwork  = (token: string, id: string) => req('DELETE', `/admin/curators-network/${id}`, undefined, token);
+
+// ──── Admin Ops: Placements ───────────────────────────────────────────────────
+export const adminGetPlacements    = (token: string) => req('GET', '/admin/placements', undefined, token);
+export const adminCreatePlacement  = (token: string, d: any) => req('POST', '/admin/placements', d, token);
+
+// ──── Admin Ops: Announcements ────────────────────────────────────────────────
+export const adminGetAnnouncements    = (token: string) => req('GET', '/admin/announcements', undefined, token);
+export const adminCreateAnnouncement  = (token: string, d: any) => req('POST', '/admin/announcements', d, token);
+export const adminUpdateAnnouncement  = (token: string, id: string, d: any) => req('PUT', `/admin/announcements/${id}`, d, token);
+export const adminDeleteAnnouncement  = (token: string, id: string) => req('DELETE', `/admin/announcements/${id}`, undefined, token);
+export const getActiveAnnouncement    = () => req('GET', '/announcements/active');
+
+// ──── Admin Ops: Promo Codes ──────────────────────────────────────────────────
+export const adminGetPromoCodes    = (token: string) => req('GET', '/admin/promo-codes', undefined, token);
+export const adminCreatePromoCode  = (token: string, d: any) => req('POST', '/admin/promo-codes', d, token);
+export const adminDeletePromoCode  = (token: string, code: string) => req('DELETE', `/admin/promo-codes/${code}`, undefined, token);
+export const validatePromoCode     = (code: string) => req('GET', `/promo-codes/${code}/validate`);
+
+// ──── Admin Ops: Website Content ──────────────────────────────────────────────
+export const adminGetWebsiteContent    = (token: string) => req('GET', '/admin/website-content', undefined, token);
+export const adminUpdateWebsiteContent = (token: string, d: any) => req('PUT', '/admin/website-content', d, token);
+export const getWebsiteContent         = () => req('GET', '/website-content');
+
+// ──── Admin Ops: Client Reports ───────────────────────────────────────────────
+export const adminGetReports    = (token: string) => req('GET', '/admin/reports', undefined, token);
+export const adminCreateReport  = (token: string, d: any) => req('POST', '/admin/reports', d, token);
+export const adminGetReport     = (token: string, id: string) => req('GET', `/admin/reports/${id}`, undefined, token);
+export const adminSendReport    = (token: string, id: string) => req('POST', `/admin/reports/${id}/send`, {}, token);
+export const getPublicReport    = (shareToken: string) => req('GET', `/reports/${shareToken}`);
+
+// ──── Admin Ops: Marketing Email ──────────────────────────────────────────────
+export const adminSendMarketingEmail = (token: string, d: any) => req('POST', '/admin/marketing/email', d, token);
+
+// ──── Admin Ops: Revenue ──────────────────────────────────────────────────────
+export const adminGetRevenue = (token: string) => req('GET', '/admin/revenue', undefined, token);
+
+// ──── Admin Ops: Push Notify ──────────────────────────────────────────────────
+export const adminPushNotify = (token: string, d: any) => req('POST', '/admin/notify', d, token);
+
+// ──── Admin: Creator Network (multi-platform) ──────────────────────────────
+export const adminGetCreatorNetwork    = (token: string) => req('GET', '/admin/creator-network', undefined, token);
+export const adminAddCreator           = (token: string, d: any) => req('POST', '/admin/creator-network', d, token);
+export const adminUpdateCreator        = (token: string, id: string, d: any) => req('PUT', `/admin/creator-network/${id}`, d, token);
+export const adminDeleteCreator        = (token: string, id: string) => req('DELETE', `/admin/creator-network/${id}`, undefined, token);
+
+// ──── Admin: Ad Campaign Runner ──────────────────────────────────────────
+export const adminGetAdCampaigns        = (token: string) => req('GET', '/admin/ad-campaigns', undefined, token);
+export const adminCreateAdCampaign      = (token: string, d: any) => req('POST', '/admin/ad-campaigns', d, token);
+export const adminUpdateAdCampaign      = (token: string, id: string, d: any) => req('PUT', `/admin/ad-campaigns/${id}`, d, token);
+export const adminUpdateAdPerformance   = (token: string, id: string, d: any) => req('PUT', `/admin/ad-campaigns/${id}/performance`, d, token);
+export const adminDeleteAdCampaign      = (token: string, id: string) => req('DELETE', `/admin/ad-campaigns/${id}`, undefined, token);
+
+// ──── Spotify API (admin only) ─────────────────────────────────────────────
+export const spotifySearch              = (token: string, q: string, limit = 20, offset = 0, market = 'US') =>
+  req('GET', `/spotify/search?q=${encodeURIComponent(q)}&limit=${limit}&offset=${offset}&market=${market}`, undefined, token);
+export const spotifyGetPlaylist         = (token: string, id: string) =>
+  req('GET', `/spotify/playlist/${encodeURIComponent(id)}`, undefined, token);
+export const spotifyGetUserPlaylists    = (token: string, userId: string, limit = 50, offset = 0) =>
+  req('GET', `/spotify/user/${encodeURIComponent(userId)}/playlists?limit=${limit}&offset=${offset}`, undefined, token);
+export const spotifyGetCategories       = (token: string, country = 'US') =>
+  req('GET', `/spotify/categories?country=${country}&limit=50`, undefined, token);
+export const spotifyGetCategoryPlaylists= (token: string, categoryId: string, limit = 20, offset = 0, country = 'US') =>
+  req('GET', `/spotify/category/${encodeURIComponent(categoryId)}/playlists?country=${country}&limit=${limit}&offset=${offset}`, undefined, token);
+export const spotifyImport              = (token: string, playlists: any[], overrideCostPerPlacement = 0) =>
+  req('POST', '/spotify/import', { playlists, overrideCostPerPlacement }, token);
+export const spotifyRefreshCreator      = (token: string, creatorId: string) =>
+  req('PUT', `/spotify/refresh/${creatorId}`, {}, token);
+
+// ──── Admin: Enhanced User Management ─────────────────────────────────────────
+export const adminGetUserProfile     = (token: string, userId: string) => req('GET', `/admin/users/${userId}/profile`, undefined, token);
+export const adminSuspendUser        = (token: string, userId: string, d: { suspended: boolean; reason?: string }) => req('PUT', `/admin/users/${userId}/suspend`, d, token);
+export const adminChangeUserPlan     = (token: string, userId: string, d: { plan: string; reason?: string }) => req('PUT', `/admin/users/${userId}/plan`, d, token);
+export const adminDeleteUser         = (token: string, userId: string) => req('DELETE', `/admin/users/${userId}`, undefined, token);
+export const adminEmailUser          = (token: string, userId: string, d: { subject: string; message: string }) => req('POST', `/admin/users/${userId}/email`, d, token);
+export const adminAddUserNote        = (token: string, userId: string, d: { note: string; tag?: string }) => req('POST', `/admin/users/${userId}/note`, d, token);
+export const adminExportUsers        = (token: string) => req('GET', '/admin/users/export', undefined, token);
+
+// ──── Admin: Release Detail & Notes ───────────────────────────────────────────
+export const adminGetRelease        = (token: string, releaseId: string) => req('GET', `/admin/releases/${releaseId}`, undefined, token);
+export const adminAddReleaseNote    = (token: string, releaseId: string, d: { text: string; tag?: string }) => req('POST', `/admin/releases/${releaseId}/note`, d, token);
+export const adminUpdateReleaseAmp  = (token: string, releaseId: string, ampsuite: any) => req('PUT', `/admin/releases/${releaseId}`, { ampsuite }, token);
+
+// ──── Admin: Global Search ────────────────────────────────────────────────────
+export const adminGlobalSearch       = (token: string, q: string) => req('GET', `/admin/search?q=${encodeURIComponent(q)}`, undefined, token);
+
+// ──���─ Admin: Audit Log ───────────────────────────────────────────────────────
+export const adminGetAuditLog        = (token: string) => req('GET', '/admin/audit-log', undefined, token);
+export const adminLogAction          = (token: string, d: { action: string; meta?: any }) => req('POST', '/admin/audit-log', d, token);
+
+// ──── Admin: Platform Settings ────────────────────────────────────────────────
+export const adminGetPlatformSettings   = (token: string) => req('GET', '/admin/platform-settings', undefined, token);
+export const adminUpdatePlatformSettings = (token: string, d: any) => req('PUT', '/admin/platform-settings', d, token);
+
+// ──── Admin: System Health ────────────────────────────────────────────────────
+export const adminGetSystemHealth    = (token: string) => req('GET', '/admin/system-health', undefined, token);

@@ -160,11 +160,19 @@ export function DashboardLayout() {
       return;
     }
 
+    // Admin users who land on /dashboard get redirected to the admin panel
+    if (user?.isAdmin) {
+      navigate('/admin', { replace: true });
+      return;
+    }
+
     // Verify the stored token is still accepted by the server.
     api.verifyToken(token)
       .then(({ user: u }) => {
         // Token is valid — nothing to do (user is already set in AuthContext)
         if (!u) throw new Error('no user returned');
+        // If the freshly-verified user is admin, redirect
+        if (u.isAdmin) navigate('/admin', { replace: true });
       })
       .catch(() => {
         // Token rejected → clear session and redirect

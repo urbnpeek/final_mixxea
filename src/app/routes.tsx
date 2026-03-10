@@ -18,12 +18,18 @@ import { PlaylistMarketplacePage } from './components/dashboard/PlaylistMarketpl
 import { TeamPage } from './components/dashboard/TeamPage';
 import { PublicSmartPage } from './components/dashboard/PublicSmartPage';
 import { AdminLayout } from './components/admin/AdminLayout';
-import { AdminOverview } from './components/admin/AdminOverview';
+import { AdminCommandCenter } from './components/admin/AdminCommandCenter';
+import { AdminOrdersQueue } from './components/admin/AdminOrdersQueue';
+import { AdminPitchManager } from './components/admin/AdminPitchManager';
 import { AdminTickets } from './components/admin/AdminTickets';
 import { AdminCampaigns } from './components/admin/AdminCampaigns';
 import { AdminUsers } from './components/admin/AdminUsers';
 import { AdminBootstrap } from './components/admin/AdminBootstrap';
 import { AdminReleases } from './components/admin/AdminReleases';
+import { AdminWebsiteControl } from './components/admin/AdminWebsiteControl';
+import { AdminMarketingCenter } from './components/admin/AdminMarketingCenter';
+import { AdminRevenueCenter } from './components/admin/AdminRevenueCenter';
+import { AdminReports } from './components/admin/AdminReports';
 import { TrackingDocs } from './components/tracking/TrackingDocs';
 import { SEODashboard } from './components/seo/SEODashboard';
 import { DailySEOManager } from './components/seo/DailySEOManager';
@@ -39,6 +45,12 @@ import { AcademyPage } from './components/dashboard/AcademyPage';
 import { StatusPage } from './components/StatusPage';
 import { AdminABTests } from './components/admin/AdminABTests';
 import { AdminCompetitorSpy } from './components/admin/AdminCompetitorSpy';
+import { AdminCreatorNetwork } from './components/admin/AdminCreatorNetwork';
+import { AdminCampaignRunner } from './components/admin/AdminCampaignRunner';
+import { AdminNotifications } from './components/admin/AdminNotifications';
+import { AdminPlatformSettings } from './components/admin/AdminPlatformSettings';
+import { AdminAuditLog } from './components/admin/AdminAuditLog';
+import { AdminReleaseDetail } from './components/admin/AdminReleaseDetail';
 
 export const router = createBrowserRouter([
   {
@@ -78,16 +90,28 @@ export const router = createBrowserRouter([
         path: '/admin',
         Component: AdminLayout,
         children: [
-          { index: true,             Component: AdminOverview },
+          { index: true,             Component: AdminCommandCenter },
+          { path: 'orders',          Component: AdminOrdersQueue },
+          { path: 'pitches',         Component: AdminPitchManager },
           { path: 'releases',        Component: AdminReleases },
-          { path: 'tickets',         Component: AdminTickets },
+          { path: 'releases/:releaseId', Component: AdminReleaseDetail },
           { path: 'campaigns',       Component: AdminCampaigns },
+          { path: 'campaign-runner', Component: AdminCampaignRunner },
+          { path: 'creator-network', Component: AdminCreatorNetwork },
           { path: 'users',           Component: AdminUsers },
+          { path: 'tickets',         Component: AdminTickets },
+          { path: 'reports',         Component: AdminReports },
+          { path: 'revenue',         Component: AdminRevenueCenter },
+          { path: 'marketing',       Component: AdminMarketingCenter },
+          { path: 'website',         Component: AdminWebsiteControl },
           { path: 'tracking',        Component: TrackingDocs },
           { path: 'seo',             Component: SEODashboard },
           { path: 'seo/daily',       Component: DailySEOManager },
           { path: 'seo/competitors', Component: AdminCompetitorSpy },
           { path: 'ab-tests',        Component: AdminABTests },
+          { path: 'notifications',   Component: AdminNotifications },
+          { path: 'platform-settings', Component: AdminPlatformSettings },
+          { path: 'audit-log',       Component: AdminAuditLog },
         ],
       },
       { path: '/status',     Component: StatusPage },

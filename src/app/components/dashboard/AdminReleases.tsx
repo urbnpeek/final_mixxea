@@ -5,7 +5,7 @@ import * as api from '../dashboard/api';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router';
 import {
-  Music, Search, RefreshCw, User, Headphones, X, Save, CircleAlert,
+  Music, Search, RefreshCw, User, Headphones, X, Save, AlertCircle,
   ChevronDown, ChevronUp, ExternalLink, Disc, Radio, Clock,
 } from 'lucide-react';
 import { STATUS_MAP, STORES, computeCompleteness, getStatusCfg } from '../dashboard/releaseConstants';
