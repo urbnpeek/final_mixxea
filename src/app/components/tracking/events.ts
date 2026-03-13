@@ -11,6 +11,7 @@
  *   ✅ Google Analytics 4  (gtag custom events)
  *   ✅ Meta Pixel           (fbq standard + custom events)
  *   ✅ TikTok Pixel         (ttq standard + custom events)
+ *   ✅ Spotify Pixel        (spdt standard + custom events)
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -126,4 +127,49 @@ export const TIKTOK_EVENT_MAP: Partial<Record<EventName, string>> = {
   [EVENTS.BEGIN_CHECKOUT]:     'InitiateCheckout',
   [EVENTS.PURCHASE]:           'CompletePayment',
   [EVENTS.SIGN_UP]:            'CompleteRegistration',
+};
+
+// ─── Event → Spotify Pixel event mapping ─────────────────────────────────────
+// Spotify supports three event types: view (page), product, lead
+// https://ads.spotify.com/en-US/advertising-features/spotify-pixel/
+//
+// • 'product' → user views/interacts with a purchasable product/service
+// • 'lead'    → user submits a form or signs up (lead capture)
+// (page views are fired via spdt('view') automatically in trackPageView)
+
+export type SpotifyEventType = 'product' | 'lead';
+
+export interface SpotifyProductParams {
+  value?: number;
+  currency?: string;
+  product_id?: string;
+  product_name?: string;
+  product_type?: string;
+  product_vendor?: string;
+  event_id: string;
+}
+
+export interface SpotifyLeadParams {
+  type?: string;
+  category?: string;
+  currency?: string;
+  value?: number;
+  event_id: string;
+}
+
+/** Maps MIXXEA events to Spotify 'product' events */
+export const SPOTIFY_PRODUCT_MAP: Partial<Record<EventName, Partial<SpotifyProductParams>>> = {
+  [EVENTS.VIEW_CREDITS]:    { product_name: 'MIXXEA Credits', product_type: 'credits', product_vendor: 'MIXXEA' },
+  [EVENTS.VIEW_PRICING]:    { product_name: 'MIXXEA Plan',    product_type: 'subscription', product_vendor: 'MIXXEA' },
+  [EVENTS.SELECT_PLAN]:     { product_name: 'MIXXEA Plan',    product_type: 'subscription', product_vendor: 'MIXXEA' },
+  [EVENTS.SELECT_CAMPAIGN]: { product_name: 'MIXXEA Campaign',product_type: 'promotion', product_vendor: 'MIXXEA' },
+  [EVENTS.BEGIN_CHECKOUT]:  { product_name: 'MIXXEA Credits', product_type: 'credits', product_vendor: 'MIXXEA' },
+  [EVENTS.PURCHASE]:        { product_name: 'MIXXEA Credits', product_type: 'credits', product_vendor: 'MIXXEA' },
+};
+
+/** Maps MIXXEA events to Spotify 'lead' events */
+export const SPOTIFY_LEAD_MAP: Partial<Record<EventName, Partial<SpotifyLeadParams>>> = {
+  [EVENTS.SIGN_UP]:   { type: 'registration', category: 'account' },
+  [EVENTS.LOGIN]:     { type: 'login',         category: 'account' },
+  [EVENTS.OPEN_TICKET]: { type: 'support',    category: 'engagement' },
 };

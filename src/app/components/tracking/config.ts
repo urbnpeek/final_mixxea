@@ -28,6 +28,14 @@ export const TRACKING_CONFIG = {
     pixelId: 'XXXXXXXXXXXXXXXXXX',
     enabled: true,
   },
+  spotifyPixel: {
+    /**
+     * Spotify Ads Pixel Key — from Spotify Ads Manager → Pixel → Base Code
+     * https://ads.spotify.com → Measurement → Spotify Pixel
+     */
+    pixelKey: '56f93126d3f24998a017b821c6cfed0e',
+    enabled: true,
+  },
 } as const;
 
 /** localStorage key used to persist consent decisions */

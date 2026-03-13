@@ -131,29 +131,29 @@ function PixelStatusRow({ name, id, status, docs }: {
 
 // ─── Event catalog ────────────────────────────────────────────────────────────
 
-const EVENT_MAP: { name: string; event: string; trigger: string; ga4: boolean; meta: boolean; tiktok: boolean }[] = [
-  { name: 'Page View',           event: EVENTS.PAGE_VIEW,           trigger: 'Every route change (auto)',           ga4: true,  meta: true,  tiktok: true  },
-  { name: 'Sign Up',             event: EVENTS.SIGN_UP,             trigger: '/auth → signup success',             ga4: true,  meta: true,  tiktok: true  },
-  { name: 'Login',               event: EVENTS.LOGIN,               trigger: '/auth → login success',              ga4: true,  meta: false, tiktok: false },
-  { name: 'View Pricing',        event: EVENTS.VIEW_PRICING,        trigger: 'Pricing section mounts',             ga4: true,  meta: true,  tiktok: true  },
-  { name: 'Select Plan',         event: EVENTS.SELECT_PLAN,         trigger: 'Plan CTA clicked',                   ga4: true,  meta: true,  tiktok: true  },
-  { name: 'Hero CTA Click',      event: EVENTS.HERO_CTA_CLICK,      trigger: '"Get Started Free" clicked',         ga4: true,  meta: false, tiktok: false },
-  { name: 'View Campaigns',      event: EVENTS.VIEW_CAMPAIGNS,      trigger: '/dashboard/promotions mounts',       ga4: true,  meta: false, tiktok: false },
-  { name: 'Select Campaign',     event: EVENTS.SELECT_CAMPAIGN,     trigger: 'Campaign type selected',             ga4: true,  meta: true,  tiktok: true  },
-  { name: 'Add To Cart',         event: EVENTS.ADD_TO_CART,         trigger: 'Campaign added to order',            ga4: true,  meta: true,  tiktok: true  },
-  { name: 'View Credits',        event: EVENTS.VIEW_CREDITS,        trigger: '/dashboard/credits mounts',          ga4: true,  meta: false, tiktok: false },
-  { name: 'Begin Checkout',      event: EVENTS.BEGIN_CHECKOUT,      trigger: 'Credit/plan checkout initiated',     ga4: true,  meta: true,  tiktok: true  },
-  { name: 'Purchase',            event: EVENTS.PURCHASE,            trigger: 'Stripe webhook → invoice.paid',      ga4: true,  meta: true,  tiktok: true  },
-  { name: 'Payment Failed',      event: EVENTS.PAYMENT_FAILED,      trigger: 'Stripe webhook → payment_failed',    ga4: true,  meta: false, tiktok: false },
-  { name: 'Distribution Start',  event: EVENTS.DISTRIBUTION_START,  trigger: 'Release upload started',             ga4: true,  meta: false, tiktok: false },
-  { name: 'Distribution Submit', event: EVENTS.DISTRIBUTION_SUBMIT, trigger: 'Release submitted',                  ga4: true,  meta: false, tiktok: false },
-  { name: 'View Publishing',     event: EVENTS.VIEW_PUBLISHING,     trigger: '/dashboard/publishing mounts',       ga4: true,  meta: false, tiktok: false },
-  { name: 'View Analytics',      event: EVENTS.VIEW_ANALYTICS,      trigger: '/dashboard/analytics mounts',        ga4: true,  meta: false, tiktok: false },
-  { name: 'Smart Page View',     event: EVENTS.SMART_PAGE_VIEW,     trigger: '/p/:slug public page loads',         ga4: true,  meta: true,  tiktok: false },
-  { name: 'View Marketplace',    event: EVENTS.VIEW_MARKETPLACE,    trigger: '/dashboard/marketplace mounts',      ga4: true,  meta: true,  tiktok: false },
-  { name: 'Pitch Playlist',      event: EVENTS.PITCH_PLAYLIST,      trigger: 'Playlist pitch submitted',           ga4: true,  meta: false, tiktok: false },
-  { name: 'Create Split',        event: EVENTS.CREATE_SPLIT,        trigger: 'Royalty split created',              ga4: true,  meta: false, tiktok: false },
-  { name: 'Open Ticket',         event: EVENTS.OPEN_TICKET,         trigger: 'Support ticket opened',              ga4: true,  meta: false, tiktok: false },
+const EVENT_MAP: { name: string; event: string; trigger: string; ga4: boolean; meta: boolean; tiktok: boolean; spotify: boolean }[] = [
+  { name: 'Page View',           event: EVENTS.PAGE_VIEW,           trigger: 'Every route change (auto)',           ga4: true,  meta: true,  tiktok: true,  spotify: true  },
+  { name: 'Sign Up',             event: EVENTS.SIGN_UP,             trigger: '/auth → signup success',             ga4: true,  meta: true,  tiktok: true,  spotify: true  },
+  { name: 'Login',               event: EVENTS.LOGIN,               trigger: '/auth → login success',              ga4: true,  meta: false, tiktok: false, spotify: true  },
+  { name: 'View Pricing',        event: EVENTS.VIEW_PRICING,        trigger: 'Pricing section mounts',             ga4: true,  meta: true,  tiktok: true,  spotify: true  },
+  { name: 'Select Plan',         event: EVENTS.SELECT_PLAN,         trigger: 'Plan CTA clicked',                   ga4: true,  meta: true,  tiktok: true,  spotify: true  },
+  { name: 'Hero CTA Click',      event: EVENTS.HERO_CTA_CLICK,      trigger: '"Get Started Free" clicked',         ga4: true,  meta: false, tiktok: false, spotify: false },
+  { name: 'View Campaigns',      event: EVENTS.VIEW_CAMPAIGNS,      trigger: '/dashboard/promotions mounts',       ga4: true,  meta: false, tiktok: false, spotify: false },
+  { name: 'Select Campaign',     event: EVENTS.SELECT_CAMPAIGN,     trigger: 'Campaign type selected',             ga4: true,  meta: true,  tiktok: true,  spotify: true  },
+  { name: 'Add To Cart',         event: EVENTS.ADD_TO_CART,         trigger: 'Campaign added to order',            ga4: true,  meta: true,  tiktok: true,  spotify: false },
+  { name: 'View Credits',        event: EVENTS.VIEW_CREDITS,        trigger: '/dashboard/credits mounts',          ga4: true,  meta: false, tiktok: false, spotify: true  },
+  { name: 'Begin Checkout',      event: EVENTS.BEGIN_CHECKOUT,      trigger: 'Credit/plan checkout initiated',     ga4: true,  meta: true,  tiktok: true,  spotify: true  },
+  { name: 'Purchase',            event: EVENTS.PURCHASE,            trigger: 'Stripe webhook → invoice.paid',      ga4: true,  meta: true,  tiktok: true,  spotify: true  },
+  { name: 'Payment Failed',      event: EVENTS.PAYMENT_FAILED,      trigger: 'Stripe webhook → payment_failed',    ga4: true,  meta: false, tiktok: false, spotify: false },
+  { name: 'Distribution Start',  event: EVENTS.DISTRIBUTION_START,  trigger: 'Release upload started',             ga4: true,  meta: false, tiktok: false, spotify: false },
+  { name: 'Distribution Submit', event: EVENTS.DISTRIBUTION_SUBMIT, trigger: 'Release submitted',                  ga4: true,  meta: false, tiktok: false, spotify: false },
+  { name: 'View Publishing',     event: EVENTS.VIEW_PUBLISHING,     trigger: '/dashboard/publishing mounts',       ga4: true,  meta: false, tiktok: false, spotify: false },
+  { name: 'View Analytics',      event: EVENTS.VIEW_ANALYTICS,      trigger: '/dashboard/analytics mounts',        ga4: true,  meta: false, tiktok: false, spotify: false },
+  { name: 'Smart Page View',     event: EVENTS.SMART_PAGE_VIEW,     trigger: '/p/:slug public page loads',         ga4: true,  meta: true,  tiktok: false, spotify: false },
+  { name: 'View Marketplace',    event: EVENTS.VIEW_MARKETPLACE,    trigger: '/dashboard/marketplace mounts',      ga4: true,  meta: true,  tiktok: false, spotify: false },
+  { name: 'Pitch Playlist',      event: EVENTS.PITCH_PLAYLIST,      trigger: 'Playlist pitch submitted',           ga4: true,  meta: false, tiktok: false, spotify: false },
+  { name: 'Create Split',        event: EVENTS.CREATE_SPLIT,        trigger: 'Royalty split created',              ga4: true,  meta: false, tiktok: false, spotify: false },
+  { name: 'Open Ticket',         event: EVENTS.OPEN_TICKET,         trigger: 'Support ticket opened',              ga4: true,  meta: false, tiktok: false, spotify: true  },
 ];
 
 function Pill({ active, label }: { active: boolean; label: string }) {
@@ -183,12 +183,13 @@ export function TrackingDocs() {
 
   const toggle = (id: string) => setExpandedSection(prev => (prev === id ? null : id));
 
-  const ga4Status    = isPlaceholder(TRACKING_CONFIG.ga4.measurementId)   ? 'placeholder' : 'active';
-  const metaStatus   = isPlaceholder(TRACKING_CONFIG.metaPixel.pixelId)   ? 'placeholder' : 'active';
-  const tiktokStatus = isPlaceholder(TRACKING_CONFIG.tiktokPixel.pixelId) ? 'placeholder' : 'active';
+  const ga4Status     = isPlaceholder(TRACKING_CONFIG.ga4.measurementId)    ? 'placeholder' : 'active';
+  const metaStatus    = isPlaceholder(TRACKING_CONFIG.metaPixel.pixelId)    ? 'placeholder' : 'active';
+  const tiktokStatus  = isPlaceholder(TRACKING_CONFIG.tiktokPixel.pixelId)  ? 'placeholder' : 'active';
+  const spotifyStatus = isPlaceholder(TRACKING_CONFIG.spotifyPixel.pixelKey) ? 'placeholder' : 'active';
 
-  const totalActive   = [ga4Status, metaStatus, tiktokStatus].filter(s => s === 'active').length;
-  const totalPending  = 3 - totalActive;
+  const totalActive  = [ga4Status, metaStatus, tiktokStatus, spotifyStatus].filter(s => s === 'active').length;
+  const totalPending = 4 - totalActive;
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
@@ -277,6 +278,12 @@ export function TrackingDocs() {
           status={tiktokStatus}
           docs="https://ads.tiktok.com/help/article?aid=10021254"
         />
+        <PixelStatusRow
+          name="Spotify Ads Pixel"
+          id={TRACKING_CONFIG.spotifyPixel.pixelKey}
+          status={spotifyStatus}
+          docs="https://ads.spotify.com/en-US/advertising-features/spotify-pixel/"
+        />
         <div className="mt-4 p-3 rounded-xl" style={{ background: 'rgba(255,82,82,0.05)', border: '1px solid rgba(255,82,82,0.15)' }}>
           <p className="text-[11px] text-white/50 leading-relaxed">
             <span className="text-[#FF5252] font-semibold">To go live:</span> Replace placeholder IDs in{' '}
@@ -298,6 +305,7 @@ export function TrackingDocs() {
                 <th className="text-left pb-2 pr-1 font-semibold">GA4</th>
                 <th className="text-left pb-2 pr-1 font-semibold">Meta</th>
                 <th className="text-left pb-2 font-semibold">TikTok</th>
+                <th className="text-left pb-2 font-semibold">Spotify</th>
               </tr>
             </thead>
             <tbody>
@@ -309,6 +317,7 @@ export function TrackingDocs() {
                   <td className="py-2 pr-1"><Pill active={ev.ga4} label="GA4" /></td>
                   <td className="py-2 pr-1"><Pill active={ev.meta} label="META" /></td>
                   <td className="py-2"><Pill active={ev.tiktok} label="TTQ" /></td>
+                  <td className="py-2"><Pill active={ev.spotify} label="SPOTIFY" /></td>
                 </tr>
               ))}
             </tbody>

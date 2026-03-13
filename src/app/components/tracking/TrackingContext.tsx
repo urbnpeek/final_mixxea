@@ -3,7 +3,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  * Central tracking provider that:
  *   1. Manages GDPR consent state (persisted in localStorage)
- *   2. Loads GA4 / Meta Pixel / TikTok Pixel scripts on-demand (post-consent)
+ *   2. Loads GA4 / Meta Pixel / TikTok Pixel / Spotify Pixel scripts on-demand (post-consent)
  *   3. Implements GA4 Consent Mode v2 (analytics_storage / ad_storage)
  *   4. Exposes trackEvent() and trackPageView() to the entire app
  *   5. Auto-fires page_view on every React Router navigation
@@ -13,7 +13,7 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { useLocation } from 'react-router';
 import { TRACKING_CONFIG, CONSENT_STORAGE_KEY, CONSENT_EXPIRY_DAYS } from './config';
-import { EVENTS, META_EVENT_MAP, TIKTOK_EVENT_MAP, type EventName } from './events';
+import { EVENTS, META_EVENT_MAP, TIKTOK_EVENT_MAP, SPOTIFY_PRODUCT_MAP, SPOTIFY_LEAD_MAP, type EventName } from './events';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -22,7 +22,7 @@ export interface ConsentState {
   necessary: true;
   /** GA4 analytics tracking */
   analytics: boolean;
-  /** Meta Pixel + TikTok Pixel marketing/retargeting */
+  /** Meta Pixel + TikTok Pixel + Spotify Pixel marketing/retargeting */
   marketing: boolean;
   /** ISO timestamp of when consent was recorded */
   timestamp: string;
@@ -42,9 +42,22 @@ export interface TrackingContextValue {
 
 const TrackingContext = createContext<TrackingContextValue | null>(null);
 
-export function useTracking() {
+export function useTracking(): TrackingContextValue {
   const ctx = useContext(TrackingContext);
-  if (!ctx) throw new Error('useTracking must be used within <TrackingProvider>');
+  if (!ctx) {
+    // Return safe no-op defaults when used outside <TrackingProvider>.
+    // This handles Figma Make component preview (isolated rendering),
+    // React HMR module identity mismatches, and unit-test environments.
+    return {
+      consent: null,
+      hasConsented: false,
+      grantAll: () => {},
+      denyAll: () => {},
+      updateConsent: () => {},
+      trackEvent: () => {},
+      trackPageView: () => {},
+    };
+  }
   return ctx;
 }
 
@@ -97,6 +110,46 @@ function loadTikTokPixel(pixelId: string) {
   document.head.appendChild(s);
 }
 
+// ── Spotify Pixel ─────────────────────────────────────────────────────────────
+// Loads ping.min.js and configures the pixel key.
+// Mirrors the base code from Spotify Ads Manager exactly.
+
+/** Generate a unique event ID for deduplication (Spotify requirement) */
+function generateEventId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function loadSpotifyPixel(pixelKey: string) {
+  if (!pixelKey || pixelKey.includes('X') || document.getElementById('spdt-capture')) return;
+
+  // Initialise the spdt queue before the script loads — same pattern as the
+  // official Spotify Ads Manager base code snippet.
+  (window as any).spdt =
+    (window as any).spdt ||
+    function () {
+      ((window as any).spdt.q = (window as any).spdt.q || []).push(arguments);
+    };
+
+  const script = document.createElement('script');
+  script.id    = 'spdt-capture';
+  script.async = true;
+  script.src   = 'https://pixel.byspotify.com/ping.min.js';
+
+  // Insert before the first existing script tag (Spotify's recommended position)
+  const firstScript = document.getElementsByTagName('script')[0];
+  if (firstScript?.parentNode) {
+    firstScript.parentNode.insertBefore(script, firstScript);
+  } else {
+    document.head.appendChild(script);
+  }
+
+  // Configure pixel key
+  (window as any).spdt('conf', { key: pixelKey });
+}
+
 // ─── Consent helpers ─────────────────────────────────────────────────────────
 
 function readStoredConsent(): ConsentState | null {
@@ -138,7 +191,7 @@ function updateGA4Consent(analytics: boolean, marketing: boolean) {
 
 export function TrackingProvider({ children }: { children: React.ReactNode }) {
   const [consent, setConsentState] = useState<ConsentState | null>(null);
-  const scriptsLoaded = useRef({ ga4: false, meta: false, tiktok: false });
+  const scriptsLoaded = useRef({ ga4: false, meta: false, tiktok: false, spotify: false });
 
   // ── Initialise consent mode immediately (before scripts load) ──
   useEffect(() => {
@@ -167,6 +220,10 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
       if (TRACKING_CONFIG.tiktokPixel.enabled && !scriptsLoaded.current.tiktok) {
         loadTikTokPixel(TRACKING_CONFIG.tiktokPixel.pixelId);
         scriptsLoaded.current.tiktok = true;
+      }
+      if (TRACKING_CONFIG.spotifyPixel.enabled && !scriptsLoaded.current.spotify) {
+        loadSpotifyPixel(TRACKING_CONFIG.spotifyPixel.pixelKey);
+        scriptsLoaded.current.spotify = true;
       }
     }
     updateGA4Consent(consent.analytics, consent.marketing);
@@ -212,6 +269,29 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
         (window as any).ttq.track(name, params);
       }
     }
+    // Spotify Pixel — product + lead events
+    if (consent?.marketing && typeof (window as any).spdt === 'function') {
+      const eventId = generateEventId();
+      const productBase = SPOTIFY_PRODUCT_MAP[name as EventName];
+      const leadBase    = SPOTIFY_LEAD_MAP[name as EventName];
+
+      if (productBase) {
+        (window as any).spdt('product', {
+          ...productBase,
+          value:       (params.value as number)    ?? undefined,
+          currency:    (params.currency as string) ?? 'USD',
+          product_id:  (params.product_id as string) ?? (params.item_id as string) ?? undefined,
+          event_id:    eventId,
+        });
+      } else if (leadBase) {
+        (window as any).spdt('lead', {
+          ...leadBase,
+          currency: (params.currency as string) ?? 'USD',
+          value:    (params.value as number)    ?? undefined,
+          event_id: eventId,
+        });
+      }
+    }
     // Dev log
     if (process.env.NODE_ENV === 'development') {
       console.log(`[MIXXEA Track] ${name}`, params);
@@ -229,6 +309,12 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
     }
     if (consent?.marketing && typeof (window as any).ttq !== 'undefined') {
       (window as any).ttq.page();
+    }
+    // Spotify Pixel — fire 'view' on every page navigation
+    if (consent?.marketing && typeof (window as any).spdt === 'function') {
+      (window as any).spdt('view', {
+        event_id: generateEventId(),
+      });
     }
     if (process.env.NODE_ENV === 'development') {
       console.log(`[MIXXEA PageView] ${path}`);
