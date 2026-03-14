@@ -3,13 +3,14 @@ import { GlowButton } from '../mixxea/GlowButton';
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Link } from 'react-router';
-import mixxeaLogo from '../../../assets/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
+import mixxeaLogo from 'figma:asset/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
 import { CurrencySelector } from '../mixxea/CurrencySelector';
 
 const navLinks = [
   { label: 'Platform',     href: '#platform' },
   { label: 'Distribution', href: '#distribution' },
   { label: 'Promotions',   href: '#promotions' },
+  { label: 'Creative',     href: '#creative' },
   { label: 'Publishing',   href: '#publishing' },
   { label: 'Pricing',      href: '#pricing' },
 ];

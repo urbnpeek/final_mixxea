@@ -51,6 +51,7 @@ import { AdminNotifications } from './components/admin/AdminNotifications';
 import { AdminPlatformSettings } from './components/admin/AdminPlatformSettings';
 import { AdminAuditLog } from './components/admin/AdminAuditLog';
 import { AdminReleaseDetail } from './components/admin/AdminReleaseDetail';
+import { CreativeStudioPage } from './components/dashboard/CreativeStudioPage';
 
 export const router = createBrowserRouter([
   {
@@ -83,6 +84,7 @@ export const router = createBrowserRouter([
           { path: 'community',      Component: CommunityPage },
           { path: 'curators',       Component: CuratorDirectoryPage },
           { path: 'academy',        Component: AcademyPage },
+          { path: 'creative',       Component: CreativeStudioPage },
         ],
       },
       { path: '/admin/bootstrap', Component: AdminBootstrap },

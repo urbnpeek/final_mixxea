@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /admin/bootstrap
+
+# Sitemap
+Sitemap: https://www.mixxea.com/sitemap.xml

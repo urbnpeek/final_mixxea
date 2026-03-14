@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { GlowButton } from '../mixxea/GlowButton';
 import { Check, Zap } from 'lucide-react';
 import { useCurrency } from '../mixxea/CurrencyContext';
+import { useRef, useEffect } from 'react';
 
 const plans = [
   {
@@ -18,6 +19,8 @@ const plans = [
       '10 promotion credits included',
       'Basic analytics dashboard',
       'Smart link pages',
+      'Creative Studio — 3 accounts, 20 posts/mo',
+      '20 AI captions · 5 AI images / month',
       'Email support',
     ],
     cta: 'Get Started Free',
@@ -26,11 +29,11 @@ const plans = [
   },
   {
     name: 'Growth',
-    priceUsd: 39,
+    priceUsd: 49,
     tagline: 'For artists ready to scale their career',
     credits: '40 promo credits / month',
     highlight: true,
-    badge: 'Most Popular',
+    badge: '⭐ Most Popular',
     features: [
       'Everything in Starter',
       '40 promotion credits included',
@@ -40,6 +43,9 @@ const plans = [
       'Priority campaign placement',
       'Advanced analytics & KPI reports',
       'Publishing split tools',
+      'Creative Studio — 8 accounts, 80 posts/mo',
+      '100 AI captions · 25 AI images · 15 scripts/mo',
+      'Video posting to IG, TikTok, YouTube',
       'Priority email & chat support',
     ],
     cta: 'Get Started Free',
@@ -48,7 +54,7 @@ const plans = [
   },
   {
     name: 'Pro',
-    priceUsd: 149,
+    priceUsd: 119,
     tagline: 'For labels and multi-artist rosters',
     credits: '120 promo credits / month',
     highlight: false,
@@ -63,6 +69,10 @@ const plans = [
       'Full PR & press outreach',
       'Meta & Google Ads integration',
       'API access & bulk tools',
+      'Creative Studio — unlimited accounts & posts',
+      'Unlimited AI captions · 80 AI images · 50 scripts',
+      'Weekly AI content calendar + bulk scheduling',
+      'Full analytics & AI marketing suggestions',
       '24/7 priority support',
     ],
     cta: 'Talk to Sales',
@@ -72,13 +82,20 @@ const plans = [
 ];
 
 const compareRows = [
-  { feature: 'Distribution',          starter: true,      growth: true,      pro: true },
-  { feature: 'Promotion Credits',     starter: '10/mo',   growth: '40/mo',   pro: '120/mo' },
-  { feature: 'Playlist Pitching',     starter: false,     growth: true,      pro: true },
-  { feature: 'TikTok / IG Campaigns', starter: false,     growth: true,      pro: true },
-  { feature: 'PR & Press',            starter: false,     growth: false,     pro: true },
-  { feature: 'Multi-Artist Tools',    starter: false,     growth: false,     pro: true },
-  { feature: 'Dedicated Manager',     starter: false,     growth: false,     pro: true },
+  { feature: 'Distribution',          starter: true,       growth: true,       pro: true },
+  { feature: 'Promotion Credits',     starter: '10/mo',    growth: '40/mo',    pro: '120/mo' },
+  { feature: 'Playlist Pitching',     starter: false,      growth: true,       pro: true },
+  { feature: 'TikTok / IG Campaigns', starter: false,      growth: true,       pro: true },
+  { feature: 'PR & Press',            starter: false,      growth: false,      pro: true },
+  { feature: 'Multi-Artist Tools',    starter: false,      growth: false,      pro: true },
+  { feature: 'Dedicated Manager',     starter: false,      growth: false,      pro: true },
+  // ── Creative Studio rows ──────────────────────────────────────────────────
+  { feature: 'Social Accounts',       starter: '3',        growth: '8',        pro: 'Unlimited' },
+  { feature: 'Posts / Month',         starter: '20/mo',    growth: '80/mo',    pro: 'Unlimited' },
+  { feature: 'AI Captions',           starter: '20/mo',    growth: '100/mo',   pro: 'Unlimited' },
+  { feature: 'AI Image Generation',   starter: '5/mo',     growth: '25/mo',    pro: '80/mo' },
+  { feature: 'Video Posting',         starter: false,      growth: true,       pro: true },
+  { feature: 'AI Content Calendar',   starter: 'Monthly',  growth: 'Weekly',   pro: 'Weekly + AI' },
 ];
 
 function CellValue({ value, isHighlight }: { value: boolean | string; isHighlight?: boolean }) {
@@ -94,9 +111,36 @@ function CellValue({ value, isHighlight }: { value: boolean | string; isHighligh
 
 export function Pricing() {
   const { fp, fpm, currency } = useCurrency();
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    v.play().catch(() => {});
+  }, []);
 
   return (
     <section id="pricing" className="relative py-40 bg-black overflow-hidden">
+      {/* ── Ambient video strip behind pricing header ── */}
+      <div className="absolute top-0 left-0 right-0 h-[480px] overflow-hidden pointer-events-none">
+        <video
+          ref={videoRef}
+          src="https://videos.pexels.com/video-files/3912240/3912240-hd_1920_1080_25fps.mp4"
+          muted loop playsInline autoPlay preload="metadata"
+          className="w-full h-full object-cover opacity-10"
+          style={{ filter: 'saturate(1.8) blur(2px)' }}
+          onError={(e) => {
+            const v = e.currentTarget;
+            if (v.src !== 'https://videos.pexels.com/video-files/1739506/1739506-hd_1920_1080_25fps.mp4') {
+              v.src = 'https://videos.pexels.com/video-files/1739506/1739506-hd_1920_1080_25fps.mp4';
+              v.play().catch(() => {});
+            }
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black" />
+      </div>
+
       {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div
@@ -285,11 +329,11 @@ export function Pricing() {
                   </th>
                   <th className="text-center p-6 text-sm font-bold" style={{ color: '#D63DF6' }}>
                     <div>Growth</div>
-                    <div className="text-xs font-normal text-[#B5B5B5] mt-0.5">{fpm(39)}</div>
+                    <div className="text-xs font-normal text-[#B5B5B5] mt-0.5">{fpm(49)}</div>
                   </th>
                   <th className="text-center p-6 text-white text-sm font-bold">
                     <div>Pro</div>
-                    <div className="text-xs font-normal text-[#B5B5B5] mt-0.5">{fpm(149)}</div>
+                    <div className="text-xs font-normal text-[#B5B5B5] mt-0.5">{fpm(119)}</div>
                   </th>
                 </tr>
               </thead>

@@ -1,5 +1,8 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+  "routes": [
+    { "src": "/robots.txt",  "dest": "/robots.txt",  "headers": { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=86400" } },
+    { "src": "/sitemap.xml", "dest": "/sitemap.xml", "headers": { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": "public, max-age=86400" } },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

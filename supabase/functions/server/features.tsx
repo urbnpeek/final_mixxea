@@ -578,6 +578,23 @@ app.post(`${PREFIX}/community/posts/:id/like`, async (c) => {
     } else {
       post.likes = (post.likes || 0) + 1;
       await kv.set(likeKey, '1');
+      // Notify post author (not self)
+      if (post.userId && post.userId !== userId) {
+        const actorStr = await kv.get(`user:${userId}`);
+        const actor = actorStr ? JSON.parse(actorStr) : {};
+        const notif = {
+          id: generateId(), type: 'community_like',
+          title: 'Someone liked your post',
+          message: `${actor.name || 'An artist'} liked your post: "${(post.content || '').slice(0, 60)}${post.content?.length > 60 ? '…' : ''}"`,
+          read: false, link: '/dashboard/community',
+          actorName: actor.name || 'An artist', postId,
+          createdAt: new Date().toISOString(),
+        };
+        const nStr = await kv.get(`notifications:${post.userId}`);
+        const notifs = nStr ? JSON.parse(nStr) : [];
+        notifs.unshift(notif);
+        await kv.set(`notifications:${post.userId}`, JSON.stringify(notifs.slice(0, 100)));
+      }
     }
     await kv.set(`community:post:${postId}`, JSON.stringify(post));
     return c.json({ likes: post.likes, likedByMe: !alreadyLiked });
@@ -592,13 +609,169 @@ app.delete(`${PREFIX}/community/posts/:id`, async (c) => {
     const postStr = await kv.get(`community:post:${postId}`);
     if (!postStr) return c.json({ error: 'Not found' }, 404);
     const post = JSON.parse(postStr);
-    if (post.userId !== userId) return c.json({ error: 'Forbidden' }, 403);
+    const userStr = await kv.get(`user:${userId}`);
+    const userObj = userStr ? JSON.parse(userStr) : {};
+    if (post.userId !== userId && !userObj.isAdmin) return c.json({ error: 'Forbidden' }, 403);
     const indexStr = await kv.get('community:index');
     if (indexStr) {
       await kv.set('community:index', JSON.stringify(JSON.parse(indexStr).filter((id: string) => id !== postId)));
     }
+    // Remove from pinned if present
+    const pinnedStr = await kv.get('community:pinned');
+    if (pinnedStr) {
+      const pinned: string[] = JSON.parse(pinnedStr);
+      if (pinned.includes(postId)) {
+        await kv.set('community:pinned', JSON.stringify(pinned.filter(id => id !== postId)));
+      }
+    }
     return c.json({ success: true });
   } catch (err) { return c.json({ error: `Delete post error: ${err}` }, 500); }
+});
+
+// ── Community: Comments ──────────────────────────────────────────────────────
+
+app.get(`${PREFIX}/community/posts/:id/comments`, async (c) => {
+  try {
+    const userId = await verifyToken(c);
+    if (!userId) return c.json({ error: 'Unauthorized' }, 401);
+    const postId = c.req.param('id');
+    const idxStr = await kv.get(`community:comments:${postId}`);
+    const ids: string[] = idxStr ? JSON.parse(idxStr) : [];
+    const comments = (await Promise.all(ids.map(async (id) => {
+      const s = await kv.get(`community:comment:${id}`); return s ? JSON.parse(s) : null;
+    }))).filter(Boolean);
+    return c.json({ comments });
+  } catch (err) { return c.json({ error: `Comments fetch error: ${err}` }, 500); }
+});
+
+app.post(`${PREFIX}/community/posts/:id/comments`, async (c) => {
+  try {
+    const userId = await verifyToken(c);
+    if (!userId) return c.json({ error: 'Unauthorized' }, 401);
+    const postId = c.req.param('id');
+    const postStr = await kv.get(`community:post:${postId}`);
+    if (!postStr) return c.json({ error: 'Post not found' }, 404);
+    const post = JSON.parse(postStr);
+    const userStr = await kv.get(`user:${userId}`);
+    const user = userStr ? JSON.parse(userStr) : {};
+    const { content } = await c.req.json();
+    if (!content || content.trim().length < 1) return c.json({ error: 'Comment cannot be empty' }, 400);
+    if (content.length > 300) return c.json({ error: 'Comment too long (max 300)' }, 400);
+    const id = generateId();
+    const comment = {
+      id, postId, userId,
+      authorName: user.name || 'Artist',
+      authorRole: user.role || 'artist',
+      content: content.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    await kv.set(`community:comment:${id}`, JSON.stringify(comment));
+    const idxStr = await kv.get(`community:comments:${postId}`);
+    const idx: string[] = idxStr ? JSON.parse(idxStr) : [];
+    idx.push(id);
+    await kv.set(`community:comments:${postId}`, JSON.stringify(idx));
+    post.comments = (post.comments || 0) + 1;
+    await kv.set(`community:post:${postId}`, JSON.stringify(post));
+    // Notify post author (not self)
+    if (post.userId && post.userId !== userId) {
+      const notif = {
+        id: generateId(), type: 'community_comment',
+        title: 'New comment on your post',
+        message: `${user.name || 'An artist'} commented: "${content.trim().slice(0, 60)}${content.length > 60 ? '…' : ''}"`,
+        read: false, link: '/dashboard/community',
+        actorName: user.name || 'An artist', postId,
+        createdAt: new Date().toISOString(),
+      };
+      const nStr = await kv.get(`notifications:${post.userId}`);
+      const notifs = nStr ? JSON.parse(nStr) : [];
+      notifs.unshift(notif);
+      await kv.set(`notifications:${post.userId}`, JSON.stringify(notifs.slice(0, 100)));
+    }
+    return c.json({ comment, commentCount: post.comments });
+  } catch (err) { return c.json({ error: `Comment create error: ${err}` }, 500); }
+});
+
+app.delete(`${PREFIX}/community/comments/:commentId`, async (c) => {
+  try {
+    const userId = await verifyToken(c);
+    if (!userId) return c.json({ error: 'Unauthorized' }, 401);
+    const commentId = c.req.param('commentId');
+    const commentStr = await kv.get(`community:comment:${commentId}`);
+    if (!commentStr) return c.json({ error: 'Comment not found' }, 404);
+    const comment = JSON.parse(commentStr);
+    const userStr = await kv.get(`user:${userId}`);
+    const userObj = userStr ? JSON.parse(userStr) : {};
+    if (comment.userId !== userId && !userObj.isAdmin) return c.json({ error: 'Forbidden' }, 403);
+    const idxStr = await kv.get(`community:comments:${comment.postId}`);
+    if (idxStr) {
+      await kv.set(`community:comments:${comment.postId}`, JSON.stringify(JSON.parse(idxStr).filter((id: string) => id !== commentId)));
+    }
+    const postStr = await kv.get(`community:post:${comment.postId}`);
+    if (postStr) {
+      const post = JSON.parse(postStr);
+      post.comments = Math.max(0, (post.comments || 1) - 1);
+      await kv.set(`community:post:${comment.postId}`, JSON.stringify(post));
+    }
+    return c.json({ success: true });
+  } catch (err) { return c.json({ error: `Comment delete error: ${err}` }, 500); }
+});
+
+// ── Community: Pin / Unpin (admin only) ──────────────────────────────────────
+
+app.post(`${PREFIX}/community/posts/:id/pin`, async (c) => {
+  try {
+    const userId = await verifyToken(c);
+    if (!userId) return c.json({ error: 'Unauthorized' }, 401);
+    const userStr = await kv.get(`user:${userId}`);
+    const userObj = userStr ? JSON.parse(userStr) : {};
+    if (!userObj.isAdmin) return c.json({ error: 'Admin only' }, 403);
+    const postId = c.req.param('id');
+    const postStr = await kv.get(`community:post:${postId}`);
+    if (!postStr) return c.json({ error: 'Post not found' }, 404);
+    const post = JSON.parse(postStr);
+    const pinnedStr = await kv.get('community:pinned');
+    const pinned: string[] = pinnedStr ? JSON.parse(pinnedStr) : [];
+    let isPinned: boolean;
+    if (pinned.includes(postId)) {
+      await kv.set('community:pinned', JSON.stringify(pinned.filter((id) => id !== postId)));
+      post.pinned = false; isPinned = false;
+    } else {
+      const newPinned = [postId, ...pinned.filter(id => id !== postId)].slice(0, 3);
+      await kv.set('community:pinned', JSON.stringify(newPinned));
+      post.pinned = true; isPinned = true;
+    }
+    await kv.set(`community:post:${postId}`, JSON.stringify(post));
+    return c.json({ success: true, pinned: isPinned });
+  } catch (err) { return c.json({ error: `Pin error: ${err}` }, 500); }
+});
+
+// ── Community: Public user profile ──────────────────────────────────────────
+
+app.get(`${PREFIX}/community/users/:userId/profile`, async (c) => {
+  try {
+    const requesterId = await verifyToken(c);
+    if (!requesterId) return c.json({ error: 'Unauthorized' }, 401);
+    const targetId = c.req.param('userId');
+    const userStr = await kv.get(`user:${targetId}`);
+    if (!userStr) return c.json({ error: 'User not found' }, 404);
+    const u = JSON.parse(userStr);
+    const indexStr = await kv.get('community:index');
+    const allIds: string[] = indexStr ? JSON.parse(indexStr) : [];
+    let postCount = 0; let totalLikes = 0;
+    for (const id of allIds.slice(0, 200)) {
+      const ps = await kv.get(`community:post:${id}`);
+      if (ps) { const p = JSON.parse(ps); if (p.userId === targetId) { postCount++; totalLikes += (p.likes || 0); } }
+    }
+    return c.json({
+      profile: {
+        id: targetId, name: u.name || 'Artist', role: u.role || 'artist',
+        bio: u.bio || '', genre: u.genre || '', location: u.location || '',
+        plan: u.plan || 'free', isAdmin: !!u.isAdmin,
+        joinedAt: u.createdAt || '', postCount, totalLikes,
+        socialLinks: u.socialLinks || {},
+      },
+    });
+  } catch (err) { return c.json({ error: `Profile fetch error: ${err}` }, 500); }
 });
 
 // =============================================================================

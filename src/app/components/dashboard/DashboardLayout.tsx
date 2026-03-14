@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Music, Megaphone, BookOpen, BarChart3, Globe, Scissors,
   MessageSquare, Zap, Settings, ChevronDown, LogOut, Menu, Bell, ChevronRight,
   User, Shield, Radio, Users, Lock, X, CheckCircle, Clock, AlertCircle, ExternalLink,
-  CalendarDays, FileText, Fingerprint, PieChart, UserRound, GraduationCap, Gift,
+  CalendarDays, FileText, Fingerprint, PieChart, UserRound, GraduationCap, Gift, Wand2,
 } from 'lucide-react';
 import { TrialBanner } from './TrialBanner';
 import mixxeaLogo from 'figma:asset/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
@@ -31,6 +31,12 @@ function buildNavSections(role: string) {
       items: [
         { label: 'Promotions',           icon: Megaphone, path: '/dashboard/promotions' },
         { label: 'Playlist Marketplace', icon: Radio,     path: '/dashboard/marketplace', requiredPlan: 'growth' },
+      ],
+    },
+    {
+      title: 'Creative',
+      items: [
+        { label: 'Creative Studio', icon: Wand2, path: '/dashboard/creative' },
       ],
     },
     {

@@ -107,7 +107,7 @@ export const getTeam          = (token: string) => req('GET', '/team', undefined
 export const inviteTeamMember = (token: string, email: string, artistName: string) => req('POST', '/team/invite', { email, artistName }, token);
 export const removeTeamMember = (token: string, memberId: string) => req('DELETE', `/team/${memberId}`, undefined, token);
 
-// ───��� Admin ───────────────────────────────────────────────────────────────────
+// ──── Admin ───────────────────────────────────────────────────────────────────
 export const adminBootstrap      = (email: string, adminSecret: string) => req('POST', '/admin/bootstrap', { email, adminSecret });
 export const adminGetStats       = (token: string) => req('GET', '/admin/stats', undefined, token);
 export const adminGetTickets     = (token: string) => req('GET', '/admin/tickets', undefined, token);
@@ -181,10 +181,15 @@ export const updateABTest     = (token: string, id: string, data: any) => req('P
 export const recordABEvent    = (testId: string, variant: string, event: string) => req('POST', '/ab-tests/event', { testId, variant, event });
 
 // ──── Feature 11: Community ─────────────────────────────────────────────────
-export const getCommunityPosts   = (token: string) => req('GET', '/community/posts', undefined, token);
-export const createCommunityPost = (token: string, data: any) => req('POST', '/community/posts', data, token);
-export const likePost            = (token: string, postId: string) => req('POST', `/community/posts/${postId}/like`, {}, token);
-export const deletePost          = (token: string, postId: string) => req('DELETE', `/community/posts/${postId}`, undefined, token);
+export const getCommunityPosts      = (token: string) => req('GET', '/community/posts', undefined, token);
+export const createCommunityPost    = (token: string, data: any) => req('POST', '/community/posts', data, token);
+export const likePost               = (token: string, postId: string) => req('POST', `/community/posts/${postId}/like`, {}, token);
+export const deletePost             = (token: string, postId: string) => req('DELETE', `/community/posts/${postId}`, undefined, token);
+export const getPostComments        = (token: string, postId: string) => req('GET', `/community/posts/${postId}/comments`, undefined, token);
+export const createComment          = (token: string, postId: string, content: string) => req('POST', `/community/posts/${postId}/comments`, { content }, token);
+export const deleteComment          = (token: string, commentId: string) => req('DELETE', `/community/comments/${commentId}`, undefined, token);
+export const pinCommunityPost       = (token: string, postId: string) => req('POST', `/community/posts/${postId}/pin`, {}, token);
+export const getCommunityUserProfile = (token: string, userId: string) => req('GET', `/community/users/${userId}/profile`, undefined, token);
 
 // ──── Feature 12: Curators ───────────────────────────────────────────────────
 export const getCurators      = (token: string, genre?: string, tier?: string) => req('GET', `/curators${genre || tier ? '?' + new URLSearchParams({ ...(genre ? { genre } : {}), ...(tier ? { tier } : {}) }).toString() : ''}`, undefined, token);
@@ -208,7 +213,7 @@ export const setup2FA        = (token: string) => req('POST', '/auth/2fa/setup',
 export const confirm2FA      = (token: string, code: string) => req('POST', '/auth/2fa/confirm', { code }, token);
 export const disable2FA      = (token: string, code: string) => req('DELETE', '/auth/2fa/disable', { code }, token);
 
-// ──── Feature 18: Win Notifications ───────────────���─────────────────────────
+// ──── Feature 18: Win Notifications ────────────────────────────────────────
 export const checkMilestones = (token: string, totalStreams: number) => req('POST', '/campaigns/check-milestones', { totalStreams }, token);
 
 // ──── Admin Ops: Orders Queue ─────────────────────────────────────────────────
@@ -312,7 +317,7 @@ export const adminUpdateReleaseAmp  = (token: string, releaseId: string, ampsuit
 // ──── Admin: Global Search ────────────────────────────────────────────────────
 export const adminGlobalSearch       = (token: string, q: string) => req('GET', `/admin/search?q=${encodeURIComponent(q)}`, undefined, token);
 
-// ──���─ Admin: Audit Log ───────────────────────────────────────────────────────
+// ──── Admin: Audit Log ───────────────────────────────────────────────────────
 export const adminGetAuditLog        = (token: string) => req('GET', '/admin/audit-log', undefined, token);
 export const adminLogAction          = (token: string, d: { action: string; meta?: any }) => req('POST', '/admin/audit-log', d, token);
 
@@ -322,3 +327,23 @@ export const adminUpdatePlatformSettings = (token: string, d: any) => req('PUT',
 
 // ──── Admin: System Health ────────────────────────────────────────────────────
 export const adminGetSystemHealth    = (token: string) => req('GET', '/admin/system-health', undefined, token);
+
+// ──── Creative Studio ─────────────────────────────────────────────────────────
+export const getCreativePlanLimits = (token: string) => req('GET', '/creative/usage', undefined, token);
+export const getCreativeAccounts   = (token: string) => req('GET', '/creative/accounts', undefined, token);
+export const connectCreativeAccount = (token: string, platform: string) => req('POST', `/creative/oauth/${platform}/connect`, {}, token);
+export const disconnectCreativeAccount = (token: string, platform: string) => req('DELETE', `/creative/accounts/${platform}`, undefined, token);
+export const getCreativePosts      = (token: string, status?: string) => req('GET', `/creative/posts${status ? `?status=${status}` : ''}`, undefined, token);
+export const createCreativePost    = (token: string, d: any) => req('POST', '/creative/posts', d, token);
+export const updateCreativePost    = (token: string, id: string, d: any) => req('PUT', `/creative/posts/${id}`, d, token);
+export const deleteCreativePost    = (token: string, id: string) => req('DELETE', `/creative/posts/${id}`, undefined, token);
+export const scheduleCreativePost  = (token: string, id: string, scheduledFor: string) => req('POST', `/creative/posts/${id}/schedule`, { scheduledFor }, token);
+export const publishCreativePost   = (token: string, id: string) => req('POST', `/creative/posts/${id}/publish`, {}, token);
+export const getCreativeMediaUploadUrl = (token: string, d: { filename: string; contentType: string }) => req('POST', '/creative/media/upload-url', d, token);
+export const getCreativeMedia      = (token: string) => req('GET', '/creative/media', undefined, token);
+export const deleteCreativeMedia   = (token: string, id: string) => req('DELETE', `/creative/media/${id}`, undefined, token);
+export const aiGenerateCaption     = (token: string, d: any) => req('POST', '/creative/ai/caption', d, token);
+export const aiGenerateHashtags    = (token: string, d: any) => req('POST', '/creative/ai/hashtags', d, token);
+export const aiGenerateImage       = (token: string, d: any) => req('POST', '/creative/ai/image', d, token);
+export const aiGenerateVideoScript = (token: string, d: any) => req('POST', '/creative/ai/video-script', d, token);
+export const aiGenerateCalendar    = (token: string, d: any) => req('POST', '/creative/ai/content-calendar', d, token);

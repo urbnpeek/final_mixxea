@@ -13,32 +13,37 @@ import { useCurrency } from '../mixxea/CurrencyContext';
 
 const PACKAGES = [
   {
-    id: 'starter', name: 'Starter Pack', credits: 100, bonusCredits: 0, price: 9.99, color: '#6B7280',
-    icon: Star, perks: ['100 credits', 'Perfect for testing', '2 small campaigns', 'Email support'],
+    id: 'basic', name: 'Basic Pack', credits: 100, bonusCredits: 0, price: 5.00, color: '#6B7280',
+    icon: Star, perks: ['100 credits', '~$0.05/credit', 'Pay as you go', 'All services unlocked'],
   },
   {
-    id: 'pro', name: 'Pro Pack', credits: 500, bonusCredits: 50, price: 39.99, color: '#7B5FFF', popular: true,
-    icon: Rocket, perks: ['500 credits', 'Best value', '10+ campaigns', 'Priority support', '+50 bonus credits'],
+    id: 'value', name: 'Value Pack', credits: 500, bonusCredits: 25, price: 20.00, color: '#7B5FFF', popular: true,
+    icon: Rocket, perks: ['500 credits', 'Best value', '+25 bonus credits', 'Priority support'],
   },
   {
-    id: 'growth', name: 'Growth Pack', credits: 1000, bonusCredits: 150, price: 69.99, color: '#D63DF6',
-    icon: TrendingUp, perks: ['1,000 credits', 'For serious artists', '20+ campaigns', 'Dedicated manager', '+150 bonus credits'],
-  },
-  {
-    id: 'label', name: 'Label Pack', credits: 5000, bonusCredits: 1000, price: 299.99, color: '#00C4FF',
-    icon: Crown, perks: ['5,000 credits', 'Labels & agencies', 'Unlimited campaigns', 'White-glove service', '+1,000 bonus credits', 'Custom reporting'],
+    id: 'creator', name: 'Creator Pack', credits: 2000, bonusCredits: 100, price: 60.00, color: '#D63DF6',
+    icon: Crown, perks: ['2,000 credits', 'For power users', '+100 bonus credits', 'Dedicated manager'],
   },
 ];
 
 const CREDIT_COSTS = [
-  { service: 'Spotify Growth',      credits: 140,  icon: '🎵' },
-  { service: 'Playlist Pitching',   credits: 500,  icon: '🎸' },
-  { service: 'TikTok UGC Campaign', credits: 800,  icon: '📱' },
-  { service: 'Instagram UGC',       credits: 600,  icon: '📸' },
-  { service: 'YouTube Ads',         credits: 900,  icon: '📺' },
-  { service: 'PR & Press Coverage', credits: 1300, icon: '📰' },
-  { service: 'Meta / Google Ads',   credits: 800,  icon: '🎯' },
-  { service: 'Sync Licensing',      credits: 350,  icon: '🎬' },
+  // ── Promotion services ──────────────────────────────────────────────────────
+  { service: 'Spotify Growth',      credits: 140,  icon: '🎵', category: 'Promotion' },
+  { service: 'Playlist Pitching',   credits: 500,  icon: '🎸', category: 'Promotion' },
+  { service: 'TikTok UGC Campaign', credits: 800,  icon: '📱', category: 'Promotion' },
+  { service: 'Instagram UGC',       credits: 600,  icon: '📸', category: 'Promotion' },
+  { service: 'YouTube Ads',         credits: 900,  icon: '📺', category: 'Promotion' },
+  { service: 'PR & Press Coverage', credits: 1300, icon: '📰', category: 'Promotion' },
+  { service: 'Meta / Google Ads',   credits: 800,  icon: '🎯', category: 'Promotion' },
+  { service: 'Sync Licensing',      credits: 350,  icon: '🎬', category: 'Promotion' },
+  // ── Creative Studio AI ──────────────────────────────────────────────────────
+  { service: 'AI Caption',          credits: 2,    icon: '✍️',  category: 'Creative AI' },
+  { service: 'AI Hashtag Set',      credits: 1,    icon: '#️⃣',  category: 'Creative AI' },
+  { service: 'AI Image (DALL·E 3)', credits: 15,   icon: '🎨', category: 'Creative AI' },
+  { service: 'AI Video Script',     credits: 10,   icon: '🎬', category: 'Creative AI' },
+  { service: 'AI Content Calendar', credits: 20,   icon: '📅', category: 'Creative AI' },
+  { service: 'Extra Post',          credits: 2,    icon: '📤', category: 'Creative AI' },
+  { service: 'Extra Social Account',credits: 10,   icon: '🔗', category: 'Creative AI' },
 ];
 
 export function CreditsPage() {
