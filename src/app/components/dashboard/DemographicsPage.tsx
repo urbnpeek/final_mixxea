@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 //  MIXXEA — Feature 8: Audience Demographics Dashboard
 // ─────────────────────────────────────────────────────────────────────────────
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { motion } from 'motion/react';
 import { useAuth } from './AuthContext';
 import * as api from './api';
@@ -12,6 +12,9 @@ const ACCENT = ['#7B5FFF','#D63DF6','#00C4FF','#FF5252','#10B981','#F59E0B','#FF
 
 export function DemographicsPage() {
   const { token } = useAuth();
+  const uid = useId().replace(/:/g, '');
+  const ageGradId  = `ageGrad-${uid}`;
+  const timeGradId = `timeGrad-${uid}`;
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'geo'|'age'|'platforms'|'time'>('geo');
@@ -124,10 +127,10 @@ export function DemographicsPage() {
                   <XAxis dataKey="range" tick={{ fill: '#555', fontSize: 11 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: '#555', fontSize: 11 }} axisLine={false} tickLine={false} unit="%" />
                   <Tooltip contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff' }} formatter={(v: any) => [`${v}%`, 'Listeners']} />
-                  <Bar dataKey="pct" radius={[6,6,0,0]} fill="url(#ageGrad)" />
+                  <Bar dataKey="pct" radius={[6,6,0,0]} fill={`url(#${ageGradId})`} />
                   <defs>
-                    <linearGradient id="ageGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#7B5FFF" />
+                    <linearGradient id={ageGradId} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"   stopColor="#7B5FFF" />
                       <stop offset="100%" stopColor="#D63DF6" />
                     </linearGradient>
                   </defs>
@@ -187,10 +190,10 @@ export function DemographicsPage() {
                 <XAxis dataKey="hour" tick={{ fill: '#555', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#555', fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 110]} />
                 <Tooltip contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff' }} formatter={(v: any) => [`${v}`, 'Activity Index']} />
-                <Bar dataKey="index" radius={[4,4,0,0]} fill="url(#timeGrad)" />
+                <Bar dataKey="index" radius={[4,4,0,0]} fill={`url(#${timeGradId})`} />
                 <defs>
-                  <linearGradient id="timeGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#00C4FF" />
+                  <linearGradient id={timeGradId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"   stopColor="#00C4FF" />
                     <stop offset="100%" stopColor="#7B5FFF" />
                   </linearGradient>
                 </defs>

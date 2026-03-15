@@ -9,6 +9,7 @@ import {
   MessageSquare, Zap, Settings, ChevronDown, LogOut, Menu, Bell, ChevronRight,
   User, Shield, Radio, Users, Lock, X, CheckCircle, Clock, AlertCircle, ExternalLink,
   CalendarDays, FileText, Fingerprint, PieChart, UserRound, GraduationCap, Gift, Wand2,
+  Brain,
 } from 'lucide-react';
 import { TrialBanner } from './TrialBanner';
 import mixxeaLogo from 'figma:asset/d262559c0b7675722d6c420c935f7d8c758fea4f.png';
@@ -30,6 +31,7 @@ function buildNavSections(role: string) {
       title: 'Marketing',
       items: [
         { label: 'Promotions',           icon: Megaphone, path: '/dashboard/promotions' },
+        { label: 'AI Marketing Hub',     icon: Brain,     path: '/dashboard/marketing', badge: 'NEW' },
         { label: 'Playlist Marketplace', icon: Radio,     path: '/dashboard/marketplace', requiredPlan: 'growth' },
       ],
     },
@@ -246,7 +248,10 @@ export function DashboardLayout() {
                     <item.icon size={17} className={`flex-shrink-0 ${isActive ? 'text-[#7B5FFF]' : isLocked ? 'text-white/25' : 'group-hover:text-white/80'}`} />
                     {expanded && <span className="text-sm font-medium flex-1">{item.label}</span>}
                     {expanded && isLocked && <Lock size={11} className="text-white/25 flex-shrink-0" />}
-                    {isActive && expanded && !isLocked && <ChevronRight size={13} className="ml-auto text-[#7B5FFF]/60" />}
+                    {expanded && !isLocked && item.badge && (
+                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0 ${isActive ? 'bg-[#7B5FFF] text-white' : 'bg-[#7B5FFF]/25 text-[#C4AEFF]'}`}>{item.badge}</span>
+                    )}
+                    {isActive && expanded && !isLocked && !item.badge && <ChevronRight size={13} className="ml-auto text-[#7B5FFF]/60" />}
                   </Link>
                 );
               })}

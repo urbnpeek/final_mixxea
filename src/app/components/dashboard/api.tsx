@@ -216,7 +216,7 @@ export const disable2FA      = (token: string, code: string) => req('DELETE', '/
 // ──── Feature 18: Win Notifications ────────────────────────────────────────
 export const checkMilestones = (token: string, totalStreams: number) => req('POST', '/campaigns/check-milestones', { totalStreams }, token);
 
-// ──── Admin Ops: Orders Queue ─────────────────────────────────────────────────
+// ──── Admin Ops: Orders Queue ────────────────────���────────────────────────────
 export const adminGetOrders         = (token: string) => req('GET', '/admin/orders', undefined, token);
 export const adminGetOrderChecklist = (token: string, id: string) => req('GET', `/admin/orders/${id}/checklist`, undefined, token);
 export const adminUpdateChecklist   = (token: string, id: string, d: any) => req('PUT', `/admin/orders/${id}/checklist`, d, token);
@@ -327,6 +327,35 @@ export const adminUpdatePlatformSettings = (token: string, d: any) => req('PUT',
 
 // ──── Admin: System Health ────────────────────────────────────────────────────
 export const adminGetSystemHealth    = (token: string) => req('GET', '/admin/system-health', undefined, token);
+
+// ──── AI Marketing Console ────────────────────────────────────────────────────
+export const mcGetCampaigns          = (token: string) => req('GET', '/admin/mc/campaigns', undefined, token);
+export const mcCreateCampaign        = (token: string, d: any) => req('POST', '/admin/mc/campaigns', d, token);
+export const mcUpdateCampaign        = (token: string, id: string, d: any) => req('PUT', `/admin/mc/campaigns/${id}`, d, token);
+export const mcDeleteCampaign        = (token: string, id: string) => req('DELETE', `/admin/mc/campaigns/${id}`, undefined, token);
+export const mcAiStrategy            = (token: string, d: any) => req('POST', '/admin/mc/ai-strategy', d, token);
+export const mcAiCreatives           = (token: string, d: any) => req('POST', '/admin/mc/ai-creatives', d, token);
+export const mcGetRules              = (token: string) => req('GET', '/admin/mc/rules', undefined, token);
+export const mcCreateRule            = (token: string, d: any) => req('POST', '/admin/mc/rules', d, token);
+export const mcUpdateRule            = (token: string, id: string, d: any) => req('PUT', `/admin/mc/rules/${id}`, d, token);
+export const mcDeleteRule            = (token: string, id: string) => req('DELETE', `/admin/mc/rules/${id}`, undefined, token);
+export const mcGetAnalytics          = (token: string) => req('GET', '/admin/mc/analytics', undefined, token);
+export const mcGetAgents             = (token: string) => req('GET', '/admin/mc/agents', undefined, token);
+export const mcTriggerAgent          = (token: string, agentId: string) => req('POST', `/admin/mc/agents/${agentId}/trigger`, {}, token);
+export const mcGetTargetUsers        = (token: string) => req('GET', '/admin/mc/target-users', undefined, token);
+export const mcToggleUserCampaign    = (token: string, userId: string, d: { enabled: boolean }) => req('PUT', `/admin/mc/users/${userId}/campaign-enabled`, d, token);
+
+// ──── User AI Marketing Hub ───────────────────────────────────────────────────
+export const userMcGetUsage          = (token: string) => req('GET', '/user/mc/usage', undefined, token);
+export const userMcSubmitBrief       = (token: string, d: any) => req('POST', '/user/mc/brief', d, token);
+export const userMcGetBriefs         = (token: string) => req('GET', '/user/mc/briefs', undefined, token);
+export const userMcAiStrategy        = (token: string, d: any) => req('POST', '/user/mc/ai-strategy', d, token);
+export const userMcTrends            = (token: string, d: any) => req('POST', '/user/mc/trends', d, token);
+export const userMcGetAnalytics      = (token: string) => req('GET', '/user/mc/analytics', undefined, token);
+export const userMcGetRules          = (token: string) => req('GET', '/user/mc/rules', undefined, token);
+export const userMcCreateRule        = (token: string, d: any) => req('POST', '/user/mc/rules', d, token);
+export const userMcUpdateRule        = (token: string, id: string, d: any) => req('PUT', `/user/mc/rules/${id}`, d, token);
+export const userMcDeleteRule        = (token: string, id: string) => req('DELETE', `/user/mc/rules/${id}`, undefined, token);
 
 // ──── Creative Studio ─────────────────────────────────────────────────────────
 export const getCreativePlanLimits = (token: string) => req('GET', '/creative/usage', undefined, token);

@@ -8,7 +8,7 @@ import {
   Menu, X, ChevronRight, Bell, Settings, ExternalLink, Zap, Activity,
   Search, Music, TrendingUp, BarChart2, Eye, Package, Radio,
   DollarSign, Globe, FileText, Layers, Network, Clapperboard,
-  ClipboardList, SlidersHorizontal,
+  ClipboardList, SlidersHorizontal, Brain,
 } from 'lucide-react';
 
 // ── Per-type notification icon/color map ──────────────────────────────────────
@@ -42,9 +42,10 @@ const NAV_GROUPS = [
   {
     label: 'CAMPAIGNS & MEDIA',
     items: [
-      { path: '/admin/campaigns',      label: 'Campaigns',        icon: Megaphone },
-      { path: '/admin/campaign-runner',label: 'Campaign Runner',  icon: Clapperboard },
-      { path: '/admin/creator-network',label: 'Creator Network',  icon: Network },
+      { path: '/admin/campaigns',        label: 'Campaigns',          icon: Megaphone },
+      { path: '/admin/campaign-runner',  label: 'Campaign Runner',    icon: Clapperboard },
+      { path: '/admin/marketing-console',label: 'AI Marketing Console', icon: Brain, badge: 'AI' },
+      { path: '/admin/creator-network',  label: 'Creator Network',    icon: Network },
     ],
   },
   {
@@ -388,6 +389,9 @@ export function AdminLayout() {
                         )}
                         {item.path === '/admin/notifications' && unreadCount > 0 && (
                           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-[#D63DF6] text-white">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                        )}
+                        {(item as any).badge && item.path !== '/admin/orders' && item.path !== '/admin/notifications' && (
+                          <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md ${isActive ? 'bg-[#7B5FFF] text-white' : 'bg-white/[0.08] text-white/40'}`}>{(item as any).badge}</span>
                         )}
                         {isActive && <ChevronRight size={11} className="text-[#D63DF6]" />}
                       </>

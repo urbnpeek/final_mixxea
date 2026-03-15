@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { motion } from 'motion/react';
 import { useAuth } from './AuthContext';
 import * as api from './api';
-import { Music, Megaphone, BookOpen, Zap, TrendingUp, Play, Plus, ArrowRight, Globe, Scissors, GraduationCap, Users, CalendarDays, Gift } from 'lucide-react';
+import { Music, Megaphone, BookOpen, Zap, TrendingUp, Play, Plus, ArrowRight, Globe, Scissors, GraduationCap, Users, CalendarDays, FileText, Fingerprint, PieChart, UserRound, GraduationCap as GradCap, Gift, Wand2, Brain, Sparkles } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const StatCard = ({ icon: Icon, label, value, sub, color, trend }: any) => (
@@ -172,7 +172,8 @@ export function DashboardOverview() {
           <h2 className="text-base font-semibold text-white px-1">Quick Actions</h2>
           <div className="space-y-2.5">
             <QuickActionCard icon={Plus} label="Upload Release" desc="Distribute to 150+ stores" to="/dashboard/distribution" color="#7B5FFF" />
-            <QuickActionCard icon={Megaphone} label="New Campaign" desc="Spotify, TikTok, YouTube & more" to="/dashboard/promotions" color="#D63DF6" />
+            <QuickActionCard icon={Brain} label="AI Marketing Hub" desc="Campaigns, strategies & trends" to="/dashboard/marketing" color="#D63DF6" />
+            <QuickActionCard icon={Megaphone} label="New Campaign" desc="Spotify, TikTok, YouTube & more" to="/dashboard/promotions" color="#00C4FF" />
             <QuickActionCard icon={BookOpen} label="Register Work" desc="Collect your publishing royalties" to="/dashboard/publishing" color="#00C4FF" />
             <QuickActionCard icon={Globe} label="Edit Smart Page" desc="Your public artist profile" to="/dashboard/smart-pages" color="#FF5252" />
             <QuickActionCard icon={Scissors} label="Create Split" desc="Manage collaborator splits" to="/dashboard/royalty-splits" color="#10B981" />

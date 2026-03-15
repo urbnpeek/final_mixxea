@@ -52,6 +52,8 @@ import { AdminPlatformSettings } from './components/admin/AdminPlatformSettings'
 import { AdminAuditLog } from './components/admin/AdminAuditLog';
 import { AdminReleaseDetail } from './components/admin/AdminReleaseDetail';
 import { CreativeStudioPage } from './components/dashboard/CreativeStudioPage';
+import { UserMarketingHub } from './components/dashboard/UserMarketingHub';
+import { AdminMarketingConsole } from './components/admin/AdminMarketingConsole';
 
 export const router = createBrowserRouter([
   {
@@ -67,6 +69,7 @@ export const router = createBrowserRouter([
           { index: true,            Component: DashboardOverview },
           { path: 'distribution',   Component: DistributionPage },
           { path: 'promotions',     Component: PromotionsPage },
+          { path: 'marketing',      Component: UserMarketingHub },
           { path: 'publishing',     Component: PublishingPage },
           { path: 'analytics',      Component: AnalyticsPage },
           { path: 'smart-pages',    Component: SmartPagesPage },
@@ -105,6 +108,7 @@ export const router = createBrowserRouter([
           { path: 'reports',         Component: AdminReports },
           { path: 'revenue',         Component: AdminRevenueCenter },
           { path: 'marketing',       Component: AdminMarketingCenter },
+          { path: 'marketing-console', Component: AdminMarketingConsole },
           { path: 'website',         Component: AdminWebsiteControl },
           { path: 'tracking',        Component: TrackingDocs },
           { path: 'seo',             Component: SEODashboard },

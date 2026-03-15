@@ -24,6 +24,7 @@ const BUCKET_NAME         = 'make-f4d1ffe4-creative';
 export const CREATIVE_PLAN_LIMITS: Record<string, {
   accounts: number; postsPerMonth: number; platformsPerPost: number;
   aiCaptionsPerMonth: number; aiImagesPerMonth: number; aiScriptsPerMonth: number;
+  aiCalendarsPerMonth: number;
   calendarType: string; storageMb: number; videoPosting: boolean;
   bulkScheduling: boolean | 'limited'; analytics: string;
   aiMarketingSuggestions: boolean; allowedPlatforms: string[];
@@ -31,6 +32,7 @@ export const CREATIVE_PLAN_LIMITS: Record<string, {
   starter: {
     accounts: 3, postsPerMonth: 20, platformsPerPost: 1,
     aiCaptionsPerMonth: 20, aiImagesPerMonth: 5, aiScriptsPerMonth: 3,
+    aiCalendarsPerMonth: 1,
     calendarType: 'monthly', storageMb: 500, videoPosting: false,
     bulkScheduling: false, analytics: 'basic', aiMarketingSuggestions: false,
     allowedPlatforms: ['instagram', 'tiktok'],
@@ -38,6 +40,7 @@ export const CREATIVE_PLAN_LIMITS: Record<string, {
   growth: {
     accounts: 8, postsPerMonth: 80, platformsPerPost: 3,
     aiCaptionsPerMonth: 100, aiImagesPerMonth: 25, aiScriptsPerMonth: 15,
+    aiCalendarsPerMonth: 4,
     calendarType: 'weekly', storageMb: 2048, videoPosting: true,
     bulkScheduling: 'limited', analytics: 'advanced', aiMarketingSuggestions: false,
     allowedPlatforms: ['instagram', 'tiktok', 'facebook', 'youtube'],
@@ -45,6 +48,7 @@ export const CREATIVE_PLAN_LIMITS: Record<string, {
   pro: {
     accounts: -1, postsPerMonth: -1, platformsPerPost: -1,
     aiCaptionsPerMonth: -1, aiImagesPerMonth: 80, aiScriptsPerMonth: 50,
+    aiCalendarsPerMonth: -1,
     calendarType: 'weekly_ai', storageMb: 10240, videoPosting: true,
     bulkScheduling: true, analytics: 'full', aiMarketingSuggestions: true,
     allowedPlatforms: ['instagram', 'tiktok', 'facebook', 'youtube'],
@@ -152,27 +156,53 @@ async function incUsage(userId: string, field: string, amount = 1) {
 // ── OpenAI helper ──────────────────────────────────────────────────────────────
 async function openaiChat(messages: any[], model = 'gpt-4o-mini', maxTokens = 600): Promise<string> {
   const key = OPENAI_API_KEY();
-  if (!key) throw new Error('OpenAI API key not configured');
+  if (!key) throw new Error('OPENAI_API_KEY is not configured — add it in your Supabase Edge Function secrets.');
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature: 0.85 }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || 'OpenAI error');
+  if (!res.ok) {
+    const msg = data.error?.message || '';
+    const code = data.error?.code || data.error?.type || '';
+    if (res.status === 429 || code === 'insufficient_quota' || msg.toLowerCase().includes('billing') || msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('limit')) {
+      throw Object.assign(
+        new Error(`Your OpenAI account has hit its billing limit. Fix it at: https://platform.openai.com/settings/organization/billing/overview — then retry.`),
+        { code: 'OPENAI_BILLING_LIMIT' }
+      );
+    }
+    if (res.status === 401 || code === 'invalid_api_key') {
+      throw Object.assign(new Error('OpenAI API key is invalid. Update OPENAI_API_KEY in your Supabase secrets.'), { code: 'OPENAI_INVALID_KEY' });
+    }
+    throw new Error(msg || `OpenAI error (${res.status})`);
+  }
   return data.choices?.[0]?.message?.content?.trim() || '';
 }
 
 async function openaiImage(prompt: string, size = '1024x1024'): Promise<string> {
   const key = OPENAI_API_KEY();
-  if (!key) throw new Error('OpenAI API key not configured');
+  if (!key) throw new Error('OPENAI_API_KEY is not configured — add it in your Supabase Edge Function secrets.');
   const res = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ model: 'dall-e-3', prompt, n: 1, size, quality: 'standard', response_format: 'url' }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || 'OpenAI image error');
+  if (!res.ok) {
+    const msg = data.error?.message || '';
+    const code = data.error?.code || data.error?.type || '';
+    if (res.status === 429 || code === 'insufficient_quota' || msg.toLowerCase().includes('billing') || msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('limit')) {
+      throw Object.assign(
+        new Error(`Your OpenAI account has hit its billing hard limit. This blocks DALL·E 3 image generation. Fix it at: https://platform.openai.com/settings/organization/billing/overview`),
+        { code: 'OPENAI_BILLING_LIMIT' }
+      );
+    }
+    if (res.status === 401 || code === 'invalid_api_key') {
+      throw Object.assign(new Error('OpenAI API key is invalid. Update OPENAI_API_KEY in your Supabase secrets.'), { code: 'OPENAI_INVALID_KEY' });
+    }
+    throw new Error(msg || `OpenAI image error (${res.status})`);
+  }
   return data.data?.[0]?.url || '';
 }
 
@@ -238,7 +268,7 @@ creativeApp.get(`${PREFIX}/creative/plan-limits`, async (c) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  OAUTH — initiate
-// ─────────────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────────────────
 creativeApp.post(`${PREFIX}/creative/oauth/:platform/connect`, async (c) => {
   try {
     const userId = await verifyToken(c);
@@ -830,16 +860,14 @@ creativeApp.post(`${PREFIX}/creative/ai/hashtags`, async (c) => {
   try {
     const userId = await verifyToken(c);
     if (!userId) return c.json({ error: 'Unauthorized' }, 401);
+    // Hashtags are a free feature — included in all plans, no credit deduction
     const { platform, genre, mood, releaseTitle, artistName } = await c.req.json();
-    const ok = await deductCredits(userId, 'ai_hashtags');
-    if (!ok) return c.json({ error: 'Insufficient credits', code: 'INSUFFICIENT_CREDITS' }, 402);
-
-    const prompt = `Generate 25 highly relevant hashtags for a ${genre || 'music'} artist posting about "${releaseTitle || 'new music'}" on ${platform || 'Instagram'}.
+    const prompt = `Generate 25 highly relevant hashtags for a ${genre || 'music'} artist posting about \"${releaseTitle || 'new music'}\" on ${platform || 'Instagram'}.
 Artist: ${artistName || 'independent artist'}
 Mood: ${mood || 'energetic'}
 Mix: 8 broad (1M+ uses), 10 mid-range (100K-1M uses), 7 niche (under 100K).
 Format: Return ONLY a JSON array of strings, no # prefix, no other text.
-Example: ["newmusic","hiphop","independentartist",...]`;
+Example: [\"newmusic\",\"hiphop\",\"independentartist\",...]`;
 
     const raw = await openaiChat([{ role: 'user', content: prompt }]);
     let hashtags: string[] = [];
@@ -847,7 +875,7 @@ Example: ["newmusic","hiphop","independentartist",...]`;
       const match = raw.match(/\[[\s\S]*\]/);
       hashtags = match ? JSON.parse(match[0]) : raw.split(',').map((s: string) => s.trim().replace(/[^a-zA-Z0-9_]/g, ''));
     } catch { hashtags = raw.split(/[\n,]/).map((s: string) => s.trim().replace(/[#"'\[\]]/g, '')).filter(Boolean).slice(0, 25); }
-    return c.json({ hashtags: hashtags.slice(0, 25), creditsUsed: CREATIVE_CREDITS.ai_hashtags });
+    return c.json({ hashtags: hashtags.slice(0, 25), creditsUsed: 0 });
   } catch (err) {
     return c.json({ error: `AI hashtags error: ${err}` }, 500);
   }
@@ -904,7 +932,8 @@ creativeApp.post(`${PREFIX}/creative/ai/video-script`, async (c) => {
     const limits = CREATIVE_PLAN_LIMITS[plan] || CREATIVE_PLAN_LIMITS.starter;
     const usage = await getUsage(userId);
 
-    if (limits.aiScriptsPerMonth !== -1 && usage.aiScriptsUsed >= limits.aiScriptsPerMonth) {
+    const withinLimit = limits.aiScriptsPerMonth === -1 || usage.aiScriptsUsed < limits.aiScriptsPerMonth;
+    if (!withinLimit) {
       const ok = await deductCredits(userId, 'ai_video_script');
       if (!ok) return c.json({ error: 'Insufficient credits', code: 'INSUFFICIENT_CREDITS' }, 402);
     }
@@ -930,7 +959,7 @@ Make it authentic, trend-aware, and optimized for maximum retention.`;
 
     const script = await openaiChat([{ role: 'user', content: prompt }], 'gpt-4o-mini', 800);
     await incUsage(userId, 'aiScriptsUsed');
-    return c.json({ script, creditsUsed: 0 });
+    return c.json({ script, creditsUsed: withinLimit ? 0 : CREATIVE_CREDITS.ai_video_script });
   } catch (err) {
     return c.json({ error: `AI video script error: ${err}` }, 500);
   }
@@ -943,8 +972,17 @@ creativeApp.post(`${PREFIX}/creative/ai/content-calendar`, async (c) => {
   try {
     const userId = await verifyToken(c);
     if (!userId) return c.json({ error: 'Unauthorized' }, 401);
-    const ok = await deductCredits(userId, 'ai_content_calendar');
-    if (!ok) return c.json({ error: 'Insufficient credits', code: 'INSUFFICIENT_CREDITS' }, 402);
+    const userStr = await kv.get(`user:${userId}`);
+    const user = userStr ? JSON.parse(userStr) : {};
+    const plan = user.plan || 'starter';
+    const limits = CREATIVE_PLAN_LIMITS[plan] || CREATIVE_PLAN_LIMITS.starter;
+    const usage = await getUsage(userId);
+
+    const withinLimit = limits.aiCalendarsPerMonth === -1 || usage.aiCalendarsUsed < limits.aiCalendarsPerMonth;
+    if (!withinLimit) {
+      const ok = await deductCredits(userId, 'ai_content_calendar');
+      if (!ok) return c.json({ error: 'Insufficient credits. Purchase more credits to generate additional content calendars.', code: 'INSUFFICIENT_CREDITS' }, 402);
+    }
 
     const { releaseDate, artistName, releaseTitle, genre, platforms, goals } = await c.req.json();
     const prompt = `Create a 7-day social media content calendar for a music release campaign.
@@ -973,7 +1011,7 @@ Return ONLY the JSON array, no other text.`;
       calendar = match ? JSON.parse(match[0]) : [];
     } catch { calendar = []; }
     await incUsage(userId, 'aiCalendarsUsed');
-    return c.json({ calendar, creditsUsed: CREATIVE_CREDITS.ai_content_calendar });
+    return c.json({ calendar, creditsUsed: withinLimit ? 0 : CREATIVE_CREDITS.ai_content_calendar });
   } catch (err) {
     return c.json({ error: `AI calendar error: ${err}` }, 500);
   }

@@ -112,7 +112,7 @@ interface Usage {
   aiImagesUsed: number; aiScriptsUsed: number; aiCalendarsUsed: number;
 }
 
-// ── Post Composer Modal ────────────────────────────────────────────────────────
+// ── Post Composer Drawer ───────────────────────────────────────────────────────
 function PostComposer({ token, limits, onClose, onSaved, editPost }: {
   token: string; limits: PlanLimits; onClose: () => void;
   onSaved: (post: SocialPost) => void; editPost?: SocialPost;
@@ -129,6 +129,7 @@ function PostComposer({ token, limits, onClose, onSaved, editPost }: {
   const [aiLoading, setAiLoading] = useState('');
   const [hashtagInput, setHashtagInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const STEPS = ['Platform', 'Media', 'Copy', 'Schedule'];
 
   const togglePlatform = (id: string) => {
     if (platforms.includes(id)) {
@@ -176,7 +177,8 @@ function PostComposer({ token, limits, onClose, onSaved, editPost }: {
       const data = await creativeReq('POST', '/creative/ai/image', { prompt: caption || 'music promotion artwork', style: 'promo' }, token);
       setMediaUrls([data.imageUrl]);
       setMediaType('image');
-      toast.success('Image generated!');
+      if (data.creditsUsed > 0) toast.success(`Image generated (${data.creditsUsed} credits used)`);
+      else toast.success('Image generated!');
     } catch (e: any) {
       toast.error(e.message);
     } finally { setAiLoading(''); }
@@ -225,45 +227,74 @@ function PostComposer({ token, limits, onClose, onSaved, editPost }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.9)' }}>
+    <div className="fixed inset-0 z-50 flex justify-end">
+      {/* Backdrop */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="w-full max-w-2xl rounded-2xl border overflow-hidden"
-        style={{ background: '#0D0D0D', borderColor: 'rgba(255,255,255,0.08)' }}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="absolute inset-0"
+        style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(3px)' }}
+        onClick={onClose}
+      />
+
+      {/* Drawer panel — slides in from right */}
+      <motion.div
+        initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+        className="relative z-10 flex flex-col w-full max-w-lg h-full"
+        style={{ background: '#0A0A0A', borderLeft: '1px solid rgba(255,255,255,0.08)' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+        <div className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#7B5FFF,#D63DF6)' }}>
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,#7B5FFF,#D63DF6)' }}>
               <Wand2 size={15} className="text-white" />
             </div>
-            <h3 className="font-bold text-white">{editPost ? 'Edit Post' : 'New Post'}</h3>
+            <div>
+              <h3 className="font-bold text-white text-sm leading-tight">{editPost ? 'Edit Post' : 'New Post'}</h3>
+              <p className="text-white/30 text-[11px]">Step {step} of 4 — {STEPS[step - 1]}</p>
+            </div>
           </div>
-          <button onClick={onClose} className="text-white/40 hover:text-white/80 transition-colors"><X size={20} /></button>
+          <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/10 transition-all">
+            <X size={16} />
+          </button>
         </div>
 
         {/* Step indicators */}
-        <div className="flex px-6 py-3 gap-1.5 border-b" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
-          {['Platform', 'Media', 'Copy', 'Schedule'].map((s, i) => (
-            <button key={s} onClick={() => setStep(i + 1)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${step === i + 1 ? 'text-white' : 'text-white/40 hover:text-white/60'}`}
-              style={step === i + 1 ? { background: 'rgba(123,95,255,0.2)', color: '#7B5FFF' } : {}}>
-              <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px]" style={{ background: step > i + 1 ? '#10B981' : step === i + 1 ? '#7B5FFF' : 'rgba(255,255,255,0.1)' }}>
-                {step > i + 1 ? <Check size={10} /> : i + 1}
-              </span>
-              {s}
-            </button>
-          ))}
+        <div className="flex px-5 py-3 gap-1 border-b flex-shrink-0" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+          {STEPS.map((s, i) => {
+            const isDone = step > i + 1;
+            const isActive = step === i + 1;
+            return (
+              <button key={s} onClick={() => setStep(i + 1)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={
+                  isActive
+                    ? { background: 'rgba(123,95,255,0.25)', color: '#C4AEFF', border: '1px solid rgba(123,95,255,0.45)' }
+                    : isDone
+                    ? { background: 'rgba(16,185,129,0.1)', color: '#34D399' }
+                    : { color: 'rgba(255,255,255,0.3)' }
+                }>
+                <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
+                  style={{
+                    background: isDone ? '#10B981' : isActive ? '#7B5FFF' : 'rgba(255,255,255,0.08)',
+                    color: '#fff',
+                  }}>
+                  {isDone ? <Check size={9} /> : i + 1}
+                </span>
+                <span className="hidden sm:inline">{s}</span>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="p-6 max-h-[65vh] overflow-y-auto">
-          {/* Title always shown */}
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto p-5">
+          {/* Title always visible */}
           <input
             value={title}
             onChange={e => setTitle(e.target.value)}
             placeholder="Post title (internal only)…"
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-white/30 outline-none focus:border-purple-500/50 mb-4"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-white/30 outline-none focus:border-purple-500/50 mb-5"
           />
 
           {/* Step 1: Platforms */}
@@ -277,8 +308,8 @@ function PostComposer({ token, limits, onClose, onSaved, editPost }: {
                   const allowed = limits.allowedPlatforms.includes(p.id);
                   return (
                     <button key={p.id} onClick={() => togglePlatform(p.id)}
-                      className={`relative flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${selected ? 'border-opacity-70' : 'border-white/10 hover:border-white/20'} ${!allowed ? 'opacity-40' : ''}`}
-                      style={selected ? { borderColor: p.color, background: `${p.color}15` } : { background: 'rgba(255,255,255,0.03)' }}>
+                      className={`relative flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${!allowed ? 'opacity-40' : 'hover:scale-[1.02]'}`}
+                      style={selected ? { borderColor: p.color, background: `${p.color}15` } : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)' }}>
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `linear-gradient(135deg, ${p.color}33, ${p.color}11)` }}>
                         <PIcon size={18} style={{ color: p.color }} />
                       </div>
@@ -297,11 +328,11 @@ function PostComposer({ token, limits, onClose, onSaved, editPost }: {
           {/* Step 2: Media */}
           {step === 2 && (
             <div>
-              <div className="flex gap-3 mb-4">
+              <div className="flex gap-2 mb-4">
                 {['image', 'video', 'text'].map(t => (
                   <button key={t} onClick={() => setMediaType(t)}
-                    className={`flex-1 py-2 rounded-xl text-xs font-semibold capitalize transition-all ${mediaType === t ? 'text-white' : 'text-white/40 hover:text-white/60'}`}
-                    style={mediaType === t ? { background: 'rgba(123,95,255,0.2)', color: '#7B5FFF' } : { background: 'rgba(255,255,255,0.05)' }}>
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold capitalize transition-all"
+                    style={mediaType === t ? { background: 'rgba(123,95,255,0.2)', color: '#C4AEFF', border: '1px solid rgba(123,95,255,0.35)' } : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)' }}>
                     {t}
                   </button>
                 ))}
@@ -314,11 +345,15 @@ function PostComposer({ token, limits, onClose, onSaved, editPost }: {
                       <button onClick={() => setMediaUrls([])} className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white hover:bg-black"><X size={14} /></button>
                     </div>
                   ) : (
-                    <div className="rounded-xl border border-dashed border-white/20 aspect-video flex flex-col items-center justify-center gap-3 mb-3 cursor-pointer hover:border-white/40 transition-colors"
+                    <div className="rounded-xl border border-dashed border-white/20 aspect-square flex flex-col items-center justify-center gap-3 mb-3 cursor-pointer hover:border-purple-500/40 transition-colors"
                       onClick={() => fileInputRef.current?.click()}>
-                      <Upload size={24} className="text-white/30" />
-                      <p className="text-white/40 text-sm">Upload your visual</p>
-                      <p className="text-white/25 text-xs">PNG, JPG, MP4 · Max 200MB</p>
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(123,95,255,0.1)' }}>
+                        <Upload size={20} className="text-purple-400" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-white/50 text-sm font-medium">Upload your visual</p>
+                        <p className="text-white/25 text-xs mt-0.5">PNG, JPG, MP4 · Max 200MB</p>
+                      </div>
                       <input ref={fileInputRef} type="file" accept="image/*,video/*" className="hidden"
                         onChange={(e) => {
                           const f = e.target.files?.[0];
@@ -327,7 +362,7 @@ function PostComposer({ token, limits, onClose, onSaved, editPost }: {
                     </div>
                   )}
                   <button onClick={generateImage} disabled={!!aiLoading}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-50"
                     style={{ background: 'linear-gradient(135deg,rgba(123,95,255,0.2),rgba(214,61,246,0.2))', border: '1px solid rgba(123,95,255,0.3)', color: '#C4AEFF' }}>
                     {aiLoading === 'image' ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
                     {aiLoading === 'image' ? 'Generating…' : '✨ Generate with AI'}
@@ -363,10 +398,10 @@ function PostComposer({ token, limits, onClose, onSaved, editPost }: {
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-white/60 text-xs font-semibold uppercase tracking-wider">Hashtags</label>
                   <button onClick={generateHashtags} disabled={!!aiLoading}
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all"
-                    style={{ background: 'rgba(0,196,255,0.15)', color: '#00C4FF' }}>
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all disabled:opacity-50"
+                    style={{ background: 'rgba(0,196,255,0.15)', color: '#00C4FF', border: '1px solid rgba(0,196,255,0.2)' }}>
                     {aiLoading === 'hashtags' ? <Loader2 size={11} className="animate-spin" /> : <Hash size={11} />}
-                    AI Suggest
+                    AI Suggest · Free
                   </button>
                 </div>
                 {hashtags.length > 0 && (
@@ -393,10 +428,11 @@ function PostComposer({ token, limits, onClose, onSaved, editPost }: {
           {/* Step 4: Schedule */}
           {step === 4 && (
             <div className="space-y-4">
+              {/* Summary card */}
               <div className="p-4 rounded-xl border" style={{ background: 'rgba(123,95,255,0.05)', borderColor: 'rgba(123,95,255,0.2)' }}>
-                <p className="text-white font-semibold mb-1">Post Summary</p>
-                <p className="text-white/50 text-sm mb-2">{title || 'Untitled'}</p>
-                <div className="flex gap-2 flex-wrap">
+                <p className="text-white font-semibold text-sm mb-1">Post Summary</p>
+                <p className="text-white/50 text-xs mb-2">{title || 'Untitled'}</p>
+                <div className="flex gap-2 flex-wrap mb-2">
                   {platforms.map(p => {
                     const pl = PLATFORMS.find(x => x.id === p);
                     return pl ? (
@@ -406,10 +442,17 @@ function PostComposer({ token, limits, onClose, onSaved, editPost }: {
                     ) : null;
                   })}
                 </div>
-                {caption && <p className="text-white/40 text-xs mt-2 line-clamp-2">{caption}</p>}
+                {caption && <p className="text-white/40 text-xs line-clamp-2">{caption}</p>}
+                {hashtags.length > 0 && <p className="text-white/25 text-[10px] mt-1">{hashtags.length} hashtags added</p>}
+                {mediaUrls.length > 0 && <p className="text-white/25 text-[10px]">1 media file attached</p>}
               </div>
+
+              {/* Datetime picker */}
               <div>
-                <label className="text-white/60 text-xs font-semibold uppercase tracking-wider block mb-2">Schedule for later (optional)</label>
+                <label className="text-white/60 text-xs font-semibold uppercase tracking-wider block mb-2">
+                  Schedule for later
+                  <span className="ml-2 text-white/25 font-normal normal-case">(optional)</span>
+                </label>
                 <input
                   type="datetime-local"
                   value={scheduledFor}
@@ -418,38 +461,54 @@ function PostComposer({ token, limits, onClose, onSaved, editPost }: {
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-purple-500/50"
                   style={{ colorScheme: 'dark' }}
                 />
+                {scheduledFor && (
+                  <p className="text-purple-400 text-xs mt-1.5 flex items-center gap-1">
+                    <Clock size={10} /> Scheduled for {new Date(scheduledFor).toLocaleString()}
+                  </p>
+                )}
               </div>
-              <div className="grid grid-cols-3 gap-3 pt-2">
+
+              {/* Action buttons — stacked for clarity */}
+              <div className="space-y-2 pt-1">
                 <button onClick={() => savePost('draft')} disabled={loading}
-                  className="py-3 rounded-xl text-sm font-semibold text-white/60 transition-all hover:text-white/90"
-                  style={{ background: 'rgba(255,255,255,0.07)' }}>
-                  Save Draft
+                  className="w-full py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2"
+                  style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  {loading ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+                  Save as Draft
                 </button>
+
                 <button onClick={() => savePost('schedule')} disabled={loading || !scheduledFor}
-                  className="py-3 rounded-xl text-sm font-semibold transition-all"
-                  style={{ background: scheduledFor ? 'rgba(123,95,255,0.25)' : 'rgba(255,255,255,0.05)', color: scheduledFor ? '#C4AEFF' : 'rgba(255,255,255,0.25)' }}>
-                  {loading ? <Loader2 size={14} className="animate-spin mx-auto" /> : 'Schedule'}
+                  className="w-full py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
+                  style={scheduledFor
+                    ? { background: 'rgba(123,95,255,0.3)', color: '#C4AEFF', border: '1px solid rgba(123,95,255,0.5)' }
+                    : { background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.06)', cursor: 'not-allowed' }}>
+                  {loading ? <Loader2 size={14} className="animate-spin" /> : <Clock size={14} />}
+                  {scheduledFor ? 'Schedule Post' : 'Schedule (pick a date above)'}
                 </button>
+
                 <button onClick={() => savePost('publish')} disabled={loading}
-                  className="py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+                  className="w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 flex items-center justify-center gap-2"
                   style={{ background: 'linear-gradient(135deg,#7B5FFF,#D63DF6)' }}>
-                  {loading ? <Loader2 size={14} className="animate-spin mx-auto" /> : 'Publish Now'}
+                  {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                  Publish Now
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Nav buttons */}
+        {/* Footer nav — Back / Next */}
         {step < 4 && (
-          <div className="flex justify-between px-6 py-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
-            <button onClick={() => setStep(s => Math.max(1, s - 1))} className="px-4 py-2 rounded-xl text-sm text-white/50 hover:text-white/80 transition-colors" style={{ background: 'rgba(255,255,255,0.05)' }}>
+          <div className="flex justify-between px-5 py-4 border-t flex-shrink-0" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+            <button onClick={() => setStep(s => Math.max(1, s - 1))}
+              className="px-4 py-2 rounded-xl text-sm text-white/50 hover:text-white/80 transition-colors"
+              style={{ background: 'rgba(255,255,255,0.05)' }}>
               Back
             </button>
             <button onClick={() => setStep(s => Math.min(4, s + 1))}
               className="px-5 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90"
               style={{ background: 'linear-gradient(135deg,#7B5FFF,#D63DF6)' }}>
-              Next <ChevronRight size={14} className="inline ml-1" />
+              Next <ChevronRight size={14} className="inline ml-0.5" />
             </button>
           </div>
         )}
@@ -574,7 +633,9 @@ function CalendarView({ posts }: { posts: SocialPost[] }) {
 }
 
 // ── AI Studio ─────────────────────────────────────────────────────────────────
-function AIStudio({ token, limits, usage, credits }: { token: string; limits: PlanLimits; usage: Usage; credits: number }) {
+function AIStudio({ token, limits, usage, credits, onRefreshCredits }: {
+  token: string; limits: PlanLimits; usage: Usage; credits: number; onRefreshCredits: () => void;
+}) {
   const [activeTool, setActiveTool] = useState('caption');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -625,6 +686,8 @@ function AIStudio({ token, limits, usage, credits }: { token: string; limits: Pl
         setResult({ type: 'calendar', content: data.calendar, credits: data.creditsUsed });
       }
       toast.success(`${activeTool.charAt(0).toUpperCase() + activeTool.slice(1)} generated!`);
+      // Refresh credit balance in parent after every successful generation
+      onRefreshCredits();
     } catch (e: any) {
       const msg = e.message || 'AI generation failed';
       toast.error(msg.includes('billing') || msg.includes('quota') ? '⚠️ OpenAI billing limit hit — see the result panel for fix instructions.' : msg);
@@ -662,7 +725,7 @@ function AIStudio({ token, limits, usage, credits }: { token: string; limits: Pl
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-[210px_1fr_1fr] gap-6">
       {/* Tool selector */}
       <div className="space-y-2">
         <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3">AI Tools</p>
@@ -1267,7 +1330,7 @@ export function CreativeStudioPage() {
           {activeTab === 'calendar' && <CalendarView posts={posts} />}
 
           {activeTab === 'ai' && limits && usage && (
-            <AIStudio token={token!} limits={limits} usage={usage} credits={credits} />
+            <AIStudio token={token!} limits={limits} usage={usage} credits={credits} onRefreshCredits={loadData} />
           )}
 
           {activeTab === 'analytics' && limits && (

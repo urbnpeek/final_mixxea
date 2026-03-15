@@ -7,6 +7,8 @@ import { generateSEOCycle } from "./seo-engine.tsx";
 import { featuresApp, triggerDripSequence, claimReferralCode } from "./features.tsx";
 import { adminOpsApp } from "./admin-ops.tsx";
 import { spotifyApp } from "./spotify.tsx";
+import { creativeApp } from "./creative.tsx";
+import { marketingConsoleApp } from "./marketing-console.tsx";
 import {
   sendEmail,
   welcomeEmail,
@@ -171,6 +173,10 @@ const stripe = STRIPE_SECRET_KEY
 
 // ── Credit package catalogue (amounts in USD cents) ───────────────────────────
 const CREDIT_PACKAGES: Record<string, { name: string; credits: number; bonusCredits: number; amountCents: number }> = {
+  basic:   { name: "Basic Pack",    credits: 100,  bonusCredits: 0,    amountCents: 500   },
+  value:   { name: "Value Pack",    credits: 500,  bonusCredits: 25,   amountCents: 2000  },
+  creator: { name: "Creator Pack",  credits: 2000, bonusCredits: 100,  amountCents: 6000  },
+  // Legacy packages kept for backward-compat
   starter: { name: "Starter Pack",  credits: 100,  bonusCredits: 0,    amountCents: 999   },
   pro:     { name: "Pro Pack",      credits: 500,  bonusCredits: 50,   amountCents: 3999  },
   growth:  { name: "Growth Pack",   credits: 1000, bonusCredits: 150,  amountCents: 6999  },
@@ -3037,6 +3043,8 @@ app.put(`${PREFIX}/admin/users/:userId`, async (c) => {
 app.route('', featuresApp);
 app.route('', adminOpsApp);
 app.route('', spotifyApp);
+app.route('', creativeApp);
+app.route('', marketingConsoleApp);
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  OG IMAGE — Branded Open Graph image (1200×630) served as SVG
