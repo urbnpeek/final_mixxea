@@ -1,0 +1,38 @@
+[
+  {
+    "id": "r1",
+    "artist": "KRATOS",
+    "release": "Dark Matter EP",
+    "source": "Streaming + Sales",
+    "amount": 1840,
+    "period": "Q1 2025",
+    "paidAt": null
+  },
+  {
+    "id": "r2",
+    "artist": "KRATOS",
+    "release": "Void Protocol",
+    "source": "Streaming",
+    "amount": 960,
+    "period": "Q1 2025",
+    "paidAt": null
+  },
+  {
+    "id": "r3",
+    "artist": "SOLV",
+    "release": "Ocean Floor LP",
+    "source": "Streaming + Beatport",
+    "amount": 2100,
+    "period": "Q1 2025",
+    "paidAt": null
+  },
+  {
+    "id": "r4",
+    "artist": "LYDA",
+    "release": "Void Protocol",
+    "source": "Sync License",
+    "amount": 440,
+    "period": "Q1 2025",
+    "paidAt": null
+  }
+]

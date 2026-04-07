@@ -1,0 +1,72 @@
+[
+  {
+    "id": "a1",
+    "name": "KRATOS",
+    "realName": "",
+    "country": "DE",
+    "city": "Berlin",
+    "genre": "Techno",
+    "bio": "Berlin-based techno and minimal artist with a signature raw, hypnotic style.",
+    "instagram": "",
+    "soundcloud": "",
+    "type": "both",
+    "status": "signed",
+    "photo": ""
+  },
+  {
+    "id": "a2",
+    "name": "SOLV",
+    "realName": "",
+    "country": "UK",
+    "city": "London",
+    "genre": "Deep House",
+    "bio": "UK producer crafting deep, melodic house with emotional depth.",
+    "instagram": "",
+    "soundcloud": "",
+    "type": "both",
+    "status": "signed",
+    "photo": ""
+  },
+  {
+    "id": "a3",
+    "name": "AXON",
+    "realName": "",
+    "country": "JP",
+    "city": "Tokyo",
+    "genre": "Ambient",
+    "bio": "Tokyo-based ambient and experimental artist exploring texture and space.",
+    "instagram": "",
+    "soundcloud": "",
+    "type": "label",
+    "status": "signed",
+    "photo": ""
+  },
+  {
+    "id": "a4",
+    "name": "VEXR",
+    "realName": "",
+    "country": "US",
+    "city": "New York",
+    "genre": "Bass",
+    "bio": "NYC producer at the intersection of industrial and bass music.",
+    "instagram": "",
+    "soundcloud": "",
+    "type": "both",
+    "status": "signed",
+    "photo": ""
+  },
+  {
+    "id": "a5",
+    "name": "LYDA",
+    "realName": "",
+    "country": "RO",
+    "city": "Bucharest",
+    "genre": "Techno",
+    "bio": "Romanian techno force bringing Eastern European intensity to global floors.",
+    "instagram": "",
+    "soundcloud": "",
+    "type": "both",
+    "status": "signed",
+    "photo": ""
+  }
+]

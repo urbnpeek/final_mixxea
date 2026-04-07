@@ -1,0 +1,20 @@
+{
+  "subscribers": [
+    {
+      "email": "techno.fan@gmail.com",
+      "joinedAt": "2025-04-04",
+      "source": "homepage"
+    },
+    {
+      "email": "underground.music@proton.me",
+      "joinedAt": "2025-04-03",
+      "source": "ar-form"
+    },
+    {
+      "email": "dj.studio@icloud.com",
+      "joinedAt": "2025-04-02",
+      "source": "footer"
+    }
+  ],
+  "campaigns": []
+}

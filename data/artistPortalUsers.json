@@ -1,0 +1,10 @@
+[
+  {
+    "id": "u1",
+    "artistName": "KRATOS",
+    "email": "kratos@mixxea.com",
+    "passwordHash": "$2a$10$VJ2.OcGx4W2UbmuXt4r2neP6l6dxY/iHsoj1hejgmDGkA2lXLiD76",
+    "status": "signed",
+    "createdAt": "2025-01-01"
+  }
+]

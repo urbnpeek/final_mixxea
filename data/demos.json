@@ -1,0 +1,41 @@
+[
+  {
+    "id": "d1",
+    "artistName": "HEXX",
+    "email": "hexxtechno@gmail.com",
+    "trackTitle": "Acid Vortex",
+    "genre": "Techno",
+    "bpm": 132,
+    "notes": "Raw acid techno with 303 work.",
+    "soundcloudLink": "",
+    "file": "",
+    "submittedAt": "2025-04-04T14:32:00Z",
+    "status": "new"
+  },
+  {
+    "id": "d2",
+    "artistName": "DARKFIELD",
+    "email": "darkfield@proton.me",
+    "trackTitle": "Black Horizon",
+    "genre": "Minimal",
+    "bpm": 128,
+    "notes": "Minimal techno, long journey.",
+    "soundcloudLink": "",
+    "file": "",
+    "submittedAt": "2025-04-03T09:10:00Z",
+    "status": "new"
+  },
+  {
+    "id": "d3",
+    "artistName": "SOLVEX",
+    "email": "solvex@icloud.com",
+    "trackTitle": "Deep Waters",
+    "genre": "Deep House",
+    "bpm": 122,
+    "notes": "Deep and rolling.",
+    "soundcloudLink": "",
+    "file": "",
+    "submittedAt": "2025-04-02T17:45:00Z",
+    "status": "reviewing"
+  }
+]

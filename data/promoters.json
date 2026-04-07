@@ -1,0 +1,42 @@
+[
+  {
+    "id": "p1",
+    "name": "Thomas Müller",
+    "email": "thomas@berghain.de",
+    "venue": "Berghain",
+    "city": "Berlin",
+    "country": "DE",
+    "totalBookings": 6,
+    "notes": ""
+  },
+  {
+    "id": "p2",
+    "name": "Ana Kovač",
+    "email": "booking@sonus.hr",
+    "venue": "Sonus Festival",
+    "city": "Tisno",
+    "country": "HR",
+    "totalBookings": 3,
+    "notes": ""
+  },
+  {
+    "id": "p3",
+    "name": "Léa Dubois",
+    "email": "lea@rex-club.com",
+    "venue": "Rex Club",
+    "city": "Paris",
+    "country": "FR",
+    "totalBookings": 4,
+    "notes": ""
+  },
+  {
+    "id": "p4",
+    "name": "Mark Evans",
+    "email": "mark@fabriclondon.com",
+    "venue": "Fabric London",
+    "city": "London",
+    "country": "UK",
+    "totalBookings": 7,
+    "notes": ""
+  }
+]

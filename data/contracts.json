@@ -1,0 +1,29 @@
+[
+  {
+    "id": "c1",
+    "artist": "KRATOS",
+    "type": "Label + Management",
+    "signedAt": "2025-01-01",
+    "expiresAt": "2027-12-31",
+    "status": "active",
+    "file": ""
+  },
+  {
+    "id": "c2",
+    "artist": "SOLV",
+    "type": "Label",
+    "signedAt": "2024-11-15",
+    "expiresAt": "2026-11-14",
+    "status": "active",
+    "file": ""
+  },
+  {
+    "id": "c3",
+    "artist": "LYDA",
+    "type": "Label + Agency",
+    "signedAt": "2025-03-01",
+    "expiresAt": "2028-02-28",
+    "status": "active",
+    "file": ""
+  }
+]

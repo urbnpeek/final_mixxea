@@ -1,0 +1,44 @@
+[
+  {
+    "id": "b1",
+    "venue": "Berghain",
+    "city": "Berlin",
+    "country": "DE",
+    "contact": "Thomas Müller",
+    "email": "thomas@berghain.de",
+    "artist": "KRATOS",
+    "date": "2025-07-20",
+    "type": "Headline",
+    "fee": 4000,
+    "notes": "Saturday main floor. Full rider required.",
+    "status": "pending"
+  },
+  {
+    "id": "b2",
+    "venue": "Sonus Festival",
+    "city": "Tisno",
+    "country": "HR",
+    "contact": "Ana Kovač",
+    "email": "booking@sonus.hr",
+    "artist": "LYDA",
+    "date": "2025-08-08",
+    "type": "Festival",
+    "fee": 3500,
+    "notes": "Meridian stage. 2h set.",
+    "status": "discussing"
+  },
+  {
+    "id": "b3",
+    "venue": "Panorama Bar",
+    "city": "Berlin",
+    "country": "DE",
+    "contact": "Max R.",
+    "email": "booking@panoramabar.de",
+    "artist": "AXON",
+    "date": "2025-09-13",
+    "type": "Live Set",
+    "fee": 0,
+    "notes": "Ambient live format. Budget TBC.",
+    "status": "pending"
+  }
+]

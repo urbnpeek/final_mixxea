@@ -1,0 +1,50 @@
+[
+  {
+    "id": "e1",
+    "date": "2025-05-12",
+    "venue": "Tresor Berlin",
+    "city": "Berlin",
+    "country": "DE",
+    "artist": "KRATOS",
+    "type": "Headline",
+    "ticketLink": "",
+    "fee": 2500,
+    "status": "confirmed"
+  },
+  {
+    "id": "e2",
+    "date": "2025-05-24",
+    "venue": "Awakenings Festival",
+    "city": "Amsterdam",
+    "country": "NL",
+    "artist": "KRATOS, LYDA",
+    "type": "Festival",
+    "ticketLink": "",
+    "fee": 5000,
+    "status": "confirmed"
+  },
+  {
+    "id": "e3",
+    "date": "2025-06-15",
+    "venue": "Fabric London",
+    "city": "London",
+    "country": "UK",
+    "artist": "SOLV",
+    "type": "Club Night",
+    "ticketLink": "",
+    "fee": 0,
+    "status": "hold"
+  },
+  {
+    "id": "e4",
+    "date": "2025-06-28",
+    "venue": "De School",
+    "city": "Amsterdam",
+    "country": "NL",
+    "artist": "AXON",
+    "type": "Live Set",
+    "ticketLink": "",
+    "fee": 1200,
+    "status": "confirmed"
+  }
+]

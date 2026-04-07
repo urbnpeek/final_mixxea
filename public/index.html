@@ -1,0 +1,2261 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mixxea & Freq Vault | Label, Booking & Management</title>
+<meta name="description" content="Mixxea is an electronic music record label. Freq Vault is an artist management and booking agency for DJs, producers, releases, demos, and live bookings.">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<link rel="canonical" href="https://mixxea.com/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Mixxea & Freq Vault | Label, Booking & Management">
+<meta property="og:description" content="Electronic music label, artist management, DJ bookings, releases, demos, and live events.">
+<meta property="og:url" content="https://mixxea.com/">
+<meta property="og:image" content="https://mixxea.com/og/mixxea-og.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Mixxea & Freq Vault | Label, Booking & Management">
+<meta name="twitter:description" content="Electronic music label, artist management, DJ bookings, releases, demos, and live events.">
+<meta name="twitter:image" content="https://mixxea.com/og/mixxea-og.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Syne:wght@400;500;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://mixxea.com/#website",
+      "url": "https://mixxea.com/",
+      "name": "Mixxea & Freq Vault",
+      "description": "Electronic music record label, artist management and booking agency.",
+      "publisher": {
+        "@id": "https://mixxea.com/#mixxea"
+      }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://mixxea.com/#mixxea",
+      "name": "Mixxea",
+      "url": "https://mixxea.com/record-label",
+      "description": "Independent electronic music record label focused on artist development and releases.",
+      "logo": "https://mixxea.com/og/mixxea-og.svg"
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://mixxea.com/#freqvault",
+      "name": "Freq Vault",
+      "url": "https://mixxea.com/booking-agency",
+      "description": "Artist management and booking agency for DJs, producers, and electronic live acts.",
+      "logo": "https://mixxea.com/og/mixxea-og.svg"
+    },
+    {
+      "@type": "MusicAlbum",
+      "name": "Dark Matter EP",
+      "byArtist": {
+        "@type": "MusicGroup",
+        "name": "KRATOS"
+      },
+      "url": "https://mixxea.com/#releases"
+    },
+    {
+      "@type": "MusicRecording",
+      "name": "Void Protocol",
+      "byArtist": {
+        "@type": "MusicGroup",
+        "name": "LYDA"
+      },
+      "inAlbum": {
+        "@type": "MusicAlbum",
+        "name": "Void Protocol"
+      },
+      "url": "https://mixxea.com/#releases"
+    },
+    {
+      "@type": "Event",
+      "name": "Freq Vault Artist Booking Events",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "organizer": {
+        "@id": "https://mixxea.com/#freqvault"
+      },
+      "url": "https://mixxea.com/#events"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://mixxea.com/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://mixxea.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Record Label",
+          "item": "https://mixxea.com/record-label"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Booking Agency",
+          "item": "https://mixxea.com/booking-agency"
+        }
+      ]
+    }
+  ]
+}</script>
+<style>
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   TOKENS & RESET
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --void:#02020a;--ink:#05050f;--panel:#0c0c1a;--edge:#13132a;
+  --wire:rgba(255,255,255,0.06);--wire2:rgba(255,255,255,0.12);--wire3:rgba(255,255,255,0.22);
+  --g1:#e8ff00;--g2:#b8ff00;--g3:#ff2d6b;--g4:#00c8ff;--g5:#ffb800;
+  --text:#f5f0ff;--muted:rgba(245,240,255,0.45);--muted2:rgba(245,240,255,0.22);--muted3:rgba(245,240,255,0.1);
+  --Anton:'Anton',sans-serif;--Syne:'Syne',sans-serif;--Mono:'Syne Mono',monospace;
+  --ease:cubic-bezier(0.16,1,0.3,1);
+}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{background:var(--void);color:var(--text);font-family:var(--Syne);overflow-x:hidden;cursor:default}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+::-webkit-scrollbar{width:2px}::-webkit-scrollbar-track{background:var(--void)}::-webkit-scrollbar-thumb{background:var(--g1)}
+a{text-decoration:none;color:inherit}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   CURSOR
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+#cur{position:fixed;width:10px;height:10px;background:var(--g1);border-radius:50%;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);mix-blend-mode:difference;transition:width .15s,height .15s;display:none}
+#cur-r{position:fixed;width:34px;height:34px;border:1px solid rgba(232,255,0,.45);border-radius:50%;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:transform .12s var(--ease),width .25s,height .25s;display:none}
+.cur-big #cur{width:24px;height:24px}
+.cur-big #cur-r{width:60px;height:60px}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   NAV
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+#nav{position:fixed;top:0;left:0;right:0;z-index:500;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:68px;padding:0 48px;transition:background .4s,border-color .3s;border-bottom:1px solid transparent}
+#nav.scrolled{background:rgba(2,2,10,.94);backdrop-filter:blur(20px);border-bottom-color:var(--wire)}
+.nav-logo{font-family:var(--Anton);font-size:24px;letter-spacing:5px;color:var(--text)}
+.nav-logo .x{color:var(--g1)}
+.nav-logo sub{font-family:var(--Mono);font-size:7px;letter-spacing:3px;color:var(--muted);vertical-align:baseline;margin-left:3px;margin-top:14px;display:inline-block}
+.nav-center{display:flex;gap:36px;justify-content:center}
+.nav-center a{font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);transition:color .2s;cursor:pointer}
+.nav-center a:hover{color:var(--g1)}
+.nav-right{display:flex;gap:14px;justify-content:flex-end;align-items:center}
+.n-freq{font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--g4);border:1px solid rgba(0,200,255,.3);padding:8px 16px;transition:all .2s;cursor:pointer}
+.n-freq:hover{background:rgba(0,200,255,.07)}
+.n-ar{font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;background:var(--g1);color:var(--void);padding:9px 20px;font-weight:700;border:none;cursor:pointer;transition:all .2s}
+.n-ar:hover{background:var(--g2);transform:translateY(-1px)}
+.n-admin{font-family:var(--Mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border:1px solid var(--wire);padding:7px 14px;cursor:pointer;transition:all .2s}
+.n-admin:hover{color:var(--text);border-color:var(--wire2)}
+.nav-mobile-toggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--wire2);background:rgba(255,255,255,.02);color:var(--text);cursor:pointer;font-family:var(--Mono);font-size:11px;letter-spacing:1px}
+.nav-mobile-toggle:hover{border-color:rgba(232,255,0,.35);color:var(--g1)}
+.nav-mobile-panel{display:none;position:fixed;top:74px;left:14px;right:14px;z-index:700;background:rgba(6,6,16,.96);backdrop-filter:blur(20px);border:1px solid var(--wire2);padding:14px;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.nav-mobile-panel.open{display:block}
+.nav-mobile-links{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.nav-mobile-links a,.nav-mobile-actions a,.nav-mobile-actions button{display:flex;align-items:center;justify-content:center;min-height:44px;padding:0 12px;font-family:var(--Mono);font-size:10px;letter-spacing:1.8px;text-transform:uppercase;border:1px solid var(--wire);background:rgba(255,255,255,.02);color:var(--text);cursor:pointer}
+.nav-mobile-actions{display:grid;grid-template-columns:1fr;gap:10px}
+.nav-mobile-actions .n-admin{display:flex;width:100%;padding:0;border-color:var(--wire)}
+.nav-mobile-actions .n-ar{padding:0;background:var(--g1);color:var(--void)}
+.nav-mobile-actions .n-freq{padding:0;color:var(--g4);border-color:rgba(0,200,255,.25)}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   HERO
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:0 48px 100px;position:relative;overflow:hidden}
+.h-bg-txt{position:absolute;font-family:var(--Anton);font-size:clamp(160px,22vw,340px);letter-spacing:-8px;line-height:.85;color:transparent;-webkit-text-stroke:1px rgba(232,255,0,.05);top:50%;left:50%;transform:translate(-50%,-50%) rotate(-8deg);white-space:nowrap;pointer-events:none;animation:bgDrift 20s ease-in-out infinite alternate}
+@keyframes bgDrift{0%{transform:translate(-50%,-50%) rotate(-8deg) scale(1)}100%{transform:translate(-48%,-52%) rotate(-7deg) scale(1.02)}}
+canvas#wc{position:absolute;inset:0;opacity:.65;z-index:0}
+.scan{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--g1),transparent);opacity:.35;animation:scanMove 8s linear infinite;z-index:1}
+@keyframes scanMove{0%{top:0}100%{top:100vh}}
+.h-orb{position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle at 40% 40%,rgba(232,255,0,.1) 0%,rgba(255,45,107,.06) 40%,transparent 70%);top:50%;right:-100px;transform:translateY(-50%);animation:orbP 7s ease-in-out infinite;z-index:0}
+@keyframes orbP{0%,100%{transform:translateY(-50%) scale(1);opacity:1}50%{transform:translateY(-52%) scale(1.06);opacity:.75}}
+.freq-side{position:absolute;left:0;top:0;bottom:0;width:4px;display:flex;flex-direction:column;gap:2px;padding:15vh 0;z-index:1}
+.fb{background:var(--g1);flex-shrink:0;animation:fba 1s ease-in-out infinite alternate}
+@keyframes fba{0%{opacity:.3}100%{opacity:1}}
+.h-content{position:relative;z-index:2;max-width:1100px}
+.h-eye{font-family:var(--Mono);font-size:11px;letter-spacing:4px;color:var(--g1);text-transform:uppercase;margin-bottom:28px;display:flex;align-items:center;gap:14px}
+.h-eye::before{content:'';display:inline-block;width:44px;height:1px;background:var(--g1)}
+.eye-dot{width:5px;height:5px;border-radius:50%;background:var(--g3);animation:blink 1.8s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+.h-title{font-family:var(--Anton);font-size:clamp(72px,13vw,200px);line-height:.88;letter-spacing:-3px}
+.h-title .fill{display:block;color:var(--text)}
+.h-title .stroke{display:block;color:transparent;-webkit-text-stroke:2px rgba(245,240,255,.22)}
+.h-title .acc{display:block;color:var(--g1)}
+.h-bot{display:flex;align-items:flex-end;justify-content:space-between;margin-top:60px;gap:40px;flex-wrap:wrap}
+.h-tag{font-size:17px;color:var(--muted);line-height:1.65;max-width:440px}
+.h-tag strong{color:var(--text);font-weight:600}
+.h-ctas{display:flex;gap:12px;align-items:center;flex-shrink:0}
+.cta-y{background:var(--g1);color:var(--void);font-family:var(--Mono);font-size:11px;letter-spacing:2px;font-weight:700;text-transform:uppercase;padding:18px 36px;cursor:pointer;transition:all .2s;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.cta-y:hover{background:var(--g2);transform:scale(1.02)}
+.cta-g{border:1px solid var(--wire2);color:var(--muted);font-family:var(--Mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:18px 28px;cursor:pointer;transition:all .2s;background:transparent}
+.cta-g:hover{border-color:rgba(232,255,0,.4);color:var(--g1)}
+.h-stats{display:flex;gap:48px;margin-top:48px}
+.hs-item .sn{font-family:var(--Anton);font-size:52px;letter-spacing:1px;line-height:1;color:var(--g1)}
+.hs-item .sn em{color:var(--g3);font-style:normal;font-size:.5em;vertical-align:super}
+.hs-item .sl{font-family:var(--Mono);font-size:9px;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
+
+/* MARQUEE */
+.mq-wrap{background:var(--g1);overflow:hidden;padding:11px 0;position:relative;z-index:3}
+.mq-track{display:flex;width:max-content;animation:mq 28s linear infinite}
+.mq-track:hover{animation-play-state:paused}
+@keyframes mq{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.mq-i{font-family:var(--Anton);font-size:14px;letter-spacing:3px;color:var(--void);padding:0 36px;white-space:nowrap}
+.mq-dot{color:rgba(0,0,0,.3)}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PERSISTENT AUDIO PLAYER
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+#player{
+  position:fixed;bottom:0;left:0;right:0;z-index:600;
+  background:rgba(5,5,15,.97);backdrop-filter:blur(24px);
+  border-top:1px solid var(--wire);
+  height:72px;display:flex;align-items:center;padding:0 32px;gap:20px;
+  transform:translateY(100%);transition:transform .4s var(--ease);
+}
+#player.visible{transform:translateY(0)}
+.p-art{width:44px;height:44px;background:var(--edge);display:flex;align-items:center;justify-content:center;font-family:var(--Anton);font-size:14px;color:var(--g1);flex-shrink:0}
+.p-info{flex:0 0 200px}
+.p-title{font-family:var(--Mono);font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-artist{font-family:var(--Mono);font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-top:2px}
+.p-controls{display:flex;align-items:center;gap:12px}
+.p-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:all .2s}
+.p-btn:hover{color:var(--text)}
+.p-play{width:44px;height:44px;background:var(--g1);color:var(--void);border-radius:50%;font-size:16px}
+.p-play:hover{background:var(--g2);transform:scale(1.05)}
+.p-progress{flex:1;display:flex;flex-direction:column;gap:6px}
+.p-bar-wrap{height:3px;background:var(--wire);border-radius:2px;cursor:pointer;position:relative}
+.p-bar-fill{height:100%;background:var(--g1);border-radius:2px;width:0%;transition:width .3s linear}
+.p-times{display:flex;justify-content:space-between;font-family:var(--Mono);font-size:9px;color:var(--muted);letter-spacing:1px}
+.p-vol-wrap{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.p-vol-icon{font-size:14px;color:var(--muted)}
+.p-vol{-webkit-appearance:none;appearance:none;width:80px;height:3px;background:var(--wire);border-radius:2px;outline:none;cursor:pointer}
+.p-vol::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--g1);border-radius:50%;cursor:pointer}
+.p-close{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px;flex-shrink:0;transition:color .2s}
+.p-close:hover{color:var(--g3)}
+/* playlist mini */
+.p-pl{flex:0 0 140px;display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.p-pl-item{font-family:var(--Mono);font-size:9px;letter-spacing:1px;color:var(--muted2);cursor:pointer;padding:2px 4px;border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s}
+.p-pl-item:hover{color:var(--text)}
+.p-pl-item.playing{color:var(--g1)}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   COMMON LAYOUT
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+.cx{max-width:1440px;margin:0 auto;padding:0 48px}
+.sec-kicker{font-family:var(--Mono);font-size:10px;letter-spacing:4px;color:var(--g1);text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sec-kicker::before{content:'';width:28px;height:1px;background:var(--g1)}
+.sec-h2{font-family:var(--Anton);font-size:clamp(52px,7vw,112px);line-height:.92;letter-spacing:1px}
+.sec-h2 .out{color:transparent;-webkit-text-stroke:1px rgba(245,240,255,.18)}
+.rv{opacity:1;transform:translateY(0);transition:opacity .8s var(--ease),transform .8s var(--ease)}.rv.animate{opacity:0;transform:translateY(36px)}.rv.animate.in{opacity:1;transform:translateY(0)}
+.rv.in{opacity:1;transform:translateY(0)}
+.rv2{opacity:1;transform:translateY(0);transition:opacity .5s var(--ease),transform .5s var(--ease)}.rv2.animate{opacity:0;transform:translateY(20px)}.rv2.animate.in{opacity:1;transform:translateY(0)}
+.rv2.in{opacity:1;transform:translateY(0)}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   STATS BAND
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+.stats-band{background:var(--panel);border-top:1px solid var(--wire);border-bottom:1px solid var(--wire);padding:72px 48px;display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.sb-box{padding:40px 32px;text-align:center;border-right:1px solid var(--wire);transition:background .25s}
+.sb-box:last-child{border-right:none}
+.sb-box:hover{background:rgba(232,255,0,.03)}
+.sb-big{font-family:var(--Anton);font-size:clamp(56px,7vw,96px);letter-spacing:-2px;line-height:.9;color:var(--g1);margin-bottom:8px}
+.sb-big sup{font-size:.45em;vertical-align:super;color:var(--g3)}
+.sb-lbl{font-family:var(--Mono);font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   LABEL SECTION
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+#label{padding:140px 0;border-top:1px solid var(--wire)}
+.label-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:100px;align-items:start}
+.l-copy{font-size:17px;color:var(--muted);line-height:1.85;margin-top:40px;margin-bottom:36px}
+.l-copy strong{color:var(--text);font-weight:600}
+.g-cloud{display:flex;flex-wrap:wrap;gap:8px}
+.gtag{font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--wire2);color:var(--muted);padding:7px 16px;transition:all .25s;cursor:default}
+.gtag:hover{border-color:var(--g1);color:var(--g1);background:rgba(232,255,0,.04)}
+.f-stack{display:flex;flex-direction:column}
+.fi{border-top:1px solid var(--wire);padding:26px 0;display:grid;grid-template-columns:44px 1fr;gap:18px;align-items:start;position:relative;overflow:hidden}
+.fi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--g1);transform:scaleY(0);transition:transform .35s var(--ease);transform-origin:bottom}
+.fi:hover::before{transform:scaleY(1)}
+.fi:last-child{border-bottom:1px solid var(--wire)}
+.fi-n{font-family:var(--Anton);font-size:13px;color:var(--muted2);letter-spacing:2px;padding-top:2px}
+.fi h3{font-family:var(--Syne);font-size:13px;font-weight:700;color:var(--text);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.fi p{font-size:13px;color:var(--muted);line-height:1.65}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   ROSTER
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+#roster{padding:140px 0;border-top:1px solid var(--wire);background:var(--panel)}
+.roster-top{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:end;margin-bottom:64px}
+.roster-desc{font-size:16px;color:var(--muted);line-height:1.75;padding-top:16px}
+.roster-scroll{overflow:hidden;position:relative}
+.roster-track{display:flex;gap:3px;width:max-content;transition:transform .6s var(--ease)}
+.a-tile{width:300px;height:420px;position:relative;overflow:hidden;flex-shrink:0;background:var(--edge);cursor:pointer}
+.at-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--Anton);font-size:160px;letter-spacing:-8px;line-height:1;transition:transform .7s var(--ease)}
+.a-tile:hover .at-bg{transform:scale(1.1)}
+.at-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(2,2,10,1) 0%,transparent 55%);transition:all .4s}
+.a-tile:hover .at-ov{background:linear-gradient(to top,rgba(2,2,10,1) 0%,rgba(2,2,10,.7) 60%,rgba(2,2,10,.1) 100%)}
+.at-c{position:absolute;bottom:0;left:0;right:0;padding:28px 24px}
+.at-genre{font-family:var(--Mono);font-size:9px;letter-spacing:3px;color:var(--g1);text-transform:uppercase;margin-bottom:8px}
+.at-name{font-family:var(--Anton);font-size:40px;letter-spacing:1px;line-height:.95;margin-bottom:10px}
+.at-meta{font-family:var(--Mono);font-size:9px;color:var(--muted);display:flex;gap:12px;margin-bottom:18px}
+.at-btns{display:flex;gap:8px;opacity:0;transform:translateY(10px);transition:all .3s var(--ease)}
+.a-tile:hover .at-btns{opacity:1;transform:translateY(0)}
+.at-btn{font-family:var(--Mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;transition:all .2s;cursor:pointer}
+.at-btn-y{border:1px solid rgba(232,255,0,.4);color:var(--g1)}
+.at-btn-y:hover{background:var(--g1);color:var(--void)}
+.at-btn-g{border:1px solid var(--wire2);color:var(--muted)}
+.at-btn-g:hover{border-color:var(--wire2);color:var(--text)}
+.roster-nav{display:flex;gap:8px;margin-top:24px;justify-content:flex-end;padding-right:48px}
+.r-arr{width:46px;height:46px;border:1px solid var(--wire2);background:none;color:var(--muted);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.r-arr:hover{border-color:var(--g1);color:var(--g1)}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   RELEASES
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+#releases{padding:140px 0;border-top:1px solid var(--wire)}
+.rel-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:64px;flex-wrap:wrap;gap:24px}
+.rel-filters{display:flex;gap:4px;flex-wrap:wrap}
+.f-btn{font-family:var(--Mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:9px 18px;background:none;border:1px solid var(--wire);color:var(--muted);cursor:pointer;transition:all .2s}
+.f-btn.on,.f-btn:hover{border-color:var(--g1);color:var(--g1);background:rgba(232,255,0,.04)}
+.rel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
+.r-card{background:var(--panel);position:relative;overflow:hidden;aspect-ratio:1;cursor:pointer;transition:transform .35s var(--ease)}
+.r-card:first-child{grid-column:span 2;grid-row:span 2;aspect-ratio:auto;min-height:380px}
+.r-card:hover{transform:scale(.985)}
+.rc-art{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--Anton);line-height:1;font-size:100px;transition:transform .6s var(--ease)}
+.r-card:hover .rc-art{transform:scale(1.07)}
+.rc-art.big{font-size:180px}
+.rc-grad{position:absolute;inset:0;background:linear-gradient(135deg,rgba(2,2,10,.92) 0%,rgba(2,2,10,.15) 100%)}
+.rc-cnt{position:absolute;bottom:0;left:0;right:0;padding:22px}
+.rc-cnt.big{padding:36px}
+.rc-cat{font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--g1);text-transform:uppercase;margin-bottom:6px}
+.rc-title{font-family:var(--Anton);font-size:26px;letter-spacing:1px;line-height:1;margin-bottom:4px}
+.rc-title.big{font-size:44px;margin-bottom:8px}
+.rc-who{font-family:var(--Mono);font-size:9px;color:var(--muted);letter-spacing:1px}
+.rc-status{position:absolute;top:16px;right:16px;font-family:var(--Mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;padding:5px 10px;border:1px solid}
+.s-out{color:var(--g1);border-color:rgba(232,255,0,.35)}
+.s-pre{color:var(--g5);border-color:rgba(255,184,0,.35)}
+/* Play button on release card */
+.rc-play{position:absolute;top:16px;left:16px;width:36px;height:36px;background:rgba(232,255,0,.9);color:var(--void);border:none;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.7);transition:all .25s var(--ease)}
+.r-card:hover .rc-play{opacity:1;transform:scale(1)}
+.rc-play:hover{background:var(--g1);transform:scale(1.1)!important}
+/* DSP links */
+.rc-dsp{position:absolute;bottom:0;left:0;right:0;padding:12px 22px;display:flex;gap:8px;opacity:0;transform:translateY(6px);transition:all .3s var(--ease);background:linear-gradient(to top,rgba(2,2,10,.95),transparent)}
+.r-card:hover .rc-dsp{opacity:1;transform:translateY(0)}
+.dsp-link{font-family:var(--Mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border:1px solid var(--wire2);color:var(--muted);cursor:pointer;transition:all .2s}
+.dsp-link:hover{border-color:var(--g1);color:var(--g1)}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   NEWSLETTER BANNER
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+.nl-band{background:var(--panel);border-top:1px solid var(--wire);border-bottom:1px solid var(--wire);padding:64px 48px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.nl-left h3{font-family:var(--Anton);font-size:clamp(36px,4vw,60px);line-height:.95;margin-bottom:10px}
+.nl-left p{color:var(--muted);font-size:15px;line-height:1.65}
+.nl-form{display:flex;gap:0}
+.nl-input{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--wire2);color:var(--text);font-family:var(--Mono);font-size:13px;padding:16px 20px;outline:none;transition:border-color .2s}
+.nl-input:focus{border-color:var(--g1)}
+.nl-input::placeholder{color:var(--muted2)}
+.nl-btn{background:var(--g1);color:var(--void);font-family:var(--Mono);font-size:11px;letter-spacing:2px;font-weight:700;text-transform:uppercase;padding:16px 28px;border:none;cursor:pointer;transition:all .2s;white-space:nowrap}
+.nl-btn:hover{background:var(--g2)}
+.nl-ok{display:none;font-family:var(--Mono);font-size:11px;color:var(--g1);margin-top:12px;letter-spacing:1px}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FREQVAULT
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+#freqvault{min-height:100vh;position:relative;overflow:hidden;border-top:1px solid var(--wire);display:flex;flex-direction:column;justify-content:center}
+.fv-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 70% at 70% 50%,rgba(0,200,255,.06),transparent 60%),radial-gradient(ellipse 50% 50% at 20% 80%,rgba(255,45,107,.05),transparent 60%),var(--void)}
+.fv-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,200,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,255,.04) 1px,transparent 1px);background-size:80px 80px}
+.fv-inner{position:relative;z-index:1;padding:120px 48px}
+.fv-top{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;margin-bottom:100px}
+.fv-tag{font-family:var(--Mono);font-size:10px;letter-spacing:4px;color:var(--g4);text-transform:uppercase;display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.fv-tag::before{content:'';width:28px;height:1px;background:var(--g4)}
+.fv-logo{font-family:var(--Anton);font-size:clamp(56px,9vw,128px);line-height:.88;letter-spacing:1px}
+.fv-logo .freq{color:var(--g4)}
+.fv-logo .vault{color:transparent;-webkit-text-stroke:1.5px rgba(0,200,255,.35)}
+.fv-sub{font-family:var(--Mono);font-size:10px;letter-spacing:4px;color:var(--g4);text-transform:uppercase;margin-top:14px;opacity:.65}
+.fv-desc p{font-size:17px;color:var(--muted);line-height:1.8;margin-bottom:22px}
+.fv-desc p strong{color:var(--text);font-weight:600}
+.fv-ctas{display:flex;gap:12px;margin-top:8px}
+.cta-c{background:var(--g4);color:var(--void);font-family:var(--Mono);font-size:10px;letter-spacing:2px;font-weight:700;text-transform:uppercase;padding:16px 32px;cursor:pointer;transition:all .2s}
+.cta-c:hover{background:#22d8ff;transform:translateY(-2px)}
+.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.svc{border:1px solid rgba(0,200,255,.1);padding:36px 28px;position:relative;overflow:hidden;background:rgba(0,200,255,.02);transition:all .3s}
+.svc::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:var(--g4);transform:scaleX(0);transform-origin:left;transition:transform .4s var(--ease)}
+.svc:hover{background:rgba(0,200,255,.04);border-color:rgba(0,200,255,.25)}
+.svc:hover::after{transform:scaleX(1)}
+.svc-ico{width:44px;height:44px;border:1px solid rgba(0,200,255,.2);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:20px;transition:border-color .3s}
+.svc:hover .svc-ico{border-color:rgba(0,200,255,.6)}
+.svc-n{font-family:var(--Anton);font-size:64px;color:rgba(0,200,255,.04);position:absolute;top:10px;right:16px;line-height:1}
+.svc h3{font-family:var(--Anton);font-size:28px;letter-spacing:1px;margin-bottom:10px}
+.svc p{font-size:13px;color:var(--muted);line-height:1.7}
+.fv-cta-band{background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.15);padding:52px 60px;margin-top:60px;display:flex;align-items:center;justify-content:space-between;gap:40px;position:relative;overflow:hidden}
+.fv-cta-band::before{content:'FREQVAULT';position:absolute;right:-10px;top:50%;transform:translateY(-50%);font-family:var(--Anton);font-size:100px;color:rgba(0,200,255,.04);letter-spacing:4px;pointer-events:none}
+.fvb h3{font-family:var(--Anton);font-size:clamp(32px,4vw,52px);line-height:1;margin-bottom:6px}
+.fvb p{font-family:var(--Mono);font-size:10px;color:var(--muted);letter-spacing:1px}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   NEWS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+#news{padding:140px 0;border-top:1px solid var(--wire);background:var(--panel)}
+.news-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:3px;margin-top:64px}
+.n-card{background:var(--edge);position:relative;overflow:hidden;cursor:pointer;transition:all .3s}
+.n-card:hover{background:#1a1a2e}
+.n-card:first-child{grid-row:span 2}
+.nc-img{height:220px;background:var(--panel);display:flex;align-items:center;justify-content:center;font-family:var(--Anton);font-size:80px;color:var(--muted3);position:relative;overflow:hidden;transition:all .35s}
+.n-card:first-child .nc-img{height:320px}
+.n-card:hover .nc-img{filter:brightness(1.1)}
+.nc-cat{font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--g1);text-transform:uppercase;padding:20px 20px 0}
+.nc-title{font-family:var(--Syne);font-size:18px;font-weight:700;color:var(--text);padding:10px 20px;line-height:1.3}
+.n-card:first-child .nc-title{font-size:24px}
+.nc-date{font-family:var(--Mono);font-size:9px;color:var(--muted2);padding:0 20px 20px;letter-spacing:1px}
+.nc-arr{position:absolute;top:20px;right:20px;width:32px;height:32px;border:1px solid var(--wire2);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted);opacity:0;transform:translateX(8px);transition:all .3s}
+.n-card:hover .nc-arr{opacity:1;transform:translateX(0);border-color:var(--g1);color:var(--g1)}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   EVENTS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+#events{padding:140px 0;border-top:1px solid var(--wire)}
+.ev-list{display:flex;flex-direction:column;gap:2px;margin-top:64px}
+.ev-row{display:grid;grid-template-columns:120px 1fr 180px 160px 100px;align-items:center;gap:20px;padding:20px 24px;border:1px solid var(--wire);transition:all .25s;cursor:pointer;position:relative;overflow:hidden}
+.ev-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(0,200,255,.04);transition:width .35s}
+.ev-row:hover::before{width:100%}
+.ev-row:hover{border-color:rgba(0,200,255,.2)}
+.ev-row>*{position:relative;z-index:1}
+.ev-date{font-family:var(--Anton);font-size:18px;color:var(--g4);line-height:1.1}
+.ev-venue{font-family:var(--Syne);font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
+.ev-loc{font-family:var(--Mono);font-size:10px;color:var(--muted);letter-spacing:1px}
+.ev-artist{font-family:var(--Mono);font-size:11px;color:var(--muted)}
+.ev-type{font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--g1);text-transform:uppercase;border:1px solid rgba(232,255,0,.25);padding:4px 10px;display:inline-block}
+.ev-tix{font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;text-align:right;cursor:pointer;transition:color .2s}
+.ev-tix:hover{color:var(--g4)}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   ARTIST PORTAL
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+#portal{padding:140px 0;border-top:1px solid var(--wire);background:var(--panel)}
+.portal-shell{border:1px solid var(--wire);overflow:hidden}
+.p-topbar{display:flex;border-bottom:1px solid var(--wire);background:rgba(0,0,0,.3);overflow-x:auto}
+.p-tab{font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:18px 28px;cursor:pointer;border-right:1px solid var(--wire);border-bottom:2px solid transparent;background:none;transition:all .2s;white-space:nowrap}
+.p-tab.on{color:var(--g1);border-bottom-color:var(--g1);background:rgba(232,255,0,.03)}
+.p-tab:hover:not(.on){color:var(--text);background:rgba(255,255,255,.02)}
+.p-body{display:none;padding:0}
+.p-body.on{display:block}
+.auth-wrap{max-width:520px;margin:0 auto;padding:64px 40px}
+.a-title{font-family:var(--Anton);font-size:52px;margin-bottom:4px}
+.a-sub{font-family:var(--Mono);font-size:10px;letter-spacing:3px;color:var(--g1);text-transform:uppercase;margin-bottom:44px}
+.field{margin-bottom:18px}
+.field label{display:block;font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:7px}
+.field input,.field select,.field textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--wire2);color:var(--text);font-family:var(--Mono);font-size:12px;padding:14px 16px;outline:none;transition:border-color .2s,background .2s;-webkit-appearance:none;appearance:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--g1);background:rgba(232,255,0,.03)}
+.field textarea{min-height:90px;resize:vertical;font-family:var(--Syne);font-size:14px}
+.field select option{background:var(--panel)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.sub-full{width:100%;background:var(--g1);color:var(--void);font-family:var(--Mono);font-size:11px;letter-spacing:2px;font-weight:700;text-transform:uppercase;padding:17px;border:none;cursor:pointer;transition:all .2s}
+.sub-full:hover{background:var(--g2);transform:translateY(-1px)}
+.drop-zone{border:1px dashed rgba(232,255,0,.25);padding:56px 36px;text-align:center;cursor:pointer;transition:all .3s;background:rgba(232,255,0,.01);margin-bottom:22px;position:relative;overflow:hidden}
+.drop-zone:hover{border-color:var(--g1);background:rgba(232,255,0,.035)}
+.drop-ico{font-size:36px;margin-bottom:14px;display:block}
+.drop-zone h4{font-family:var(--Syne);font-size:14px;font-weight:600;margin-bottom:5px}
+.drop-zone p{font-family:var(--Mono);font-size:10px;letter-spacing:1px;color:var(--muted)}
+.agree-box{border:1px solid rgba(255,184,0,.2);padding:24px;background:rgba(255,184,0,.02);margin-top:28px}
+.agree-ttl{font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--g5);text-transform:uppercase;margin-bottom:10px}
+.agree-box p{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px}
+.chk{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.chk input[type=checkbox]{width:16px;height:16px;accent-color:var(--g1);flex-shrink:0;margin-top:2px;cursor:pointer}
+.chk span{font-size:12px;color:var(--muted);line-height:1.5}
+.chk span strong{color:var(--text)}
+/* dashboard */
+.dash-wrap{display:grid;grid-template-columns:220px 1fr;min-height:580px}
+.d-side{border-right:1px solid var(--wire);padding:28px 0;background:rgba(0,0,0,.2)}
+.du{padding:0 22px 24px;border-bottom:1px solid var(--wire);margin-bottom:10px}
+.du-name{font-family:var(--Anton);font-size:22px;color:var(--g1);margin-bottom:2px}
+.du-role{font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.du-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--g1);margin-right:5px;animation:blink 2s ease-in-out infinite}
+.d-nav{font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:11px 22px;cursor:pointer;transition:all .2s;background:none;border:none;width:100%;text-align:left;display:flex;align-items:center;gap:10px;border-left:2px solid transparent}
+.d-nav.on,.d-nav:hover{color:var(--g1);background:rgba(232,255,0,.04);border-left-color:var(--g1)}
+.d-main{padding:36px}
+.d-sec{display:none}
+.d-sec.on{display:block}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:28px}
+.kpi{background:rgba(0,0,0,.3);border:1px solid var(--wire);padding:20px;transition:border-color .2s}
+.kpi:hover{border-color:rgba(232,255,0,.2)}
+.kpi-v{font-family:var(--Anton);font-size:40px;line-height:1;margin-bottom:3px}
+.kpi-v.g{color:var(--g1)}
+.kpi-v.c{color:var(--g4)}
+.kpi-k{font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.trk-row{display:grid;grid-template-columns:34px 1fr auto auto;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--wire);margin-bottom:3px;transition:border-color .2s}
+.trk-row:hover{border-color:rgba(232,255,0,.18)}
+.trk-play{width:30px;height:30px;border-radius:50%;border:1px solid var(--wire2);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;transition:all .2s;flex-shrink:0;background:none;color:var(--muted)}
+.trk-play:hover{border-color:var(--g1);color:var(--g1)}
+.trk-t{font-family:var(--Mono);font-size:12px;color:var(--text);margin-bottom:2px}
+.trk-m{font-family:var(--Mono);font-size:9px;color:var(--muted);letter-spacing:1px}
+.bge{font-family:var(--Mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border:1px solid}
+.bg-live{color:var(--g1);border-color:rgba(232,255,0,.3)}
+.bg-rev{color:var(--g5);border-color:rgba(255,184,0,.3)}
+.bg-pend{color:var(--muted);border-color:var(--wire2)}
+.trk-dur{font-family:var(--Mono);font-size:10px;color:var(--muted2)}
+.r-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px;padding:14px 18px;border:1px solid var(--wire);margin-bottom:3px;transition:border-color .2s}
+.r-row:hover{border-color:rgba(232,255,0,.18)}
+.r-amt{font-family:var(--Anton);font-size:22px;color:var(--g1)}
+.sh-row{display:grid;grid-template-columns:100px 1fr auto;align-items:center;gap:12px;padding:14px 18px;border:1px solid var(--wire);margin-bottom:3px;transition:border-color .2s}
+.sh-row:hover{border-color:rgba(0,200,255,.2)}
+.sh-date{font-family:var(--Anton);font-size:17px;color:var(--g4);line-height:1.1}
+.ok-msg{display:none;margin-top:14px;font-family:var(--Mono);font-size:11px;color:var(--g1);padding:14px 18px;border:1px solid rgba(232,255,0,.3);letter-spacing:1px}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   CONTACT
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+#contact{padding:140px 0;border-top:1px solid var(--wire)}
+.ct-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:90px}
+.ct-left h3{font-family:var(--Anton);font-size:clamp(52px,7vw,96px);line-height:.9;margin-bottom:28px}
+.ct-left h3 .cr{color:var(--g3)}
+.ct-left p{font-size:16px;color:var(--muted);line-height:1.75;margin-bottom:36px}
+.ct-chs{display:flex;flex-direction:column;gap:4px}
+.ct-ch{display:flex;align-items:center;gap:14px;padding:16px 22px;border:1px solid var(--wire);transition:all .25s;cursor:pointer}
+.ct-ch:hover{border-color:rgba(232,255,0,.3);transform:translateX(6px)}
+.ch-tag{font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;width:70px;flex-shrink:0}
+.ch-val{font-family:var(--Mono);font-size:12px;color:var(--text);letter-spacing:1px}
+.ar-badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--g3);border:1px solid rgba(255,45,107,.3);padding:5px 12px;margin-bottom:24px;text-transform:uppercase}
+.ar-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--g3);animation:blink 1.5s ease-in-out infinite}
+.ct-h3{font-family:var(--Anton);font-size:40px;margin-bottom:28px}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FOOTER
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72px}
+.ft-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:56px;margin-bottom:64px}
+.ft-logo{font-family:var(--Anton);font-size:44px;letter-spacing:4px;margin-bottom:6px}
+.ft-logo .x{color:var(--g1)}
+.ft-tag{font-family:var(--Mono);font-size:9px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:18px}
+.ft-copy{font-size:13px;color:var(--muted);line-height:1.7;max-width:270px}
+.ft-col h4{font-family:var(--Mono);font-size:9px;letter-spacing:3px;color:var(--muted2);text-transform:uppercase;margin-bottom:18px}
+.ft-col ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+.ft-col a{font-size:14px;color:var(--muted);transition:color .2s;cursor:pointer}
+.ft-col a:hover{color:var(--g1)}
+.ft-bot{display:flex;justify-content:space-between;align-items:center;padding-top:28px;border-top:1px solid var(--wire);font-family:var(--Mono);font-size:9px;color:var(--muted2);letter-spacing:1px}
+.ft-bot em{color:var(--g1);font-style:normal}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   â–‘â–‘â–‘ ADMIN PANEL â–‘â–‘â–‘
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+#admin-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(1,1,8,.98);overflow-y:auto}
+#admin-overlay.open{display:block}
+#admin-overlay.auth-ready .adm-auth{display:none}
+#admin-overlay.auth-ready .adm-wrap{display:grid}
+.adm-auth{min-height:100vh;display:grid;place-items:center;padding:32px}
+.adm-auth-card{width:min(480px,100%);background:var(--panel);border:1px solid var(--wire);padding:32px}
+.adm-auth-kicker{font-family:var(--Mono);font-size:10px;letter-spacing:3px;color:var(--g1);text-transform:uppercase;margin-bottom:14px}
+.adm-auth-title{font-family:var(--Anton);font-size:40px;letter-spacing:1px;margin-bottom:10px}
+.adm-auth-copy{color:var(--muted);line-height:1.7;margin-bottom:24px}
+.adm-auth-msg{display:none;font-family:var(--Mono);font-size:11px;letter-spacing:1px;margin-top:14px;padding:10px 12px;border:1px solid var(--wire2)}
+.adm-wrap{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+/* Sidebar */
+.adm-side{background:#060610;border-right:1px solid var(--wire);padding:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.adm-logo{padding:24px 24px 20px;border-bottom:1px solid var(--wire)}
+.adm-logo-txt{font-family:var(--Anton);font-size:20px;letter-spacing:4px}
+.adm-logo-txt .x{color:var(--g1)}
+.adm-logo-sub{font-family:var(--Mono);font-size:8px;letter-spacing:3px;color:var(--muted2);text-transform:uppercase;margin-top:2px}
+.adm-nav-group{padding:16px 0 8px}
+.adm-nav-label{font-family:var(--Mono);font-size:8px;letter-spacing:3px;color:var(--muted2);text-transform:uppercase;padding:0 24px 8px}
+.adm-nav-item{display:flex;align-items:center;gap:10px;font-family:var(--Mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:11px 24px;cursor:pointer;transition:all .2s;border:none;background:none;width:100%;text-align:left;border-left:2px solid transparent}
+.adm-nav-item:hover,.adm-nav-item.on{color:var(--g1);background:rgba(232,255,0,.04);border-left-color:var(--g1)}
+.adm-nav-item .ico{font-size:14px;width:18px;text-align:center}
+.adm-close{margin-top:auto;padding:20px 24px;border-top:1px solid var(--wire)}
+.adm-close-btn{width:100%;font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:none;border:1px solid var(--wire);padding:10px;cursor:pointer;transition:all .2s}
+.adm-close-btn:hover{border-color:var(--g3);color:var(--g3)}
+.adm-logout-btn{margin-top:10px;width:100%;font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--g1);background:none;border:1px solid rgba(232,255,0,.25);padding:10px;cursor:pointer;transition:all .2s}
+.adm-logout-btn:hover{border-color:var(--g1);background:rgba(232,255,0,.06)}
+
+/* Main content */
+.adm-mobile-bar{display:none}
+.adm-main{padding:40px 48px;background:var(--void)}
+.adm-mobile-bar{align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--wire);background:rgba(4,4,12,.96);position:sticky;top:0;z-index:15}
+.adm-mobile-title{font-family:var(--Mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.adm-mobile-menu{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 14px;border:1px solid var(--wire2);background:none;color:var(--text);font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer}
+.adm-section{display:none}
+.adm-section.on{display:block}
+.adm-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--wire)}
+.adm-h1{font-family:var(--Anton);font-size:40px;letter-spacing:1px}
+.adm-h1 .hl{color:var(--g1)}
+.adm-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:40px}
+.adm-kpi{background:var(--panel);border:1px solid var(--wire);padding:20px 24px;transition:border-color .2s}
+.adm-kpi:hover{border-color:rgba(232,255,0,.2)}
+.adm-kpi .v{font-family:var(--Anton);font-size:40px;line-height:1;margin-bottom:4px}
+.adm-kpi .v.g{color:var(--g1)}
+.adm-kpi .v.c{color:var(--g4)}
+.adm-kpi .v.r{color:var(--g3)}
+.adm-kpi .lbl{font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+
+/* Tables */
+.adm-table{width:100%;border-collapse:collapse;font-size:13px}
+.adm-table th{font-family:var(--Mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 16px;border-bottom:1px solid var(--wire);text-align:left;background:rgba(0,0,0,.2)}
+.adm-table td{padding:14px 16px;border-bottom:1px solid var(--wire);vertical-align:middle}
+.adm-table tr:last-child td{border-bottom:none}
+.adm-table tr:hover td{background:rgba(232,255,0,.02)}
+.tbl-art{display:flex;align-items:center;gap:10px}
+.tbl-thumb{width:36px;height:36px;background:var(--edge);display:flex;align-items:center;justify-content:center;font-family:var(--Anton);font-size:11px;color:var(--g1);flex-shrink:0}
+.tbl-name{font-family:var(--Mono);font-size:12px;font-weight:700;color:var(--text)}
+.tbl-sub{font-family:var(--Mono);font-size:9px;color:var(--muted);margin-top:2px}
+.adm-badge{font-family:var(--Mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border:1px solid}
+.ab-live{color:var(--g1);border-color:rgba(232,255,0,.3)}
+.ab-pre{color:var(--g5);border-color:rgba(255,184,0,.3)}
+.ab-draft{color:var(--muted);border-color:var(--wire2)}
+.ab-review{color:var(--g4);border-color:rgba(0,200,255,.3)}
+.ab-conf{color:var(--g1);border-color:rgba(232,255,0,.3)}
+.ab-hold{color:var(--g5);border-color:rgba(255,184,0,.3)}
+.ab-new{color:var(--g3);border-color:rgba(255,45,107,.3)}
+.ab-signed{color:var(--g1);border-color:rgba(232,255,0,.3)}
+.ab-unsigned{color:var(--muted);border-color:var(--wire2)}
+.tbl-actions{display:flex;gap:6px}
+.tbl-btn{font-family:var(--Mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border:1px solid var(--wire2);color:var(--muted);cursor:pointer;background:none;transition:all .2s}
+.tbl-btn:hover{border-color:var(--g1);color:var(--g1)}
+.tbl-btn.del:hover{border-color:var(--g3);color:var(--g3)}
+
+/* Forms in admin */
+.adm-form{display:grid;grid-template-columns:1fr 1fr;gap:48px}
+.adm-form-col{}
+.adm-form-full{grid-column:span 2}
+.adm-field{margin-bottom:18px}
+.adm-field label{display:block;font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:7px}
+.adm-field input,.adm-field select,.adm-field textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--wire2);color:var(--text);font-family:var(--Mono);font-size:12px;padding:12px 15px;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.adm-field input:focus,.adm-field select:focus,.adm-field textarea:focus{border-color:var(--g1)}
+.adm-field textarea{min-height:100px;resize:vertical;font-family:var(--Syne);font-size:14px}
+.adm-field select option{background:var(--panel)}
+.adm-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.adm-submit{background:var(--g1);color:var(--void);font-family:var(--Mono);font-size:11px;letter-spacing:2px;font-weight:700;text-transform:uppercase;padding:15px 32px;border:none;cursor:pointer;transition:all .2s}
+.adm-submit:hover{background:var(--g2);transform:translateY(-1px)}
+.adm-cancel{background:none;border:1px solid var(--wire2);color:var(--muted);font-family:var(--Mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:15px 24px;cursor:pointer;transition:all .2s}
+.adm-cancel:hover{border-color:var(--g3);color:var(--g3)}
+.adm-btn-row{display:flex;gap:10px;margin-top:8px}
+
+/* Section divider */
+.adm-sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;margin-top:32px}
+.adm-sec-head:first-child{margin-top:0}
+.adm-sec-title{font-family:var(--Anton);font-size:24px;letter-spacing:1px}
+.adm-add-btn{background:var(--g1);color:var(--void);font-family:var(--Mono);font-size:9px;letter-spacing:2px;font-weight:700;text-transform:uppercase;padding:9px 18px;border:none;cursor:pointer;transition:all .2s}
+.adm-add-btn:hover{background:var(--g2)}
+
+/* Newsletter composer */
+.nl-composer{background:var(--panel);border:1px solid var(--wire);padding:28px}
+.nl-template-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.nl-tpl{font-family:var(--Mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;border:1px solid var(--wire);color:var(--muted);cursor:pointer;background:none;transition:all .2s}
+.nl-tpl:hover{border-color:var(--g1);color:var(--g1)}
+.nl-preview{background:rgba(0,0,0,.4);border:1px solid var(--wire);padding:24px;margin-top:20px;min-height:200px}
+.nl-preview h4{font-family:var(--Anton);font-size:28px;color:var(--g1);margin-bottom:8px}
+.nl-preview p{font-size:13px;color:var(--muted);line-height:1.7}
+.subs-count{font-family:var(--Anton);font-size:48px;color:var(--g1);line-height:1}
+.subs-lbl{font-family:var(--Mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-top:4px}
+.subs-row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:16px;padding:12px 16px;border-bottom:1px solid var(--wire);font-size:13px}
+.subs-row:last-child{border-bottom:none}
+.subs-email{font-family:var(--Mono);font-size:11px;color:var(--text)}
+.subs-date{font-family:var(--Mono);font-size:9px;color:var(--muted);letter-spacing:1px}
+
+/* Booking inbox */
+.book-card{border:1px solid var(--wire);padding:20px;margin-bottom:8px;transition:all .25s;position:relative}
+.book-card:hover{border-color:rgba(0,200,255,.2);background:rgba(0,200,255,.02)}
+.bk-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.bk-venue{font-family:var(--Anton);font-size:22px;letter-spacing:1px}
+.bk-meta{display:flex;gap:16px;font-family:var(--Mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:10px}
+.bk-msg{font-size:13px;color:var(--muted);line-height:1.65}
+.bk-actions{display:flex;gap:8px;margin-top:14px}
+.bk-confirm{background:var(--g4);color:var(--void);font-family:var(--Mono);font-size:9px;letter-spacing:2px;font-weight:700;text-transform:uppercase;padding:8px 18px;border:none;cursor:pointer;transition:all .2s}
+.bk-confirm:hover{background:#22d8ff}
+.bk-decline{background:none;border:1px solid rgba(255,45,107,.35);color:var(--g3);font-family:var(--Mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:8px 18px;cursor:pointer;transition:all .2s}
+.bk-decline:hover{background:rgba(255,45,107,.08)}
+.bk-hold{background:none;border:1px solid var(--wire2);color:var(--muted);font-family:var(--Mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:8px 18px;cursor:pointer;transition:all .2s}
+.bk-hold:hover{border-color:var(--g5);color:var(--g5)}
+
+/* analytics chart bars */
+.chart-wrap{margin-top:20px}
+.chart-bars{display:flex;align-items:flex-end;gap:4px;height:120px;padding-bottom:0}
+.c-bar{flex:1;background:rgba(232,255,0,.15);border-top:1px solid rgba(232,255,0,.4);transition:background .2s;cursor:default;position:relative}
+.c-bar:hover{background:rgba(232,255,0,.3)}
+.c-bar::after{content:attr(data-v);position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-family:var(--Mono);font-size:8px;color:var(--muted);opacity:0;transition:opacity .2s;white-space:nowrap}
+.c-bar:hover::after{opacity:1}
+.chart-labels{display:flex;gap:4px;margin-top:6px}
+.c-lbl{flex:1;text-align:center;font-family:var(--Mono);font-size:8px;color:var(--muted);letter-spacing:1px}
+
+/* Royalties admin */
+.roy-form-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end;padding:16px;border:1px solid var(--wire);margin-bottom:6px}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   RESPONSIVE
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+@media(max-width:1024px){
+  #nav{padding:0 20px}
+  .nav-center,.n-admin{display:none}
+  .cx,.fv-inner{padding:0 20px}
+  #hero{padding:0 20px 100px}
+  .label-grid,.roster-top,.fv-top,.ct-grid,.ft-grid,.nl-band,.adm-form{grid-template-columns:1fr;gap:40px}
+  .adm-form{grid-template-columns:1fr}
+  .adm-form-full{grid-column:span 1}
+  .stats-band,.adm-stats-row{grid-template-columns:repeat(2,1fr)}
+  .svc-grid{grid-template-columns:1fr}
+  .rel-grid{grid-template-columns:1fr 1fr}
+  .r-card:first-child{grid-column:span 2;grid-row:span 1}
+  .news-grid{grid-template-columns:1fr 1fr}
+  .n-card:first-child{grid-row:span 1}
+  .ev-row{grid-template-columns:80px 1fr;gap:10px}
+  .ev-artist,.ev-type,.ev-tix{display:none}
+  .dash-wrap,.adm-wrap{grid-template-columns:1fr}
+  .adm-side{position:relative;height:auto}
+  .kpis,.row2,.adm-row{grid-template-columns:1fr}
+  footer{padding:64px 20px 48px;margin-bottom:72px}
+  #player{padding:0 16px;gap:12px}
+  .p-pl,.p-info{display:none}
+}
+
+@media (max-width: 900px){
+  .nav-mobile-toggle{display:inline-flex;justify-self:end}
+  .nav-center{display:none}
+  .adm-wrap{position:relative}
+  .adm-side{position:fixed;top:0;left:0;bottom:0;width:min(82vw,320px);max-width:320px;transform:translateX(-102%);transition:transform .28s var(--ease);z-index:30;height:100vh;background:#060610}
+  #admin-overlay.admin-nav-open .adm-side{transform:translateX(0)}
+  #admin-overlay::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s ease}
+  #admin-overlay.admin-nav-open::before{opacity:1;pointer-events:auto}
+  .adm-mobile-bar{display:flex}
+  .adm-main{position:relative;z-index:5;padding-top:0}
+  html,body{overflow-x:hidden}
+  #nav{grid-template-columns:1fr;gap:12px;height:auto;padding:14px 18px 12px}
+  .nav-logo{text-align:center}
+  .nav-right{justify-content:center;flex-wrap:wrap;gap:10px}
+  .n-freq,.n-ar,.n-admin{padding:10px 14px}
+  #hero{min-height:auto;padding:140px 20px 72px}
+  .h-bg-txt{font-size:clamp(120px,28vw,220px)}
+  .h-title{font-size:clamp(56px,16vw,110px)}
+  .h-eye{flex-wrap:wrap;gap:10px;letter-spacing:3px}
+  .h-bot{margin-top:36px;gap:24px}
+  .h-tag{font-size:15px;max-width:none}
+  .h-ctas{width:100%;flex-wrap:wrap}
+  .cta-y,.cta-g{width:100%;justify-content:center}
+  .h-stats{gap:18px;flex-wrap:wrap}
+  .hs-item{min-width:calc(50% - 9px)}
+  .stats-band{padding:44px 20px}
+  .sb-box{padding:22px 16px}
+  .cx,.fv-inner{padding:0 20px}
+  .label-grid,.roster-top,.fv-top,.ct-grid,.ft-grid,.nl-band,.adm-form{gap:28px}
+  .roster-scroll{overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+  .roster-scroll::-webkit-scrollbar{display:none}
+  .a-tile{width:260px;height:360px}
+  .rel-grid{grid-template-columns:1fr}
+  .r-card:first-child{grid-column:auto}
+  .news-grid{grid-template-columns:1fr}
+  .n-card:first-child{min-height:auto}
+  .fv-inner{padding-top:72px;padding-bottom:72px}
+  .fv-ctas,.bk-actions,.adm-btn-row,.nl-template-row{flex-wrap:wrap}
+  .fv-ctas > *, .bk-actions > *, .adm-btn-row > *{width:100%;justify-content:center}
+  .ev-row{grid-template-columns:1fr;align-items:start;padding:18px}
+  .ev-date{margin-bottom:4px}
+  .auth-wrap{padding:40px 20px}
+  .field input,.field select,.field textarea,.adm-field input,.adm-field select,.adm-field textarea{font-size:16px}
+  .dash-main,.adm-main{padding:28px 18px}
+  .adm-top{align-items:flex-start;flex-direction:column;gap:12px}
+  .adm-table{display:block;overflow-x:auto;white-space:nowrap}
+  .adm-table tbody,.adm-table thead,.adm-table tr{width:max-content;min-width:100%}
+  .subs-row,.roy-form-row,.trk-row,.sh-row{grid-template-columns:1fr;align-items:start}
+  .p-progress{min-width:0}
+}
+@media (max-width: 640px){
+  .nav-mobile-panel{top:70px;left:10px;right:10px;padding:12px;border-radius:16px}
+  .nav-mobile-links{grid-template-columns:1fr}
+  .adm-side{width:min(88vw,320px)}
+  .adm-mobile-bar{padding:12px 14px}
+  .adm-mobile-menu{width:auto}
+  #nav{padding:12px 14px}
+  .nav-logo{font-size:20px;letter-spacing:3px}
+  .n-freq,.n-ar,.n-admin{width:100%;text-align:center;justify-content:center}
+  #hero{padding:152px 16px 64px}
+  .h-eye{font-size:10px;letter-spacing:2px}
+  .h-eye::before{width:24px}
+  .h-orb,.freq-side,.scan,.h-bg-txt{display:none}
+  .hs-item{min-width:100%}
+  .stats-band,.nl-band,footer{padding-left:16px;padding-right:16px}
+  .sec-h2{font-size:clamp(40px,14vw,72px)}
+  .roster-nav{display:none}
+  .a-tile{width:82vw;max-width:280px;height:340px}
+  .rel-header,.bk-head,.ft-bot{flex-direction:column;align-items:flex-start;gap:12px}
+  .rel-filters{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}
+  .f-btn{white-space:nowrap}
+  .nl-form{grid-template-columns:1fr;gap:10px}
+  .nl-input,.nl-btn{width:100%}
+  .ct-ch{padding:14px 16px;align-items:flex-start;flex-direction:column;gap:6px}
+  .ch-tag{width:auto}
+  .adm-logo,.adm-main{padding-left:16px;padding-right:16px}
+  .adm-stats-row,.stats-band,.kpis{grid-template-columns:1fr}
+  .adm-kpi .v,.sb-big,.hs-item .sn{font-size:34px}
+  #player{height:auto;padding:12px 14px  calc(12px + env(safe-area-inset-bottom));align-items:flex-start;flex-wrap:wrap}
+  .p-controls{order:2;width:100%;justify-content:flex-start}
+  .p-progress{order:3;width:100%}
+  .p-vol-wrap{display:none}
+  .p-close{margin-left:auto}
+  #admin-overlay div[style*="grid-template-columns"]{grid-template-columns:1fr !important}
+  #admin-overlay div[style*="display:flex"]{flex-wrap:wrap}
+}
+@media (hover:none){
+  #cur,#cur-r{display:none !important}
+  .mq-track{animation-duration:42s}
+  .rc-play,.nc-arr{opacity:1;transform:none}
+}
+
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cur"></div>
+<div id="cur-r"></div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     NAV
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<nav id="nav">
+  <a href="#hero" class="nav-logo">MIX<span class="x">X</span>EA<sub>RECORDS</sub></a>
+  <button class="nav-mobile-toggle" id="nav-mobile-toggle" type="button" aria-expanded="false" aria-controls="nav-mobile-panel" aria-label="Open navigation">MENU</button>
+  <div class="nav-center">
+    <a href="#label">Label</a>
+    <a href="#roster">Roster</a>
+    <a href="#releases">Releases</a>
+    <a href="#news">News</a>
+    <a href="#freqvault">FreqVault</a>
+    <a href="#events">Events</a>
+    <a href="#portal">Artist Portal</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <div class="nav-right">
+    <a href="#freqvault" class="n-freq">FreqVault Agency</a>
+    <a href="#contact" class="n-ar">Demo Submit</a>
+    <button class="n-admin" onclick="openAdmin()">Admin âš™</button>
+  </div>
+  <div class="nav-mobile-panel" id="nav-mobile-panel" aria-label="Mobile navigation">
+    <div class="nav-mobile-links">
+      <a href="#label">Label</a>
+      <a href="#roster">Roster</a>
+      <a href="#releases">Releases</a>
+      <a href="#news">News</a>
+      <a href="#freqvault">FreqVault</a>
+      <a href="#events">Events</a>
+      <a href="#portal">Artist Portal</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <div class="nav-mobile-actions">
+      <a href="#freqvault" class="n-freq">FreqVault Agency</a>
+      <a href="#contact" class="n-ar">Demo Submit</a>
+      <button class="n-admin" type="button" onclick="openAdmin()">Admin ?</button>
+    </div>
+  </div>
+</nav>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     AUDIO PLAYER (Howler.js powered)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div id="player">
+  <div class="p-art" id="p-art">DM</div>
+  <div class="p-info">
+    <div class="p-title" id="p-title">Dark Matter</div>
+    <div class="p-artist" id="p-artist">KRATOS</div>
+  </div>
+  <div class="p-controls">
+    <button class="p-btn" onclick="prevTrack()" title="Previous">â®</button>
+    <button class="p-btn p-play" id="p-playbtn" onclick="togglePlay()">â–¶</button>
+    <button class="p-btn" onclick="nextTrack()" title="Next">â­</button>
+  </div>
+  <div class="p-progress">
+    <div class="p-bar-wrap" id="p-bar-wrap">
+      <div class="p-bar-fill" id="p-bar"></div>
+    </div>
+    <div class="p-times">
+      <span id="p-cur">0:00</span>
+      <span id="p-dur">0:00</span>
+    </div>
+  </div>
+  <div class="p-vol-wrap">
+    <span class="p-vol-icon">ðŸ”Š</span>
+    <input type="range" class="p-vol" id="p-vol" min="0" max="1" step="0.05" value="0.8" oninput="setVol(this.value)">
+  </div>
+  <div class="p-pl" id="p-playlist"></div>
+  <button class="p-close" onclick="closePlayer()">âœ•</button>
+</div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     HERO
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<main id="main-content">
+<section id="hero">
+  <div class="h-bg-txt">MIXXEA</div>
+  <canvas id="wc"></canvas>
+  <div class="scan"></div>
+  <div class="h-orb"></div>
+  <div class="freq-side" id="fbars"></div>
+
+  <div class="h-content rv">
+    <div class="h-eye">
+      <span>Electronic Music Label</span>
+      <div class="eye-dot"></div>
+      <span>Est. 2024 Â· Global</span>
+    </div>
+    <h1 class="h-title">
+      <span class="fill">MIXX</span>
+      <span class="stroke">EA REC</span>
+      <span class="acc">ORDS</span>
+    </h1>
+    <div class="h-bot">
+      <p class="h-tag"><strong>Electronic music for every underground.</strong><br>We develop artists, build careers, and release music that moves floors globally. Techno, House, Ambient, Bass â€” no compromise.</p>
+      <div class="h-ctas">
+        <a href="#roster" class="cta-y">Explore Roster â†—</a>
+        <a href="/artist-management" class="cta-g">Artist Management</a>
+      </div>
+    </div>
+    <p class="sr-only">Mixxea is an independent electronic music record label. Freq Vault is the connected artist management and booking agency for DJs, producers, releases, demos, and events.</p>
+    <div class="h-stats">
+      <div class="hs-item"><div class="sn">24<em>+</em></div><div class="sl">Artists</div></div>
+      <div class="hs-item"><div class="sn">180<em>+</em></div><div class="sl">Releases</div></div>
+      <div class="hs-item"><div class="sn">60<em>+</em></div><div class="sl">Countries</div></div>
+      <div class="hs-item"><div class="sn">3M<em>+</em></div><div class="sl">Streams</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="mq-wrap">
+  <div class="mq-track">
+    <span class="mq-i">MIXXEA RECORDS <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">ELECTRONIC MUSIC <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">FREQVAULT AGENCY <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">TECHNO <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">DEEP HOUSE <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">AMBIENT <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">BASS MUSIC <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">GLOBAL BOOKINGS <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">ARTIST MANAGEMENT <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">MIXXEA RECORDS <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">ELECTRONIC MUSIC <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">FREQVAULT AGENCY <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">TECHNO <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">DEEP HOUSE <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">AMBIENT <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">BASS MUSIC <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">GLOBAL BOOKINGS <span class="mq-dot">â—†</span></span>
+    <span class="mq-i">ARTIST MANAGEMENT <span class="mq-dot">â—†</span></span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-band rv">
+  <div class="sb-box"><div class="sb-big">24<sup>+</sup></div><div class="sb-lbl">Signed Artists</div></div>
+  <div class="sb-box"><div class="sb-big">180<sup>+</sup></div><div class="sb-lbl">Releases</div></div>
+  <div class="sb-box"><div class="sb-big">60<sup>+</sup></div><div class="sb-lbl">Countries</div></div>
+  <div class="sb-box"><div class="sb-big">3M<sup>+</sup></div><div class="sb-lbl">Monthly Streams</div></div>
+</div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     LABEL
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<section id="label">
+  <div class="cx">
+    <div class="label-grid">
+      <div class="rv">
+        <div class="sec-kicker">01 Â· The Label</div>
+        <h2 class="sec-h2">MIXXEA<br><span class="out">RECORDS</span></h2>
+        <p class="l-copy">Mixxea Records is a <strong>global electronic music label</strong> built for artists who refuse to compromise. We develop careers, not just catalogues â€” signing artists who have something real to say with sound.<br><br>From deep techno to hypnotic house, abstract ambient to experimental bass â€” we operate at the bleeding edge of electronic culture, with distribution across every major market and a network built over years in the industry.</p>
+        <div class="g-cloud">
+          <span class="gtag">Techno</span><span class="gtag">Deep House</span><span class="gtag">Minimal</span>
+          <span class="gtag">Ambient</span><span class="gtag">Bass Music</span><span class="gtag">Experimental</span>
+          <span class="gtag">Melodic House</span><span class="gtag">Industrial</span><span class="gtag">Dub Techno</span><span class="gtag">IDM</span>
+        </div>
+      </div>
+      <div class="f-stack rv">
+        <div class="fi"><div class="fi-n">01</div><div><h3>Global Distribution</h3><p>All major DSPs â€” Spotify, Apple Music, Beatport, Bandcamp, Tidal. Physical vinyl on request.</p></div></div>
+        <div class="fi"><div class="fi-n">02</div><div><h3>Publishing & Sync</h3><p>Full publishing administration. Active sync pitching for TV, film, advertising and gaming.</p></div></div>
+        <div class="fi"><div class="fi-n">03</div><div><h3>Release Marketing</h3><p>Playlist pitching, editorial outreach, social strategy, press and radio â€” built per release.</p></div></div>
+        <div class="fi"><div class="fi-n">04</div><div><h3>Artist Development</h3><p>Brand identity, image, live consulting, tour support. Long-term career from first release to headline.</p></div></div>
+        <div class="fi"><div class="fi-n">05</div><div><h3>Transparent Royalties</h3><p>Real-time dashboard. Monthly statements. Fair splits. No hidden fees. On time, every time.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     ROSTER
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<section id="roster">
+  <div class="cx">
+    <div class="roster-top rv">
+      <div>
+        <div class="sec-kicker">02 Â· Who We Work With</div>
+        <h2 class="sec-h2">ARTIST<br><span class="out">ROSTER</span></h2>
+      </div>
+      <div class="roster-desc"><p>We work with a curated selection of artists defining the sound of electronic music right now. From Berlin's underground to Tokyo's experimental scene â€” Mixxea is global.<br><br>Each artist on our roster gets full label support, FreqVault bookings, and genuine long-term investment in their career.</p></div>
+    </div>
+  </div>
+  <div class="roster-scroll rv">
+    <div class="roster-track" id="rTrack">
+      <div class="a-tile"><div class="at-bg" style="color:rgba(232,255,0,.07)">KR</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">Techno Â· Minimal</div><div class="at-name">KRATOS</div><div class="at-meta"><span>DE / Berlin</span><span>Â·</span><span>12 Releases</span></div><div class="at-btns"><a href="/artists/kratos" class="at-btn at-btn-y">Profile</a><a href="/booking-agency" class="at-btn at-btn-g">Book</a></div></div></div>
+      <div class="a-tile"><div class="at-bg" style="color:rgba(0,200,255,.08)">SV</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">Deep House Â· Melodic</div><div class="at-name">SOLV</div><div class="at-meta"><span>UK / London</span><span>Â·</span><span>8 Releases</span></div><div class="at-btns"><a href="/artists/solv" class="at-btn at-btn-y">Profile</a><a href="/booking-agency" class="at-btn at-btn-g">Book</a></div></div></div>
+      <div class="a-tile"><div class="at-bg" style="color:rgba(255,45,107,.07)">AX</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">Ambient Â· Experimental</div><div class="at-name">AXON</div><div class="at-meta"><span>JP / Tokyo</span><span>Â·</span><span>6 Releases</span></div><div class="at-btns"><a href="/artists/axon" class="at-btn at-btn-y">Profile</a><a href="/booking-agency" class="at-btn at-btn-g">Book</a></div></div></div>
+      <div class="a-tile"><div class="at-bg" style="color:rgba(255,184,0,.07)">VX</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">Bass Â· Industrial</div><div class="at-name">VEXR</div><div class="at-meta"><span>US / NYC</span><span>Â·</span><span>15 Releases</span></div><div class="at-btns"><a href="/artists/vexr" class="at-btn at-btn-y">Profile</a><a href="/booking-agency" class="at-btn at-btn-g">Book</a></div></div></div>
+      <div class="a-tile"><div class="at-bg" style="color:rgba(232,255,0,.06)">LD</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">Techno Â· Industrial</div><div class="at-name">LYDA</div><div class="at-meta"><span>RO / Bucharest</span><span>Â·</span><span>9 Releases</span></div><div class="at-btns"><a href="/artists/lyda" class="at-btn at-btn-y">Profile</a><a href="/booking-agency" class="at-btn at-btn-g">Book</a></div></div></div>
+      <div class="a-tile"><div class="at-bg" style="color:rgba(0,200,255,.06)">NX</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">Minimal Â· Dub</div><div class="at-name">NXUS</div><div class="at-meta"><span>ES / Barcelona</span><span>Â·</span><span>11 Releases</span></div><div class="at-btns"><a href="#" class="at-btn at-btn-y">Profile</a><a href="#freqvault" class="at-btn at-btn-g">Book</a></div></div></div>
+      <div class="a-tile"><div class="at-bg" style="color:rgba(255,45,107,.07)">ZR</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">IDM Â· Abstract</div><div class="at-name">ZERA</div><div class="at-meta"><span>FR / Paris</span><span>Â·</span><span>4 Releases</span></div><div class="at-btns"><a href="#" class="at-btn at-btn-y">Profile</a><a href="#freqvault" class="at-btn at-btn-g">Book</a></div></div></div>
+    </div>
+  </div>
+  <div class="roster-nav">
+    <button class="r-arr" id="rPrev">â†</button>
+    <button class="r-arr" id="rNext">â†’</button>
+  </div>
+</section>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     RELEASES
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<section id="releases">
+  <div class="cx">
+    <div class="rel-header rv">
+      <div><div class="sec-kicker">03 Â· Catalogue</div><h2 class="sec-h2">LATEST<br><span class="out">RELEASES</span></h2></div>
+      <div class="rel-filters">
+        <button class="f-btn on" data-f="all">All</button>
+        <button class="f-btn" data-f="techno">Techno</button>
+        <button class="f-btn" data-f="house">House</button>
+        <button class="f-btn" data-f="ambient">Ambient</button>
+      </div>
+    </div>
+    <div class="rel-grid rv" id="rel-grid-dynamic">
+      <div class="r-card" data-track="0">
+        <div class="rc-art big" style="color:rgba(232,255,0,.08)">DM</div>
+        <div class="rc-grad"></div>
+        <div class="rc-status s-out">Out Now</div>
+        <button class="rc-play" onclick="playTrack(0,event)">â–¶</button>
+        <div class="rc-cnt big"><div class="rc-cat">Techno Â· MXA001</div><div class="rc-title big">DARK MATTER EP</div><div class="rc-who">KRATOS â€” Mar 2025</div></div>
+        <div class="rc-dsp"><a href="#" class="dsp-link">Beatport</a><a href="#" class="dsp-link">Spotify</a><a href="#" class="dsp-link">Apple</a><a href="#" class="dsp-link">SoundCloud</a></div>
+      </div>
+      <div class="r-card" data-track="1">
+        <div class="rc-art" style="color:rgba(0,200,255,.09)">OF</div>
+        <div class="rc-grad"></div>
+        <div class="rc-status s-out">Out Now</div>
+        <button class="rc-play" onclick="playTrack(1,event)">â–¶</button>
+        <div class="rc-cnt"><div class="rc-cat">Deep House Â· MXA002</div><div class="rc-title">OCEAN FLOOR LP</div><div class="rc-who">SOLV</div></div>
+        <div class="rc-dsp"><a href="#" class="dsp-link">Beatport</a><a href="#" class="dsp-link">Spotify</a><a href="#" class="dsp-link">Apple</a></div>
+      </div>
+      <div class="r-card" data-track="2">
+        <div class="rc-art" style="color:rgba(255,45,107,.09)">SL</div>
+        <div class="rc-grad"></div>
+        <div class="rc-status s-pre">Pre-Order</div>
+        <button class="rc-play" onclick="playTrack(2,event)">â–¶</button>
+        <div class="rc-cnt"><div class="rc-cat">Ambient Â· MXA003</div><div class="rc-title">SIGNAL LOSS</div><div class="rc-who">AXON</div></div>
+        <div class="rc-dsp"><a href="#" class="dsp-link">Pre-Order</a><a href="#" class="dsp-link">SoundCloud</a></div>
+      </div>
+      <div class="r-card" data-track="3">
+        <div class="rc-art" style="color:rgba(255,184,0,.09)">GS</div>
+        <div class="rc-grad"></div>
+        <div class="rc-status s-pre">Coming Soon</div>
+        <button class="rc-play" onclick="playTrack(3,event)">â–¶</button>
+        <div class="rc-cnt"><div class="rc-cat">Bass Â· MXA004</div><div class="rc-title">GRIND SYSTEM</div><div class="rc-who">VEXR</div></div>
+        <div class="rc-dsp"><a href="#" class="dsp-link">Notify Me</a></div>
+      </div>
+      <div class="r-card" data-track="4">
+        <div class="rc-art" style="color:rgba(232,255,0,.07)">VP</div>
+        <div class="rc-grad"></div>
+        <div class="rc-status s-out">Out Now</div>
+        <button class="rc-play" onclick="playTrack(4,event)">â–¶</button>
+        <div class="rc-cnt"><div class="rc-cat">Techno Â· MXA005</div><div class="rc-title">VOID PROTOCOL</div><div class="rc-who">LYDA</div></div>
+        <div class="rc-dsp"><a href="#" class="dsp-link">Beatport</a><a href="#" class="dsp-link">Spotify</a><a href="#" class="dsp-link">Apple</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     NEWSLETTER BAND
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div class="nl-band rv">
+  <div class="nl-left">
+    <h3>STAY IN<br>THE LOOP</h3>
+    <p>New releases, artist news, events and exclusive content â€” straight to your inbox. No spam, just sound.</p>
+  </div>
+  <div>
+    <div class="nl-form">
+      <input class="nl-input" type="email" id="nl-email" placeholder="your@email.com">
+      <button class="nl-btn" onclick="nlSubscribe()">Subscribe â†’</button>
+    </div>
+    <div class="nl-ok" id="nl-ok">âœ“ You're subscribed. Welcome to Mixxea.</div>
+  </div>
+</div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     FREQVAULT
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<section id="freqvault" aria-labelledby="freqvault-heading">
+  <div class="fv-bg"></div>
+  <div class="fv-grid"></div>
+  <div class="fv-inner">
+    <div class="fv-top rv">
+      <div>
+        <div class="fv-tag">Powered by Mixxea</div>
+        <h2 id="freqvault-heading" class="sr-only">Freq Vault Booking Agency and Artist Management</h2>
+        <div class="fv-logo"><div class="freq">FREQ</div><div class="vault">VAULT</div></div>
+        <div class="fv-sub">Booking Agency & Artist Management</div>
+      </div>
+      <div class="fv-desc">
+        <p>FreqVault is the agency arm of the Mixxea ecosystem. We handle <strong>bookings, management, and live operations</strong> for a curated roster of electronic artists globally.</p>
+        <p>Whether you need a headline act for your festival, a resident for your club series, or full artist management â€” FreqVault is the bridge between talent and opportunity.</p>
+        <div class="fv-ctas"><a href="#contact" class="cta-c">Book an Artist â†’</a><a href="#contact" class="cta-g">Join as Artist</a></div>
+      </div>
+    </div>
+    <div class="svc-grid rv">
+      <div class="svc"><div class="svc-n">01</div><div class="svc-ico">ðŸŽ›</div><h3>Live Bookings</h3><p>Festival headliners, club nights, private events and branded shows. First offer to final settlement â€” globally.</p></div>
+      <div class="svc"><div class="svc-n">02</div><div class="svc-ico">ðŸŽ¯</div><h3>Management</h3><p>Full-service career management. Strategy, brand deals, scheduling, rider negotiation, press and social media.</p></div>
+      <div class="svc"><div class="svc-n">03</div><div class="svc-ico">ðŸ“¡</div><h3>Tour Production</h3><p>End-to-end tour logistics. Routing, hospitality, production riders, travel, local promoter relations.</p></div>
+      <div class="svc"><div class="svc-n">04</div><div class="svc-ico">ðŸ”Š</div><h3>Brand Deals</h3><p>Connecting artists with aligned brands. Endorsements, residencies, sponsored content and label deals.</p></div>
+      <div class="svc"><div class="svc-n">05</div><div class="svc-ico">ðŸ“Š</div><h3>Sync Licensing</h3><p>Music supervision and sync placement for TV, film, advertising and gaming. Active pitching.</p></div>
+      <div class="svc"><div class="svc-n">06</div><div class="svc-ico">ðŸŒ</div><h3>Global Network</h3><p>Established relationships with promoters, festival directors and venues across Europe, Asia and the Americas.</p></div>
+    </div>
+    <div class="fv-cta-band rv">
+      <div class="fvb"><h3>READY TO BOOK?</h3><p>Our team responds to all booking inquiries within 48 hours.</p></div>
+      <a href="#contact" class="cta-c">Send Booking Request â†’</a>
+    </div>
+  </div>
+</section>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     NEWS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<section id="news">
+  <div class="cx">
+    <div class="rv"><div class="sec-kicker">04 Â· Editorial</div><h2 class="sec-h2">LABEL<br><span class="out">NEWS</span></h2></div>
+    <div class="news-grid rv" id="news-grid-dynamic">
+      <div class="n-card">
+        <div class="nc-img" style="background:var(--edge)"><span style="font-family:var(--Anton);font-size:80px;color:rgba(232,255,0,.08)">DM</span></div>
+        <div class="nc-cat">Release News</div>
+        <div class="nc-title">KRATOS Drops Landmark 'Dark Matter' EP â€” A Masterclass in Modern Techno</div>
+        <div class="nc-date">14 Mar 2025</div>
+        <div class="nc-arr">â†—</div>
+      </div>
+      <div class="n-card">
+        <div class="nc-img" style="height:160px;background:var(--edge)"><span style="font-family:var(--Anton);font-size:60px;color:rgba(0,200,255,.08)">SV</span></div>
+        <div class="nc-cat">Artist News</div>
+        <div class="nc-title">SOLV Announces European Tour via FreqVault</div>
+        <div class="nc-date">08 Mar 2025</div>
+        <div class="nc-arr">â†—</div>
+      </div>
+      <div class="n-card">
+        <div class="nc-img" style="height:160px;background:var(--edge)"><span style="font-family:var(--Anton);font-size:60px;color:rgba(255,45,107,.08)">MX</span></div>
+        <div class="nc-cat">Label News</div>
+        <div class="nc-title">Mixxea Records Signs 3 New Artists for 2025 Season</div>
+        <div class="nc-date">01 Mar 2025</div>
+        <div class="nc-arr">â†—</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     EVENTS
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<section id="events">
+  <div class="cx">
+    <div class="rv"><div class="sec-kicker">05 Â· Live</div><h2 class="sec-h2">EVENTS &<br><span class="out">SHOWS</span></h2></div>
+    <div class="ev-list rv" id="ev-list-dynamic">
+      <div class="ev-row"><div class="ev-date">12 MAY<br>2025</div><div><div class="ev-venue">Tresor Berlin</div><div class="ev-loc">Berlin, Germany</div></div><div class="ev-artist">KRATOS</div><div class="ev-type">Headline</div><div class="ev-tix">Get Tickets â†—</div></div>
+      <div class="ev-row"><div class="ev-date">24 MAY<br>2025</div><div><div class="ev-venue">Awakenings Festival</div><div class="ev-loc">Amsterdam, Netherlands</div></div><div class="ev-artist">KRATOS, LYDA</div><div class="ev-type">Festival</div><div class="ev-tix">Get Tickets â†—</div></div>
+      <div class="ev-row"><div class="ev-date">15 JUN<br>2025</div><div><div class="ev-venue">Fabric London</div><div class="ev-loc">London, UK</div></div><div class="ev-artist">SOLV</div><div class="ev-type">Club Night</div><div class="ev-tix">Get Tickets â†—</div></div>
+      <div class="ev-row"><div class="ev-date">28 JUN<br>2025</div><div><div class="ev-venue">De School</div><div class="ev-loc">Amsterdam, Netherlands</div></div><div class="ev-artist">AXON</div><div class="ev-type">Live Set</div><div class="ev-tix">Get Tickets â†—</div></div>
+      <div class="ev-row"><div class="ev-date">12 JUL<br>2025</div><div><div class="ev-venue">ADE â€” Shelter</div><div class="ev-loc">Amsterdam, Netherlands</div></div><div class="ev-artist">Full Mixxea Roster</div><div class="ev-type">Label Night</div><div class="ev-tix">Get Tickets â†—</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     ARTIST PORTAL
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<section id="portal">
+  <div class="cx">
+    <div class="rv"><div class="sec-kicker">06 Â· Secure Portal</div><h2 class="sec-h2">ARTIST<br><span class="out">PORTAL</span></h2></div>
+    <div class="portal-shell rv">
+      <div class="p-topbar">
+        <button class="p-tab on" onclick="ptab(this,'pp-login')">Login</button>
+        <button class="p-tab" onclick="ptab(this,'pp-reg')">Register</button>
+        <button class="p-tab" onclick="ptab(this,'pp-sub')">Submit Track</button>
+        <button class="p-tab" onclick="ptab(this,'pp-dash')">My Dashboard</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="pp-login" class="p-body on"><div class="auth-wrap">
+        <div class="a-title">Welcome Back</div>
+        <div class="a-sub">Artist Portal Access</div>
+        <div class="field"><label>Email</label><input type="email" placeholder="artist@email.com"></div>
+        <div class="field"><label>Password</label><input type="password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"></div>
+        <button class="sub-full" style="margin-top:20px" onclick="ptab(document.querySelector('.p-tab:nth-child(4)'),'pp-dash')">Access Portal â†’</button>
+        <div style="text-align:center;margin-top:18px"><a href="#" onclick="ptab(document.querySelector('.p-tab:nth-child(2)'),'pp-reg')" style="font-family:var(--Mono);font-size:10px;color:var(--muted)">New artist? Register here â†’</a></div>
+      </div></div>
+
+      <!-- REGISTER -->
+      <div id="pp-reg" class="p-body"><div class="auth-wrap" style="max-width:640px">
+        <div class="a-title">Join Mixxea</div>
+        <div class="a-sub">Create Your Artist Account</div>
+        <div class="row2">
+          <div class="field"><label>Artist / Stage Name</label><input type="text" placeholder="Your artist name"></div>
+          <div class="field"><label>Real Name</label><input type="text" placeholder="Legal name"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Email</label><input type="email" placeholder="your@email.com"></div>
+          <div class="field"><label>Country</label><select><option>Select country</option><option>Germany</option><option>United Kingdom</option><option>Romania</option><option>Spain</option><option>France</option><option>USA</option><option>Japan</option><option>Netherlands</option><option>Other</option></select></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Primary Genre</label><select><option>Techno</option><option>Deep House</option><option>Minimal</option><option>Ambient</option><option>Bass Music</option><option>Experimental</option><option>Industrial</option></select></div>
+          <div class="field"><label>Password</label><input type="password" placeholder="Create password"></div>
+        </div>
+        <div class="field"><label>SoundCloud / Mixcloud</label><input type="url" placeholder="https://soundcloud.com/you"></div>
+        <button class="sub-full">Create Account â†’</button>
+      </div></div>
+
+      <!-- SUBMIT -->
+      <div id="pp-sub" class="p-body"><div class="auth-wrap" style="max-width:680px">
+        <div class="a-title">Submit Track</div>
+        <div class="a-sub">A&R Submission Portal</div>
+        <div class="drop-zone" onclick="document.getElementById('fUp').click()">
+          <input type="file" id="fUp" accept="audio/*" style="display:none" onchange="onUp(this)">
+          <span class="drop-ico">â¬†</span>
+          <h4>Drop your track here or click to browse</h4>
+          <p>WAV Â· AIFF Â· MP3 â€” Max 200MB Â· 24-bit preferred</p>
+        </div>
+        <div id="up-ok" style="display:none;font-family:var(--Mono);font-size:11px;color:var(--g1);padding:10px 14px;border:1px solid rgba(232,255,0,.3);margin-bottom:18px;letter-spacing:1px">âœ“ <span id="up-fn"></span></div>
+        <div class="row2">
+          <div class="field"><label>Track Title</label><input type="text" placeholder="Track name"></div>
+          <div class="field"><label>Artist Name</label><input type="text" placeholder="Stage name"></div>
+        </div>
+        <div class="field"><label>Email</label><input type="email" placeholder="your@email.com"></div>
+        <div class="row2">
+          <div class="field"><label>Genre</label><select><option>Techno</option><option>Deep House</option><option>Minimal</option><option>Ambient</option><option>Bass</option><option>Industrial</option><option>Experimental</option><option>Melodic House</option></select></div>
+          <div class="field"><label>BPM</label><input type="number" placeholder="128"></div>
+        </div>
+        <div class="field"><label>Notes for A&R</label><textarea placeholder="Tell us about the track â€” inspiration, process, what makes it stand out..."></textarea></div>
+        <div class="field"><label>Private SoundCloud Link (optional)</label><input type="url" placeholder="https://soundcloud.com/..."></div>
+        <div class="agree-box">
+          <div class="agree-ttl">âš  Submission Agreement</div>
+          <p>By submitting this track you confirm you are the sole copyright owner or hold full rights. Mixxea Records is under no obligation to release any submitted material. All demos are treated confidentially.</p>
+          <p>Response time: <strong style="color:var(--text)">4â€“6 weeks</strong>. Only successful submissions will receive a reply.</p>
+          <label class="chk"><input type="checkbox" id="agr"><span>I own the rights to this track and agree to <strong>Mixxea's submission terms</strong>.</span></label>
+        </div>
+        <button class="sub-full" style="margin-top:20px" onclick="doSub()">Submit to Mixxea A&R â†’</button>
+        <div class="ok-msg" id="sub-ok">âœ“ Submission received. We'll be in touch within 4â€“6 weeks if there's a fit.</div>
+      </div></div>
+
+      <!-- DASHBOARD -->
+      <div id="pp-dash" class="p-body">
+        <div class="dash-wrap">
+          <div class="d-side">
+            <div class="du"><div class="du-name">KRATOS</div><div class="du-role"><span class="du-dot"></span>Active Â· Signed</div></div>
+            <button class="d-nav on" onclick="dsec(this,'ds-ov')"><span>â—ˆ</span> Overview</button>
+            <button class="d-nav" onclick="dsec(this,'ds-tr')"><span>â™«</span> My Tracks</button>
+            <button class="d-nav" onclick="dsec(this,'ds-new')"><span>+</span> New Submission</button>
+            <button class="d-nav" onclick="dsec(this,'ds-ct')"><span>â—»</span> Contracts</button>
+            <button class="d-nav" onclick="dsec(this,'ds-ry')"><span>$</span> Royalties</button>
+            <button class="d-nav" onclick="dsec(this,'ds-bk')"><span>â—·</span> Bookings</button>
+          </div>
+          <div class="d-main">
+            <div id="ds-ov" class="d-sec on">
+              <div class="kpis"><div class="kpi"><div class="kpi-v g">12</div><div class="kpi-k">Releases</div></div><div class="kpi"><div class="kpi-v c">â‚¬3,240</div><div class="kpi-k">Royalties YTD</div></div><div class="kpi"><div class="kpi-v">8</div><div class="kpi-k">Shows</div></div></div>
+              <div style="font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px">Recent Activity</div>
+              <div class="trk-row"><button class="trk-play" onclick="playTrack(0,event)">â–¶</button><div><div class="trk-t">Dark Matter â€” Title Track</div><div class="trk-m">Released 14 Mar 2025 Â· 128 BPM Â· Techno</div></div><div class="bge bg-live">Live</div><div class="trk-dur">6:42</div></div>
+              <div class="trk-row"><button class="trk-play">â–¶</button><div><div class="trk-t">Sub Ritual (Original Mix)</div><div class="trk-m">Submitted 02 Apr 2025 Â· 132 BPM Â· Minimal</div></div><div class="bge bg-rev">In Review</div><div class="trk-dur">7:18</div></div>
+              <div class="trk-row"><button class="trk-play">â–¶</button><div><div class="trk-t">Sector 9 (Club Mix)</div><div class="trk-m">Submitted 28 Mar 2025 Â· 135 BPM Â· Techno</div></div><div class="bge" style="color:var(--muted);border-color:var(--wire2)">Pending</div><div class="trk-dur">8:05</div></div>
+            </div>
+            <div id="ds-tr" class="d-sec">
+              <div class="trk-row"><button class="trk-play" onclick="playTrack(0,event)">â–¶</button><div><div class="trk-t">Dark Matter</div><div class="trk-m">Techno Â· 128 BPM</div></div><div class="bge bg-live">Released</div><div class="trk-dur">6:42</div></div>
+              <div class="trk-row"><button class="trk-play" onclick="playTrack(4,event)">â–¶</button><div><div class="trk-t">Void Protocol</div><div class="trk-m">Techno Â· 135 BPM</div></div><div class="bge bg-live">Released</div><div class="trk-dur">5:55</div></div>
+              <div class="trk-row"><button class="trk-play">â–¶</button><div><div class="trk-t">Sub Ritual</div><div class="trk-m">Minimal Â· 132 BPM</div></div><div class="bge bg-rev">In Review</div><div class="trk-dur">7:18</div></div>
+              <div class="trk-row"><button class="trk-play">â–¶</button><div><div class="trk-t">Sector 9</div><div class="trk-m">Techno Â· 135 BPM</div></div><div class="bge" style="color:var(--muted);border-color:var(--wire2)">Pending</div><div class="trk-dur">8:05</div></div>
+            </div>
+            <div id="ds-new" class="d-sec">
+              <div class="drop-zone"><span class="drop-ico">â¬†</span><h4>Upload new track</h4><p>WAV Â· AIFF Â· MP3</p></div>
+              <div class="row2"><div class="field"><label>Track Title</label><input type="text"></div><div class="field"><label>Genre</label><select><option>Techno</option><option>House</option><option>Minimal</option><option>Ambient</option></select></div></div>
+              <div class="field"><label>Notes</label><textarea></textarea></div>
+              <button class="sub-full" style="max-width:280px">Submit Track â†’</button>
+            </div>
+            <div id="ds-ct" class="d-sec">
+              <div style="border:1px solid var(--wire);padding:28px;margin-bottom:10px">
+                <div style="font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--g1);margin-bottom:8px;text-transform:uppercase">Active Contract</div>
+                <div style="font-family:var(--Anton);font-size:28px;margin-bottom:4px">MIXXEA LICENSE AGREEMENT</div>
+                <div style="font-family:var(--Mono);font-size:10px;color:var(--muted)">Signed: 01 Jan 2025 Â· Term: 3 Years Â· Unlimited Tracks</div>
+                <div style="display:flex;gap:10px;margin-top:18px">
+                  <button class="sub-full" style="max-width:160px;padding:11px">Download PDF</button>
+                  <button class="cta-g" style="padding:11px 20px;font-family:var(--Mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer">Request Amendment</button>
+                </div>
+              </div>
+            </div>
+            <div id="ds-ry" class="d-sec">
+              <div class="kpis" style="grid-template-columns:1fr 1fr"><div class="kpi"><div class="kpi-v g">â‚¬3,240</div><div class="kpi-k">Total 2025</div></div><div class="kpi"><div class="kpi-v">â‚¬890</div><div class="kpi-k">Q1 2025</div></div></div>
+              <div class="r-row"><div><div class="trk-t">Dark Matter EP</div><div class="trk-m">Streaming + Beatport</div></div><div class="r-amt">â‚¬1,840</div></div>
+              <div class="r-row"><div><div class="trk-t">Void Protocol</div><div class="trk-m">Streaming</div></div><div class="r-amt">â‚¬960</div></div>
+              <div class="r-row"><div><div class="trk-t">Sync License â€” TV Spot</div><div class="trk-m">Sync placement</div></div><div class="r-amt">â‚¬440</div></div>
+              <button class="cta-g" style="margin-top:18px;padding:11px 22px;font-family:var(--Mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer">Download Statement PDF</button>
+            </div>
+            <div id="ds-bk" class="d-sec">
+              <div style="font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:14px">Upcoming Shows via FreqVault</div>
+              <div class="sh-row"><div class="sh-date">12 MAY<br>2025</div><div><div class="trk-t">Tresor Berlin</div><div class="trk-m">Berlin, Germany Â· Headline</div></div><div class="bge bg-live">Confirmed</div></div>
+              <div class="sh-row"><div class="sh-date">24 MAY<br>2025</div><div><div class="trk-t">Awakenings Festival</div><div class="trk-m">Amsterdam, NL Â· Stage B</div></div><div class="bge bg-live">Confirmed</div></div>
+              <div class="sh-row"><div class="sh-date">15 JUN<br>2025</div><div><div class="trk-t">Fabric London</div><div class="trk-m">London, UK Â· Room 1</div></div><div class="bge bg-rev">On Hold</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     CONTACT
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<section id="contact" aria-labelledby="contact-heading">
+  <div class="cx">
+    <div class="ct-grid">
+      <div class="rv">
+        <div class="sec-kicker">07 Â· Get In Touch</div>
+        <h2 id="contact-heading">LET'S<br>TALK<br><span class="cr">MUSIC</span></h2>
+        <p>Whether you're a promoter looking to book, an artist ready to submit, or a brand exploring partnerships â€” reach out. We respond to every serious inquiry.</p>
+        <div class="ct-chs">
+          <a href="mailto:info@mixxea.com" class="ct-ch"><span class="ch-tag">General</span><span class="ch-val">info@mixxea.com</span></a>
+          <a href="mailto:ar@mixxea.com" class="ct-ch"><span class="ch-tag">A&R</span><span class="ch-val">ar@mixxea.com</span></a>
+          <a href="mailto:bookings@freqvault.com" class="ct-ch"><span class="ch-tag">Bookings</span><span class="ch-val">bookings@freqvault.com</span></a>
+          <a href="mailto:press@mixxea.com" class="ct-ch"><span class="ch-tag">Press</span><span class="ch-val">press@mixxea.com</span></a>
+        </div>
+      </div>
+      <div class="rv">
+        <div class="ar-badge">Now Accepting Demos</div>
+        <div class="ct-h3">A&R SUBMISSION</div>
+        <div class="field"><label>Artist Name</label><input type="text" placeholder="Your artist name"></div>
+        <div class="field"><label>Email</label><input type="email" placeholder="your@email.com"></div>
+        <div class="field"><label>Inquiry Type</label><select><option>A&R / Demo Submission</option><option>Booking Request</option><option>Artist Management</option><option>Brand / Partnership</option><option>Press / Media</option><option>General</option></select></div>
+        <div class="field"><label>SoundCloud / Private Link</label><input type="url" placeholder="https://..."></div>
+        <div class="field"><label>Message</label><textarea placeholder="Tell us about yourself..."></textarea></div>
+        <label class="chk" style="margin-bottom:18px"><input type="checkbox" id="ct-newsletter-opt-in"><span>Subscribe me to Mixxea updates as well.</span></label>
+        <button class="sub-full" onclick="doCt()">Send Message â†’</button>
+        <div class="ok-msg" id="ct-ok">âœ“ Message received. We'll be in touch soon.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+</main>
+
+<footer>
+  <div class="ft-grid">
+    <div>
+      <div class="ft-logo">MIX<span class="x">X</span>EA</div>
+      <div class="ft-tag">Electronic Music Label & FreqVault Agency</div>
+      <p class="ft-copy">Building the future of electronic music â€” globally, independently, uncompromisingly.</p>
+    </div>
+    <div class="ft-col"><h4>Label</h4><ul><li><a href="/record-label">Record Label</a></li><li><a href="/electronic-music-artists">Artists</a></li><li><a href="#releases">Releases</a></li><li><a href="/submit-demo">A&R Submit</a></li></ul></div>
+    <div class="ft-col"><h4>Agency</h4><ul><li><a href="/booking-agency">Freq Vault</a></li><li><a href="/booking-agency">Bookings</a></li><li><a href="/artist-management">Management</a></li><li><a href="#events">Events</a></li></ul></div>
+    <div class="ft-col"><h4>Connect</h4><ul><li><a href="#">Instagram</a></li><li><a href="#">SoundCloud</a></li><li><a href="#">Beatport</a></li><li><a href="#">Bandcamp</a></li></ul></div>
+  </div>
+  <div class="ft-bot">
+    <span>Â© 2025 Mixxea Records â€” FreqVault Agency. All rights reserved.</span>
+    <span>Built for <em>sound</em>.</span>
+  </div>
+</footer>
+
+<!-- â•”â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•—
+     â•‘         ADMIN PANEL OVERLAY              â•‘
+     â•šâ•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div id="admin-overlay">
+  <div class="adm-auth" id="adm-auth">
+    <div class="adm-auth-card">
+      <div class="adm-auth-kicker">Secure Area</div>
+      <div class="adm-auth-title">Admin Login</div>
+      <p class="adm-auth-copy">Sign in with your admin account to open the Mixxea control panel. Protected sections stay hidden until the session is verified.</p>
+      <div class="adm-field"><label>Email</label><input type="email" id="adm-login-email" placeholder="admin@mixxea.com"></div>
+      <div class="adm-field"><label>Password</label><input type="password" id="adm-login-password" placeholder="Enter password"></div>
+      <div class="adm-btn-row">
+        <button class="adm-submit" type="button" id="adm-login-submit">Access Admin</button>
+        <button class="adm-cancel" type="button" onclick="closeAdmin()">Cancel</button>
+      </div>
+      <div class="adm-auth-msg" id="adm-auth-msg"></div>
+    </div>
+  </div>
+  <div class="adm-wrap">
+    <!-- â•â•â• SIDEBAR â•â•â• -->
+    <div class="adm-side">
+      <div class="adm-logo">
+        <div class="adm-logo-txt">MIX<span class="x">X</span>EA</div>
+        <div class="adm-logo-sub">Admin Panel</div>
+      </div>
+      <div class="adm-nav-group"><div class="adm-nav-label">Overview</div>
+        <button class="adm-nav-item on" onclick="admsec(this,'a-dash')"><span class="ico">â—ˆ</span>Dashboard</button>
+      </div>
+      <div class="adm-nav-group"><div class="adm-nav-label">Label</div>
+        <button class="adm-nav-item" onclick="admsec(this,'a-rel')"><span class="ico">ðŸŽµ</span>Releases</button>
+        <button class="adm-nav-item" onclick="admsec(this,'a-art')"><span class="ico">ðŸ‘¤</span>Artists</button>
+        <button class="adm-nav-item" onclick="admsec(this,'a-demo')"><span class="ico">ðŸ“¥</span>Demo Inbox</button>
+        <button class="adm-nav-item" onclick="admsec(this,'a-roy')"><span class="ico">ðŸ’°</span>Royalties</button>
+        <button class="adm-nav-item" onclick="admsec(this,'a-con')"><span class="ico">ðŸ“‹</span>Contracts</button>
+      </div>
+      <div class="adm-nav-group"><div class="adm-nav-label">Content</div>
+        <button class="adm-nav-item" onclick="admsec(this,'a-news')"><span class="ico">ðŸ“°</span>News / Blog</button>
+        <button class="adm-nav-item" onclick="admsec(this,'a-ev')"><span class="ico">ðŸ“…</span>Events</button>
+      </div>
+      <div class="adm-nav-group"><div class="adm-nav-label">FreqVault</div>
+        <button class="adm-nav-item" onclick="admsec(this,'a-bk')"><span class="ico">ðŸŽ›</span>Bookings</button>
+        <button class="adm-nav-item" onclick="admsec(this,'a-promo')"><span class="ico">ðŸ¤</span>Promoter CRM</button>
+      </div>
+      <div class="adm-nav-group"><div class="adm-nav-label">Communications</div>
+        <button class="adm-nav-item" onclick="admsec(this,'a-nl')"><span class="ico">ðŸ“§</span>Newsletter</button>
+        <button class="adm-nav-item" onclick="admsec(this,'a-subs')"><span class="ico">ðŸ‘¥</span>Subscribers</button>
+      </div>
+      <div class="adm-nav-group"><div class="adm-nav-label">Analytics</div>
+        <button class="adm-nav-item" onclick="admsec(this,'a-analytics')"><span class="ico">ðŸ“Š</span>Analytics</button>
+      </div>
+      <div class="adm-close">
+        <button class="adm-close-btn" onclick="closeAdmin()">âœ• Exit Admin</button>
+        <button class="adm-logout-btn" type="button" onclick="ADMIN_AUTH.logout()">Log Out</button>
+      </div>
+    </div>
+
+    <!-- â•â•â• MAIN â•â•â• -->
+    <div class="adm-main">
+      <div class="adm-mobile-bar">
+        <div class="adm-mobile-title">Mixxea Admin Console</div>
+        <button class="adm-mobile-menu" type="button" onclick="toggleAdminNav()">Sections</button>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div id="a-dash" class="adm-section on">
+        <div class="adm-top">
+          <div class="adm-h1">ADMIN <span class="hl">DASHBOARD</span></div>
+          <div style="font-family:var(--Mono);font-size:10px;color:var(--muted)" id="adm-date"></div>
+        </div>
+        <div class="adm-stats-row">
+          <div class="adm-kpi"><div class="v g" id="dash-release-count">â€”</div><div class="lbl">Releases</div></div>
+          <div class="adm-kpi"><div class="v g" id="dash-artist-count">â€”</div><div class="lbl">Artists</div></div>
+          <div class="adm-kpi"><div class="v r" id="dash-demo-count">â€”</div><div class="lbl">New Demos</div></div>
+          <div class="adm-kpi"><div class="v c" id="dash-booking-count">â€”</div><div class="lbl">Pending Bookings</div></div>
+          <div class="adm-kpi"><div class="v g" id="dash-subs-count">â€”</div><div class="lbl">Subscribers</div></div>
+          <div class="adm-kpi"><div class="v" id="dash-event-count">â€”</div><div class="lbl">Events</div></div>
+          <div class="adm-kpi"><div class="v g" id="dash-royalty-total">â€”</div><div class="lbl">Royalties Q1</div></div>
+          <div class="adm-kpi"><div class="v c" id="dash-news-count">â€”</div><div class="lbl">News Posts</div></div>
+        </div>
+        <div class="adm-sec-head"><div class="adm-sec-title">Recent Activity</div></div>
+        <table class="adm-table">
+          <thead><tr><th>Type</th><th>Item</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody id="adm-activity-tbody">
+            <tr><td colspan="4" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- RELEASES -->
+      <div id="a-rel" class="adm-section">
+        <div class="adm-top">
+          <div class="adm-h1">RELEASE <span class="hl">MANAGER</span></div>
+          <button class="adm-add-btn" onclick="admToggle('rel-form')">+ Add Release</button>
+        </div>
+        <!-- Add/Edit Form -->
+        <div id="rel-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:28px;margin-bottom:28px">
+          <div style="font-family:var(--Anton);font-size:24px;margin-bottom:20px" id="rel-form-title">NEW RELEASE</div>
+          <input type="hidden" id="rel-edit-id">
+          <div class="adm-form">
+            <div class="adm-form-col">
+              <div class="adm-field"><label>Title *</label><input type="text" id="rel-title" placeholder="Release title"></div>
+              <div class="adm-field"><label>Artist *</label><input type="text" id="rel-artist" placeholder="Artist name"></div>
+              <div class="adm-row">
+                <div class="adm-field"><label>Catalogue No.</label><input type="text" id="rel-catno" placeholder="MXA006"></div>
+                <div class="adm-field"><label>BPM</label><input type="number" id="rel-bpm" placeholder="128"></div>
+              </div>
+              <div class="adm-row">
+                <div class="adm-field"><label>Genre</label>
+                  <select id="rel-genre"><option>Techno</option><option>Deep House</option><option>Minimal</option><option>Ambient</option><option>Bass</option><option>Industrial</option><option>Melodic House</option><option>Experimental</option></select>
+                </div>
+                <div class="adm-field"><label>Release Date</label><input type="date" id="rel-date"></div>
+              </div>
+              <div class="adm-field"><label>Status</label>
+                <select id="rel-status"><option value="draft">Draft</option><option value="soon">Coming Soon</option><option value="pre">Pre-Order</option><option value="out">Out Now</option></select>
+              </div>
+              <div class="adm-field"><label>Description</label><textarea id="rel-desc" style="min-height:80px" placeholder="Release description..."></textarea></div>
+            </div>
+            <div class="adm-form-col">
+              <div class="adm-field"><label>Artwork Upload</label><input type="file" id="rel-artwork" accept="image/*"></div>
+              <div class="adm-field"><label>Audio Preview (30s MP3)</label><input type="file" id="rel-audio" accept="audio/*"></div>
+              <div class="adm-field"><label>Spotify</label><input type="url" id="rel-spotify" placeholder="https://open.spotify.com/..."></div>
+              <div class="adm-field"><label>Beatport</label><input type="url" id="rel-beatport" placeholder="https://beatport.com/..."></div>
+              <div class="adm-field"><label>Apple Music</label><input type="url" id="rel-apple" placeholder="https://music.apple.com/..."></div>
+              <div class="adm-field"><label>SoundCloud</label><input type="url" id="rel-soundcloud" placeholder="https://soundcloud.com/..."></div>
+              <div class="adm-field"><label>Bandcamp</label><input type="url" id="rel-bandcamp" placeholder="https://bandcamp.com/..."></div>
+            </div>
+          </div>
+          <div class="adm-btn-row">
+            <button class="adm-submit" onclick="ADMIN.saveRelease()">Save Release</button>
+            <button class="adm-cancel" onclick="admToggle('rel-form');admClearRel()">Cancel</button>
+          </div>
+        </div>
+        <table class="adm-table">
+          <thead><tr><th>Release</th><th>Artist</th><th>Genre</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="adm-rel-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ARTISTS -->
+      <div id="a-art" class="adm-section">
+        <div class="adm-top">
+          <div class="adm-h1">ARTIST <span class="hl">PROFILES</span></div>
+          <button class="adm-add-btn" onclick="admToggle('art-form')">+ Add Artist</button>
+        </div>
+        <div id="art-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:28px;margin-bottom:28px">
+          <div style="font-family:var(--Anton);font-size:24px;margin-bottom:20px" id="art-form-title">NEW ARTIST</div>
+          <input type="hidden" id="art-edit-id">
+          <div class="adm-form">
+            <div class="adm-form-col">
+              <div class="adm-field"><label>Stage Name *</label><input type="text" id="art-name" placeholder="ARTIST NAME"></div>
+              <div class="adm-field"><label>Real Name</label><input type="text" id="art-realname" placeholder="Legal name"></div>
+              <div class="adm-row">
+                <div class="adm-field"><label>Country</label><input type="text" id="art-country" placeholder="DE"></div>
+                <div class="adm-field"><label>City</label><input type="text" id="art-city" placeholder="Berlin"></div>
+              </div>
+              <div class="adm-field"><label>Genre</label>
+                <select id="art-genre"><option>Techno</option><option>Deep House</option><option>Minimal</option><option>Ambient</option><option>Bass Music</option><option>Experimental</option><option>Industrial</option><option>Melodic House</option></select>
+              </div>
+              <div class="adm-field"><label>Type</label>
+                <select id="art-type"><option value="both">Label + Agency</option><option value="label">Label Only</option><option value="agency">Agency Only</option></select>
+              </div>
+              <div class="adm-field"><label>Status</label>
+                <select id="art-status"><option value="signed">Signed</option><option value="unsigned">Unsigned</option><option value="former">Former</option></select>
+              </div>
+            </div>
+            <div class="adm-form-col">
+              <div class="adm-field"><label>Photo Upload</label><input type="file" id="art-photo" accept="image/*"></div>
+              <div class="adm-field"><label>Bio</label><textarea id="art-bio" style="min-height:100px" placeholder="Artist bio..."></textarea></div>
+              <div class="adm-field"><label>Instagram URL</label><input type="url" id="art-instagram" placeholder="https://instagram.com/..."></div>
+              <div class="adm-field"><label>SoundCloud URL</label><input type="url" id="art-soundcloud" placeholder="https://soundcloud.com/..."></div>
+              <div class="adm-field"><label>Booking Email</label><input type="email" id="art-bookingemail" placeholder="booking@artist.com"></div>
+            </div>
+          </div>
+          <div class="adm-btn-row">
+            <button class="adm-submit" onclick="ADMIN.saveArtist()">Save Artist</button>
+            <button class="adm-cancel" onclick="admToggle('art-form');admClearArt()">Cancel</button>
+          </div>
+        </div>
+        <table class="adm-table">
+          <thead><tr><th>Artist</th><th>Location</th><th>Genre</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="adm-art-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- DEMO INBOX -->
+      <div id="a-demo" class="adm-section">
+        <div class="adm-top">
+          <div class="adm-h1">DEMO <span class="hl">INBOX</span></div>
+          <div style="font-family:var(--Anton);font-size:28px;color:var(--g3)" id="adm-demo-count">â€”</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+          <button class="f-btn on" onclick="ADMIN.filterDemos('all',this)">All</button>
+          <button class="f-btn" onclick="ADMIN.filterDemos('new',this)">New</button>
+          <button class="f-btn" onclick="ADMIN.filterDemos('reviewing',this)">Reviewing</button>
+          <button class="f-btn" onclick="ADMIN.filterDemos('approved',this)">Approved</button>
+          <button class="f-btn" onclick="ADMIN.filterDemos('declined',this)">Declined</button>
+        </div>
+        <table class="adm-table">
+          <thead><tr><th>Artist</th><th>Track</th><th>Genre</th><th>BPM</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="adm-demo-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ROYALTIES -->
+      <div id="a-roy" class="adm-section">
+        <div class="adm-top">
+          <div class="adm-h1">ROYALTY <span class="hl">MANAGER</span></div>
+          <button class="adm-add-btn" onclick="admToggle('roy-form')">+ Add Entry</button>
+        </div>
+        <div id="roy-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:24px;margin-bottom:24px">
+          <div style="font-family:var(--Mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:14px">Add Royalty Entry</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
+            <div class="adm-field" style="margin:0"><label>Artist</label><input type="text" id="roy-artist" placeholder="Artist name"></div>
+            <div class="adm-field" style="margin:0"><label>Release</label><input type="text" id="roy-release" placeholder="Release name"></div>
+            <div class="adm-field" style="margin:0"><label>Source</label><input type="text" id="roy-source" placeholder="Streaming / Sync..."></div>
+            <div class="adm-field" style="margin:0"><label>Amount (â‚¬)</label><input type="number" id="roy-amount" placeholder="0.00" step="0.01"></div>
+            <div class="adm-field" style="margin:0"><label>Period</label><input type="text" id="roy-period" placeholder="Q1 2025"></div>
+          </div>
+          <div class="adm-btn-row" style="margin-top:14px">
+            <button class="adm-submit" onclick="ADMIN.saveRoyalty()">Add Entry</button>
+            <button class="adm-cancel" onclick="admToggle('roy-form')">Cancel</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+          <div class="adm-kpi"><div class="v g" id="roy-total-val">â€”</div><div class="lbl">Total Royalties</div></div>
+          <div class="adm-kpi"><div class="v c" id="roy-unpaid-val">â€”</div><div class="lbl">Unpaid</div></div>
+          <div class="adm-kpi"><div class="v" id="roy-entries-val">â€”</div><div class="lbl">Entries</div></div>
+        </div>
+        <table class="adm-table">
+          <thead><tr><th>Artist</th><th>Release</th><th>Source</th><th>Amount</th><th>Period</th><th>Paid</th><th>Actions</th></tr></thead>
+          <tbody id="adm-roy-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- CONTRACTS -->
+      <div id="a-con" class="adm-section">
+        <div class="adm-top">
+          <div class="adm-h1">CONTRACT <span class="hl">MANAGER</span></div>
+          <button class="adm-add-btn" onclick="admToggle('con-form')">+ Add Contract</button>
+        </div>
+        <div id="con-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:24px;margin-bottom:24px">
+          <div style="font-family:var(--Anton);font-size:22px;margin-bottom:16px">NEW CONTRACT</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div class="adm-field"><label>Artist</label><input type="text" id="con-artist" placeholder="Artist name"></div>
+            <div class="adm-field"><label>Contract Type</label>
+              <select id="con-type"><option>Label</option><option>Label + Management</option><option>Label + Agency</option><option>Management Only</option><option>Agency Only</option></select>
+            </div>
+            <div class="adm-field"><label>Signed Date</label><input type="date" id="con-signed"></div>
+            <div class="adm-field"><label>Expiry Date</label><input type="date" id="con-expires"></div>
+            <div class="adm-field"><label>PDF Upload</label><input type="file" id="con-file" accept=".pdf"></div>
+            <div class="adm-field"><label>Notes</label><input type="text" id="con-notes" placeholder="Optional notes"></div>
+          </div>
+          <div class="adm-btn-row" style="margin-top:12px">
+            <button class="adm-submit" onclick="ADMIN.saveContract()">Save Contract</button>
+            <button class="adm-cancel" onclick="admToggle('con-form')">Cancel</button>
+          </div>
+        </div>
+        <table class="adm-table">
+          <thead><tr><th>Artist</th><th>Type</th><th>Signed</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="adm-con-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- NEWS / BLOG -->
+      <div id="a-news" class="adm-section">
+        <div class="adm-top">
+          <div class="adm-h1">NEWS / <span class="hl">BLOG</span></div>
+          <button class="adm-add-btn" onclick="admToggle('news-form')">+ New Post</button>
+        </div>
+        <div id="news-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:28px;margin-bottom:28px">
+          <div style="font-family:var(--Anton);font-size:24px;margin-bottom:20px" id="news-form-title">NEW POST</div>
+          <input type="hidden" id="news-edit-id">
+          <div class="adm-field"><label>Headline *</label><input type="text" id="news-title" placeholder="Post headline"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+            <div class="adm-field"><label>Category</label>
+              <select id="news-cat"><option>Release News</option><option>Artist News</option><option>Label News</option><option>Events</option><option>FreqVault</option></select>
+            </div>
+            <div class="adm-field"><label>Author</label><input type="text" id="news-author" value="Mixxea Team"></div>
+            <div class="adm-field"><label>Publish Date</label><input type="date" id="news-date"></div>
+          </div>
+          <div class="adm-row">
+            <div class="adm-field"><label>Featured Image</label><input type="file" id="news-image" accept="image/*"></div>
+            <div class="adm-field"><label>Status</label>
+              <select id="news-status"><option value="draft">Draft</option><option value="published">Published</option></select>
+            </div>
+          </div>
+          <div class="adm-field"><label>Body *</label><textarea id="news-body" style="min-height:180px" placeholder="Write your post content here..."></textarea></div>
+          <div class="adm-btn-row">
+            <button class="adm-submit" onclick="ADMIN.saveNews()">Publish Post</button>
+            <button class="adm-cancel" onclick="admToggle('news-form');admClearNews()">Cancel</button>
+          </div>
+        </div>
+        <table class="adm-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Author</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="adm-news-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- EVENTS -->
+      <div id="a-ev" class="adm-section">
+        <div class="adm-top">
+          <div class="adm-h1">EVENTS <span class="hl">MANAGER</span></div>
+          <button class="adm-add-btn" onclick="admToggle('ev-add-form')">+ Add Show</button>
+        </div>
+        <div id="ev-add-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:24px;margin-bottom:24px">
+          <div style="font-family:var(--Anton);font-size:22px;margin-bottom:16px">NEW SHOW</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px">
+            <div class="adm-field"><label>Date *</label><input type="date" id="ev-date"></div>
+            <div class="adm-field"><label>Venue *</label><input type="text" id="ev-venue" placeholder="Venue name"></div>
+            <div class="adm-field"><label>City</label><input type="text" id="ev-city" placeholder="City"></div>
+            <div class="adm-field"><label>Country</label><input type="text" id="ev-country" placeholder="DE"></div>
+            <div class="adm-field"><label>Artist *</label><input type="text" id="ev-artist" placeholder="Artist name(s)"></div>
+            <div class="adm-field"><label>Type</label>
+              <select id="ev-type"><option>Headline</option><option>Festival</option><option>Club Night</option><option>Live Set</option><option>Residency</option><option>Label Night</option></select>
+            </div>
+            <div class="adm-field"><label>Fee (â‚¬)</label><input type="number" id="ev-fee" placeholder="0"></div>
+            <div class="adm-field"><label>Status</label>
+              <select id="ev-status"><option value="confirmed">Confirmed</option><option value="hold">On Hold</option><option value="cancelled">Cancelled</option></select>
+            </div>
+            <div class="adm-field"><label>Ticket Link</label><input type="url" id="ev-ticket" placeholder="https://..."></div>
+          </div>
+          <div class="adm-btn-row" style="margin-top:12px">
+            <button class="adm-submit" onclick="ADMIN.saveEvent()">Add Show</button>
+            <button class="adm-cancel" onclick="admToggle('ev-add-form')">Cancel</button>
+          </div>
+        </div>
+        <table class="adm-table">
+          <thead><tr><th>Date</th><th>Venue</th><th>Artist</th><th>City</th><th>Type</th><th>Fee</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="adm-ev-tbody">
+            <tr><td colspan="8" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- BOOKINGS -->
+      <div id="a-bk" class="adm-section">
+        <div class="adm-top">
+          <div class="adm-h1">BOOKING <span class="hl">INBOX</span></div>
+          <div style="font-family:var(--Anton);font-size:28px;color:var(--g3)" id="adm-bk-count">â€”</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+          <button class="f-btn on" onclick="ADMIN.filterBookings('all',this)">All</button>
+          <button class="f-btn" onclick="ADMIN.filterBookings('pending',this)">Pending</button>
+          <button class="f-btn" onclick="ADMIN.filterBookings('discussing',this)">Discussing</button>
+          <button class="f-btn" onclick="ADMIN.filterBookings('confirmed',this)">Confirmed</button>
+          <button class="f-btn" onclick="ADMIN.filterBookings('declined',this)">Declined</button>
+        </div>
+        <div id="adm-bk-container">
+          <div style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:40px">Loading...</div>
+        </div>
+      </div>
+
+      <!-- PROMOTER CRM -->
+      <div id="a-promo" class="adm-section">
+        <div class="adm-top">
+          <div class="adm-h1">PROMOTER <span class="hl">CRM</span></div>
+          <button class="adm-add-btn" onclick="admToggle('promo-form')">+ Add Contact</button>
+        </div>
+        <div id="promo-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:24px;margin-bottom:24px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div class="adm-field"><label>Name *</label><input type="text" id="promo-name" placeholder="Contact name"></div>
+            <div class="adm-field"><label>Email</label><input type="email" id="promo-email" placeholder="email@venue.com"></div>
+            <div class="adm-field"><label>Venue / Festival</label><input type="text" id="promo-venue" placeholder="Venue name"></div>
+            <div class="adm-field"><label>City</label><input type="text" id="promo-city" placeholder="City"></div>
+            <div class="adm-field"><label>Country</label><input type="text" id="promo-country" placeholder="DE"></div>
+            <div class="adm-field"><label>Notes</label><input type="text" id="promo-notes" placeholder="Notes..."></div>
+          </div>
+          <div class="adm-btn-row" style="margin-top:12px">
+            <button class="adm-submit" onclick="ADMIN.savePromoter()">Save Contact</button>
+            <button class="adm-cancel" onclick="admToggle('promo-form')">Cancel</button>
+          </div>
+        </div>
+        <table class="adm-table">
+          <thead><tr><th>Contact</th><th>Venue</th><th>City</th><th>Bookings</th><th>Actions</th></tr></thead>
+          <tbody id="adm-promo-tbody">
+            <tr><td colspan="5" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- NEWSLETTER -->
+      <div id="a-nl" class="adm-section">
+        <div class="adm-top"><div class="adm-h1">NEWSLETTER <span class="hl">COMPOSER</span></div></div>
+        <div class="nl-composer">
+          <div style="font-family:var(--Mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px">Quick Templates</div>
+          <div class="nl-template-row">
+            <button class="nl-tpl" onclick="loadTpl('release')">New Release</button>
+            <button class="nl-tpl" onclick="loadTpl('event')">Event Announcement</button>
+            <button class="nl-tpl" onclick="loadTpl('monthly')">Monthly Update</button>
+            <button class="nl-tpl" onclick="loadTpl('artist')">Artist Spotlight</button>
+            <button class="nl-tpl" onclick="loadTpl('custom')">Blank</button>
+          </div>
+          <div class="adm-field"><label>Subject Line *</label><input type="text" id="nl-subject" placeholder="Newsletter subject..."></div>
+          <div class="adm-row">
+            <div class="adm-field"><label>From Name</label><input type="text" id="nl-fromname" value="Mixxea Records"></div>
+            <div class="adm-field"><label>Test Email</label><input type="email" id="nl-test-email" placeholder="your@email.com"></div>
+          </div>
+          <div class="adm-field"><label>Email Body *</label><textarea id="nl-body" style="min-height:220px" placeholder="Compose your newsletter..."></textarea></div>
+          <div id="nl-prev" class="nl-preview">
+            <div style="font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px">Preview</div>
+            <h4 id="nl-prev-sub">Your subject line will appear here</h4>
+            <p id="nl-prev-body" style="margin-top:8px;white-space:pre-wrap">Your newsletter body will appear here...</p>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:20px;align-items:center;flex-wrap:wrap">
+            <button class="adm-submit" onclick="sendNl()">Send to All</button>
+            <button class="nl-tpl" onclick="ADMIN.sendNewsletter(true)">Test Send</button>
+            <button class="tbl-btn" style="padding:13px 20px" onclick="previewNl()">Preview</button>
+            <span style="font-family:var(--Mono);font-size:10px;color:var(--muted)">Â· <span id="nl-sc-count">â€”</span> subscribers</span>
+          </div>
+          <div class="ok-msg" id="nl-send-ok" style="display:none;margin-top:12px">âœ“ Newsletter sent successfully.</div>
+        </div>
+      </div>
+
+      <!-- SUBSCRIBERS -->
+      <div id="a-subs" class="adm-section">
+        <div class="adm-top">
+          <div class="adm-h1">SUBSCRIBER <span class="hl">LIST</span></div>
+          <div>
+            <div class="subs-count" id="subs-total-count">â€”</div>
+            <div class="subs-lbl">Total Subscribers</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+          <button class="adm-submit" style="padding:10px 20px" onclick="ADMIN.exportSubscribers()">Export CSV</button>
+          <input type="text" id="subs-search" placeholder="Search subscribers..." oninput="ADMIN.searchSubscribers(this.value)"
+            style="flex:1;max-width:280px;background:rgba(255,255,255,.04);border:1px solid var(--wire2);color:var(--text);font-family:var(--Mono);font-size:12px;padding:10px 15px;outline:none">
+        </div>
+        <div style="background:var(--panel);border:1px solid var(--wire)">
+          <div class="subs-row" style="border-bottom:1px solid var(--wire);font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase">
+            <span>Email</span><span>Joined</span><span>Source</span>
+          </div>
+          <div id="adm-subs-list">
+            <div style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:32px">Loading...</div>
+          </div>
+        </div>
+        <div style="font-family:var(--Mono);font-size:10px;color:var(--muted);margin-top:12px;text-align:center" id="subs-load-more"></div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div id="a-analytics" class="adm-section">
+        <div class="adm-top"><div class="adm-h1">SITE <span class="hl">ANALYTICS</span></div><div style="font-family:var(--Mono);font-size:10px;color:var(--muted)">Last 30 days</div></div>
+        <div class="adm-stats-row">
+          <div class="adm-kpi"><div class="v g">18,420</div><div class="lbl">Page Views</div></div>
+          <div class="adm-kpi"><div class="v g">6,840</div><div class="lbl">Unique Visitors</div></div>
+          <div class="adm-kpi"><div class="v c" id="analytics-demos">â€”</div><div class="lbl">Demo Submissions</div></div>
+          <div class="adm-kpi"><div class="v" id="analytics-bookings">â€”</div><div class="lbl">Booking Inquiries</div></div>
+        </div>
+        <div style="background:var(--panel);border:1px solid var(--wire);padding:24px;margin-bottom:16px">
+          <div style="font-family:var(--Mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:16px">Monthly Visitors (Last 12 Months)</div>
+          <div class="chart-bars" id="chartBars"></div>
+          <div class="chart-labels" id="chartLabels"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div style="background:var(--panel);border:1px solid var(--wire);padding:24px">
+            <div style="font-family:var(--Mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:14px">Top Pages</div>
+            <div class="subs-row" style="padding:8px 0;border-bottom:1px solid var(--wire)"><span class="tbl-name">/releases</span><span style="font-family:var(--Anton);font-size:18px;color:var(--g1)">4,820</span></div>
+            <div class="subs-row" style="padding:8px 0;border-bottom:1px solid var(--wire)"><span class="tbl-name">/roster</span><span style="font-family:var(--Anton);font-size:18px;color:var(--g1)">3,210</span></div>
+            <div class="subs-row" style="padding:8px 0;border-bottom:1px solid var(--wire)"><span class="tbl-name">/freqvault</span><span style="font-family:var(--Anton);font-size:18px;color:var(--g1)">2,880</span></div>
+            <div class="subs-row" style="padding:8px 0;border-bottom:none"><span class="tbl-name">/portal</span><span style="font-family:var(--Anton);font-size:18px;color:var(--g1)">1,640</span></div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--wire);padding:24px">
+            <div style="font-family:var(--Mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:14px">Traffic Sources</div>
+            <div class="subs-row" style="padding:8px 0;border-bottom:1px solid var(--wire)"><span class="tbl-name">Direct</span><span style="font-family:var(--Anton);font-size:18px;color:var(--g1)">38%</span></div>
+            <div class="subs-row" style="padding:8px 0;border-bottom:1px solid var(--wire)"><span class="tbl-name">Instagram</span><span style="font-family:var(--Anton);font-size:18px;color:var(--g1)">28%</span></div>
+            <div class="subs-row" style="padding:8px 0;border-bottom:1px solid var(--wire)"><span class="tbl-name">Google</span><span style="font-family:var(--Anton);font-size:18px;color:var(--g1)">19%</span></div>
+            <div class="subs-row" style="padding:8px 0;border-bottom:none"><span class="tbl-name">Beatport</span><span style="font-family:var(--Anton);font-size:18px;color:var(--g1)">15%</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /adm-main -->
+  </div><!-- /adm-wrap -->
+</div><!-- /admin-overlay -->
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+     JAVASCRIPT
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<script>
+/* â”€â”€â”€ SAFE INIT â€” all wrapped in try/catch so one error never kills the page â”€â”€â”€ */
+
+/* CURSOR â€” only activate if user moves mouse */
+(function(){
+  try {
+    const cur=document.getElementById('cur'),ring=document.getElementById('cur-r');
+    let mx=0,my=0,rx=0,ry=0,active=false;
+    document.addEventListener('mousemove',e=>{
+      if(!active){
+        active=true;
+        if(cur){cur.style.display='block';}
+        if(ring){ring.style.display='block';}
+        document.body.style.cursor='none';
+      }
+      mx=e.clientX;my=e.clientY;
+      if(cur){cur.style.left=mx+'px';cur.style.top=my+'px';}
+    });
+    (function animR(){
+      rx+=(mx-rx)*.1;ry+=(my-ry)*.1;
+      if(ring){ring.style.left=rx+'px';ring.style.top=ry+'px';}
+      requestAnimationFrame(animR);
+    })();
+    document.querySelectorAll('a,button,.a-tile,.r-card,.svc,.n-card,.ev-row').forEach(el=>{
+      el.addEventListener('mouseenter',()=>document.body.classList.add('cur-big'));
+      el.addEventListener('mouseleave',()=>document.body.classList.remove('cur-big'));
+    });
+  } catch(e){ console.warn('Cursor init failed:',e.message); }
+})();
+
+/* CANVAS WAVEFORM */
+(function(){
+  try {
+    const cv=document.getElementById('wc');
+    if(!cv)return;
+    const ctx=cv.getContext('2d');
+    function rsz(){cv.width=window.innerWidth;cv.height=window.innerHeight;}
+    rsz();
+    window.addEventListener('resize',rsz);
+    let t=0;
+    (function draw(){
+      ctx.clearRect(0,0,cv.width,cv.height);t+=.007;
+      for(let i=0;i<64;i++){
+        const x=(i/64)*cv.width;
+        const h=Math.sin(i*.35+t)*70+Math.sin(i*.12+t*1.4)*45+85;
+        const a=.055+Math.sin(i*.18+t)*.035;
+        ctx.fillStyle='rgba(232,255,0,'+a+')';
+        ctx.fillRect(x,cv.height-h,cv.width/64-1.5,h);
+      }
+      requestAnimationFrame(draw);
+    })();
+  } catch(e){ console.warn('Canvas init failed:',e.message); }
+})();
+
+/* FREQ BARS */
+(function(){
+  try {
+    const fb=document.getElementById('fbars');
+    if(!fb)return;
+    for(let i=0;i<32;i++){
+      const b=document.createElement('div');b.className='fb';
+      const h=Math.random()*38+4;
+      b.style.cssText='height:'+h+'px;animation-duration:'+(0.5+Math.random()*0.9)+'s;animation-delay:'+(Math.random()*0.5)+'s';
+      fb.appendChild(b);
+    }
+  } catch(e){}
+})();
+
+/* NAV SCROLL */
+(function(){
+  try {
+    window.addEventListener('scroll',()=>{
+      const nav=document.getElementById('nav');
+      if(nav) nav.classList.toggle('scrolled', window.scrollY>20);
+    });
+  } catch(e){}
+})();
+
+/* ROSTER SLIDER */
+(function(){
+  try {
+    let rOff=0;
+    const rTrack=document.getElementById('rTrack');
+    const TW=303;
+    const rNext=document.getElementById('rNext');
+    const rPrev=document.getElementById('rPrev');
+    if(rNext && rTrack) rNext.onclick=()=>{
+      const max=(rTrack.children.length-3)*TW;
+      rOff=Math.min(rOff+TW,max);
+      rTrack.style.transform='translateX(-'+rOff+'px)';
+    };
+    if(rPrev && rTrack) rPrev.onclick=()=>{
+      rOff=Math.max(rOff-TW,0);
+      rTrack.style.transform='translateX(-'+rOff+'px)';
+    };
+  } catch(e){}
+})();
+
+/* FILTER BUTTONS */
+document.querySelectorAll('.f-btn').forEach(b=>b.addEventListener('click',function(){
+  document.querySelectorAll('.f-btn').forEach(x=>x.classList.remove('on'));
+  this.classList.add('on');
+}));
+
+/* PORTAL TABS */
+function ptab(btn,id){
+  document.querySelectorAll('.p-tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.p-body').forEach(p=>p.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  const el=document.getElementById(id);
+  if(el) el.classList.add('on');
+}
+document.querySelectorAll('.p-tab').forEach((t,i)=>{
+  const ids=['pp-login','pp-reg','pp-sub','pp-dash'];
+  t.onclick=()=>ptab(t,ids[i]);
+});
+
+/* DASHBOARD SECTIONS */
+function dsec(btn,id){
+  document.querySelectorAll('.d-nav').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.d-sec').forEach(s=>s.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  const el=document.getElementById(id);
+  if(el) el.classList.add('on');
+}
+
+/* FILE UPLOAD */
+function onUp(inp){
+  try {
+    if(inp.files[0]){
+      const el=document.getElementById('up-fn');
+      const ok=document.getElementById('up-ok');
+      if(el) el.textContent=inp.files[0].name;
+      if(ok) ok.style.display='block';
+    }
+  } catch(e){}
+}
+
+/* FORM SUBMITS */
+function doSub(){
+  const c=document.getElementById('agr');
+  if(c && !c.checked){c.style.outline='1px solid var(--g3)';return;}
+  const ok=document.getElementById('sub-ok');
+  if(ok) ok.style.display='block';
+}
+function doCt(){
+  const ok=document.getElementById('ct-ok');
+  if(ok) ok.style.display='block';
+}
+function nlSubscribe(){
+  const v=document.getElementById('nl-email');
+  const ok=document.getElementById('nl-ok');
+  if(!v||!v.value) return;
+  if(ok) ok.style.display='block';
+  v.value='';
+}
+
+/* SCROLL REVEAL â€” elements start visible, then animate on scroll if JS runs */
+(function(){
+  try {
+    /* First add .animate to all rv elements so they can be revealed */
+    document.querySelectorAll('.rv,.rv2').forEach(el=>{
+      el.classList.add('animate');
+    });
+    /* Then observe */
+    const obs=new IntersectionObserver(es=>{
+      es.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('in');
+          obs.unobserve(e.target);
+        }
+      });
+    },{threshold:.06,rootMargin:'0px 0px -20px 0px'});
+    document.querySelectorAll('.rv,.rv2').forEach(el=>obs.observe(el));
+  } catch(e){
+    /* If IntersectionObserver fails, just show everything */
+    document.querySelectorAll('.rv,.rv2').forEach(el=>el.classList.add('in'));
+  }
+})();
+
+/* â•â•â• HOWLER.JS AUDIO PLAYER â•â•â• */
+const TRACKS=[
+  {title:'Dark Matter',artist:'KRATOS',art:'DM',src:null},
+  {title:'Ocean Floor',artist:'SOLV',art:'OF',src:null},
+  {title:'Signal Loss',artist:'AXON',art:'SL',src:null},
+  {title:'Grind System',artist:'VEXR',art:'GS',src:null},
+  {title:'Void Protocol',artist:'LYDA',art:'VP',src:null},
+];
+
+let currentIdx=0,howl=null,playing=false,progTimer=null;
+
+function fmtTime(s){
+  if(isNaN(s)||s<0)return'0:00';
+  const m=Math.floor(s/60);
+  const ss=String(Math.floor(s%60)).padStart(2,'0');
+  return m+':'+ss;
+}
+
+function buildPlaylist(){
+  const pl=document.getElementById('p-playlist');
+  if(!pl)return;
+  pl.innerHTML='';
+  TRACKS.forEach((t,i)=>{
+    const d=document.createElement('div');
+    d.className='p-pl-item'+(i===currentIdx?' playing':'');
+    d.textContent=t.title;
+    d.onclick=()=>playTrack(i,{stopPropagation:()=>{}});
+    pl.appendChild(d);
+  });
+}
+
+function updatePlayerUI(){
+  const t=TRACKS[currentIdx];
+  const art=document.getElementById('p-art');
+  const title=document.getElementById('p-title');
+  const artist=document.getElementById('p-artist');
+  if(art) art.textContent=t.art;
+  if(title) title.textContent=t.title;
+  if(artist) artist.textContent=t.artist;
+  buildPlaylist();
+}
+
+function playTrack(idx, e){
+  try {
+    if(e&&e.stopPropagation) e.stopPropagation();
+
+    /* If no real src and Howler not loaded, show player UI only */
+    const track=TRACKS[idx]||TRACKS[0];
+    currentIdx=idx;
+    updatePlayerUI();
+
+    const player=document.getElementById('player');
+    if(player) player.classList.add('visible');
+
+    if(!window.HOWLER_LOADED || !window.Howl){
+      console.info('Audio player: Howler.js not loaded. Add audio src URLs to TRACKS array.');
+      const btn=document.getElementById('p-playbtn');
+      if(btn) btn.textContent='â–¶';
+      return;
+    }
+
+    if(howl){howl.stop();try{howl.unload();}catch(ex){}}
+    clearInterval(progTimer);
+
+    if(!track.src){
+      console.info('No audio src for track:',track.title,'. Upload preview files via Admin â†’ Release Manager.');
+      return;
+    }
+
+    howl=new Howl({
+      src:[track.src],
+      html5:true,
+      volume:parseFloat(document.getElementById('p-vol')?.value||'0.8'),
+      onplay:()=>{
+        playing=true;
+        const btn=document.getElementById('p-playbtn');
+        if(btn) btn.textContent='â¸';
+        progTimer=setInterval(updateProgress,500);
+      },
+      onpause:()=>{playing=false;const btn=document.getElementById('p-playbtn');if(btn)btn.textContent='â–¶';clearInterval(progTimer);},
+      onstop:()=>{playing=false;const btn=document.getElementById('p-playbtn');if(btn)btn.textContent='â–¶';clearInterval(progTimer);},
+      onend:()=>nextTrack(),
+      onloaderror:(id,err)=>console.warn('Audio load error:',err),
+    });
+    howl.play();
+  } catch(err){ console.warn('playTrack error:',err.message); }
+}
+
+function updateProgress(){
+  try {
+    if(!howl)return;
+    const seek=howl.seek()||0;
+    const dur=howl.duration()||0;
+    const pct=dur>0?(seek/dur)*100:0;
+    const bar=document.getElementById('p-bar');
+    const cur=document.getElementById('p-cur');
+    const dur2=document.getElementById('p-dur');
+    if(bar) bar.style.width=pct+'%';
+    if(cur) cur.textContent=fmtTime(seek);
+    if(dur2) dur2.textContent=fmtTime(dur);
+  } catch(e){}
+}
+
+function togglePlay(){
+  if(!howl||!window.Howl){
+    playTrack(currentIdx,{stopPropagation:()=>{}});
+    return;
+  }
+  if(playing){howl.pause();}else{howl.play();}
+}
+
+function nextTrack(){ playTrack((currentIdx+1)%TRACKS.length,{stopPropagation:()=>{}}); }
+function prevTrack(){ playTrack((currentIdx-1+TRACKS.length)%TRACKS.length,{stopPropagation:()=>{}}); }
+
+function setVol(v){
+  try{
+    if(howl) howl.volume(parseFloat(v));
+    if(window.Howler) Howler.volume(parseFloat(v));
+  }catch(e){}
+}
+
+function closePlayer(){
+  try{if(howl){howl.stop();}}catch(e){}
+  const p=document.getElementById('player');
+  if(p) p.classList.remove('visible');
+}
+
+/* Progress bar click to seek */
+(function(){
+  const bw=document.getElementById('p-bar-wrap');
+  if(!bw)return;
+  bw.addEventListener('click',function(e){
+    if(!howl||!window.Howl)return;
+    const rect=this.getBoundingClientRect();
+    const pct=(e.clientX-rect.left)/rect.width;
+    try{howl.seek(pct*(howl.duration()||0));}catch(ex){}
+  });
+})();
+
+buildPlaylist();
+
+/* â•â•â• ADMIN PANEL â•â•â• */
+function openAdmin(){
+  const overlay=document.getElementById('admin-overlay');
+  if(overlay){overlay.classList.add('open');document.body.style.overflow='hidden';}
+  setTimeout(buildChart,100);
+}
+function closeAdmin(){
+  const overlay=document.getElementById('admin-overlay');
+  if(overlay){overlay.classList.remove('open');}
+  document.body.style.overflow='';
+}
+
+function admsec(btn,id){
+  document.querySelectorAll('.adm-nav-item').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.adm-section').forEach(s=>s.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  const el=document.getElementById(id);
+  if(el) el.classList.add('on');
+  if(id==='a-analytics') buildChart();
+}
+
+function toggleRelForm(){
+  const f=document.getElementById('rel-form');
+  if(f) f.style.display=f.style.display==='none'?'block':'none';
+}
+function toggleNewsForm(){
+  const f=document.getElementById('news-form');
+  if(f) f.style.display=f.style.display==='none'?'block':'none';
+}
+
+/* NEWSLETTER TEMPLATES */
+const TEMPLATES={
+  release:{sub:'New Release â€” [Title] is out now',body:'Hey,\n\nWe're excited to announce that [Artist]'s "[Title]" is out now on Beatport, Spotify and Apple Music.\n\nâ€” Mixxea Records'},
+  event:{sub:'[Artist] Live â€” [Venue], [Date]',body:'Hey,\n\n[Artist] will be performing live at [Venue] on [Date].\n\nTickets at the link below.\n\nâ€” FreqVault Agency'},
+  monthly:{sub:'Mixxea Monthly â€” [Month] Roundup',body:'Hey,\n\nHere's what happened at Mixxea this month:\n\nNew releases:\nUpcoming shows:\nLabel news:\n\nâ€” Mixxea Records'},
+  artist:{sub:'Artist Spotlight: [Artist]',body:'Hey,\n\nThis month we're shining a light on [Artist]...\n\nâ€” Mixxea Records'},
+  custom:{sub:'',body:''},
+};
+function loadTpl(key){
+  const t=TEMPLATES[key];
+  const s=document.getElementById('nl-subject');
+  const b=document.getElementById('nl-body');
+  if(s) s.value=t.sub;
+  if(b) b.value=t.body;
+  previewNl();
+}
+function previewNl(){
+  const sub=document.getElementById('nl-subject')?.value||'Subject preview';
+  const body=document.getElementById('nl-body')?.value||'Body preview...';
+  const ps=document.getElementById('nl-prev-sub');
+  const pb=document.getElementById('nl-prev-body');
+  if(ps) ps.textContent=sub;
+  if(pb) pb.textContent=body;
+}
+function sendNl(){
+  const ok=document.getElementById('nl-ok');
+  if(ok) ok.style.display='block';
+}
+document.getElementById('nl-subject')?.addEventListener('input',previewNl);
+document.getElementById('nl-body')?.addEventListener('input',previewNl);
+
+/* ANALYTICS CHART */
+function buildChart(){
+  try {
+    const bars=document.getElementById('chartBars');
+    const lbls=document.getElementById('chartLabels');
+    if(!bars)return;
+    const data=[3200,4100,3800,5200,4600,6100,5800,7200,6400,8100,7800,6840];
+    const months=['May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr'];
+    const max=Math.max(...data);
+    bars.innerHTML='';lbls.innerHTML='';
+    data.forEach((v,i)=>{
+      const b=document.createElement('div');
+      b.className='c-bar';
+      b.style.height=((v/max)*100)+'%';
+      b.setAttribute('data-v',v.toLocaleString());
+      bars.appendChild(b);
+      const l=document.createElement('div');
+      l.className='c-lbl';l.textContent=months[i];
+      lbls.appendChild(l);
+    });
+  } catch(e){}
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape') closeAdmin();});
+</script>
+<script src="/js/app.js"></script>
+<script src="/js/admin.js"></script>
+</body>
+</html>
+
