@@ -1,7 +1,7 @@
-﻿{
+{
     "name":  "mixxea-records",
     "version":  "1.0.0",
-    "description":  "Mixxea Records Ã¢â‚¬â€ Electronic Music Label \u0026 FreqVault Agency",
+    "description":  "Mixxea Records ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Electronic Music Label \u0026 FreqVault Agency",
     "main":  "server.js",
     "scripts":  {
                     "start":  "node server.js",
