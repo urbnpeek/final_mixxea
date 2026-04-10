@@ -104,6 +104,6 @@ function set(collection, data) {
 }
 
 // -- Initialise all collections on first run --
-Object.keys(DEFAULTS).forEach(k => get(k));
+try { Object.keys(DEFAULTS).forEach(k => get(k)); } catch (e) { /* skip on read-only / cold start */ }
 
 module.exports = { get, set };
