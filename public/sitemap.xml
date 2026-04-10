@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://mixxea.com/</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/record-label</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/artist-management</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/booking-agency</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/submit-demo</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/electronic-music-artists</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/artists/kratos</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/artists/solv</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/artists/axon</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/artists/vexr</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/artists/lyda</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/releases/dark-matter-ep</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/releases/ocean-floor-lp</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/releases/signal-loss</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/releases/grind-system-ep</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/releases/void-protocol</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/events/kratos-tresor-berlin-2025-05-12</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/events/kratos-lyda-awakenings-festival-2025-05-24</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/events/solv-fabric-london-2025-06-15</loc><lastmod>2026-04-05</lastmod></url>
-  <url><loc>https://mixxea.com/events/axon-de-school-2025-06-28</loc><lastmod>2026-04-05</lastmod></url>
+  <!-- Core pages -->
+  <url><loc>https://mixxea.com/</loc><lastmod>2026-04-10</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://mixxea.com/record-label</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://mixxea.com/booking-agency</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://mixxea.com/artist-management</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://mixxea.com/electronic-music-artists</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://mixxea.com/submit-demo</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <!-- Artist pages -->
+  <url><loc>https://mixxea.com/artists/kratos</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://mixxea.com/artists/solv</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://mixxea.com/artists/axon</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://mixxea.com/artists/vexr</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://mixxea.com/artists/lyda</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <!-- Release pages -->
+  <url><loc>https://mixxea.com/releases/dark-matter-ep</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://mixxea.com/releases/ocean-floor-lp</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://mixxea.com/releases/signal-loss</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://mixxea.com/releases/grind-system-ep</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://mixxea.com/releases/void-protocol</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <!-- Event pages -->
+  <url><loc>https://mixxea.com/events/kratos-tresor-berlin-2025-05-12</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://mixxea.com/events/kratos-lyda-awakenings-festival-2025-05-24</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://mixxea.com/events/solv-fabric-london-2025-06-15</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://mixxea.com/events/axon-de-school-2025-06-28</loc><lastmod>2026-04-10</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>
 </urlset>

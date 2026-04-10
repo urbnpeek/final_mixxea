@@ -1,5 +1,5 @@
-﻿/**
- * admin.js â€” Mixxea Admin Panel â€” Fully Functional
+/**
+ * admin.js — Mixxea Admin Panel — Fully Functional
  * All 10 modules: Releases, Artists, Demos, Royalties, Contracts,
  * News, Events, Bookings, Promoters, Newsletter, Subscribers, Analytics
  * Works with Express API when server is running,
@@ -7,9 +7,9 @@
  */
 'use strict';
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ─────────────────────────────────────────────────────────
    LOCAL DATA STORE (fallback when server not running)
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+───────────────────────────────────────────────────────── */
 const STORE = {
   releases: [
     {id:'r1',title:'Dark Matter EP',artist:'KRATOS',genre:'Techno',bpm:128,catNo:'MXA001',date:'2025-03-14',status:'out',spotify:'',beatport:'',apple:'',soundcloud:'',description:'Landmark techno EP from Berlin.'},
@@ -76,15 +76,15 @@ const STORE = {
   ],
 };
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ─────────────────────────────────────────────────────────
    UTILITIES
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+───────────────────────────────────────────────────────── */
 function uid() { return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
-function eur(n) { if(!n&&n!==0)return'â€”'; return new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n); }
-function fmtDate(s) { if(!s)return'â€”'; try{return new Date(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return s;} }
+function eur(n) { if(!n&&n!==0)return'—'; return new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n); }
+function fmtDate(s) { if(!s)return'—'; try{return new Date(s).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}catch(e){return s;} }
 function val(id) { const e=document.getElementById(id); return e?e.value.trim():''; }
 function setVal(id,v) { const e=document.getElementById(id); if(e)e.value=v||''; }
-function setText(id,v) { const e=document.getElementById(id); if(e)e.textContent=(v===null||v===undefined)?'â€”':v; }
+function setText(id,v) { const e=document.getElementById(id); if(e)e.textContent=(v===null||v===undefined)?'—':v; }
 function setHTML(id,v) { const e=document.getElementById(id); if(e)e.innerHTML=v; }
 function badge(text,cls) { return `<span class="adm-badge ${cls}">${text}</span>`; }
 function relBadge(s) {
@@ -95,7 +95,7 @@ function relBadge(s) {
 function toast(msg, type) {
   const t=document.createElement('div'); const err=type==='error';
   t.style.cssText=`position:fixed;bottom:90px;right:32px;z-index:99999;font-family:var(--Mono);font-size:11px;letter-spacing:1px;padding:14px 22px;border:1px solid;background:var(--panel);color:${err?'var(--g3)':'var(--g1)'};border-color:${err?'rgba(255,45,107,.35)':'rgba(232,255,0,.3)'};animation:toastIn .25s ease;pointer-events:none`;
-  t.textContent=(err?'âœ• ':'âœ“ ')+msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3500);
+  t.textContent=(err?'✕ ':'✓ ')+msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3500);
 }
 
 // Try API, but surface failures so admin actions do not look successful when they are not.
@@ -120,9 +120,9 @@ async function api(method, path, data) {
   }
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ─────────────────────────────────────────────────────────
    FORM TOGGLE + CLEAR HELPERS
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+───────────────────────────────────────────────────────── */
 function admToggle(id) {
   const el=document.getElementById(id); if(!el)return;
   el.style.display=el.style.display==='none'?'block':'none';
@@ -145,9 +145,9 @@ function admClearNews() {
   setText('news-form-title','NEW POST');
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ─────────────────────────────────────────────────────────
    SECTION SWITCHER
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+───────────────────────────────────────────────────────── */
 function toggleAdminNav(force) {
   const overlay = document.getElementById('admin-overlay');
   if (!overlay) return;
@@ -231,12 +231,12 @@ const ADMIN_AUTH = {
   }
 };
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   ADMIN OBJECT â€” all module methods
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─────────────────────────────────────────────────────────
+   ADMIN OBJECT — all module methods
+───────────────────────────────────────────────────────── */
 const ADMIN = {
 
-  /* â•â• DASHBOARD â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ══ DASHBOARD ══════════════════════════════════════════ */
   async loadDashboard() {
     try {
       const dateEl=document.getElementById('adm-date');
@@ -262,8 +262,8 @@ const ADMIN = {
 
       const activity=[
         ...demos.slice(0,3).map(d=>({type:'Demo',label:`"${d.trackTitle}" by ${d.artistName}`,date:d.submittedAt,status:d.status,cls:'ab-new'})),
-        ...releases.slice(0,2).map(r=>({type:'Release',label:`${r.title} â€” ${r.artist}`,date:r.date,status:r.status,cls:'ab-live'})),
-        ...bookings.slice(0,2).map(b=>({type:'Booking',label:`${b.venue} â€” ${b.artist}`,date:b.date,status:b.status,cls:'ab-hold'})),
+        ...releases.slice(0,2).map(r=>({type:'Release',label:`${r.title} — ${r.artist}`,date:r.date,status:r.status,cls:'ab-live'})),
+        ...bookings.slice(0,2).map(b=>({type:'Booking',label:`${b.venue} — ${b.artist}`,date:b.date,status:b.status,cls:'ab-hold'})),
       ].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,8);
 
       setHTML('adm-activity-tbody', activity.length ? activity.map(a=>`
@@ -276,7 +276,7 @@ const ADMIN = {
     } catch(e) { console.error('Dashboard:', e); }
   },
 
-  /* â•â• RELEASES â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ══ RELEASES ═══════════════════════════════════════════ */
   async loadReleases() {
     const data=await api('GET','/releases')||STORE.releases;
     setHTML('adm-rel-tbody', data.length ? data.map(r=>`
@@ -293,7 +293,7 @@ const ADMIN = {
           <button class="tbl-btn" onclick="ADMIN.editRelease('${r.id}')">Edit</button>
           <button class="tbl-btn del" onclick="ADMIN.deleteRelease('${r.id}','${(r.title||'').replace(/'/g,'')}')">Delete</button>
         </div></td>
-      </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No releases yet â€” add your first one above</td></tr>');
+      </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No releases yet — add your first one above</td></tr>');
   },
 
   async saveRelease() {
@@ -337,7 +337,7 @@ const ADMIN = {
     toast('Release deleted'); this.loadReleases();
   },
 
-  /* â•â• ARTISTS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ══ ARTISTS ════════════════════════════════════════════ */
   async loadArtists() {
     const data=await api('GET','/artists')||STORE.artists;
     const COLS=['var(--g1)','var(--g4)','var(--g3)','var(--g5)','rgba(245,240,255,.5)'];
@@ -395,7 +395,7 @@ const ADMIN = {
     toast('Artist removed'); this.loadArtists();
   },
 
-  /* â•â• DEMOS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ══ DEMOS ══════════════════════════════════════════════ */
   _df:'all',
   async loadDemos(filter) {
     if(filter) this._df=filter;
@@ -407,14 +407,14 @@ const ADMIN = {
     setHTML('adm-demo-tbody', data.length ? data.map(d=>`
       <tr>
         <td><div class="tbl-name">${d.artistName}</div><div class="tbl-sub">${d.email}</div></td>
-        <td><div class="tbl-name">${d.trackTitle}</div>${d.notes?`<div class="tbl-sub">${d.notes.slice(0,40)}${d.notes.length>40?'â€¦':''}</div>`:''}</td>
+        <td><div class="tbl-name">${d.trackTitle}</div>${d.notes?`<div class="tbl-sub">${d.notes.slice(0,40)}${d.notes.length>40?'…':''}</div>`:''}</td>
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${d.genre}</td>
-        <td style="font-family:var(--Mono);font-size:11px">${d.bpm||'â€”'}</td>
+        <td style="font-family:var(--Mono);font-size:11px">${d.bpm||'—'}</td>
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(d.submittedAt)}</td>
         <td>${badge(d.status,sc[d.status]||'ab-draft')}</td>
         <td><div class="tbl-actions">
-          ${d.file?`<a href="${d.file}" target="_blank" class="tbl-btn" style="display:inline-block">Listen â†—</a>`:''}
-          ${d.soundcloudLink?`<a href="${d.soundcloudLink}" target="_blank" class="tbl-btn" style="display:inline-block">SC â†—</a>`:''}
+          ${d.file?`<a href="${d.file}" target="_blank" class="tbl-btn" style="display:inline-block">Listen ↗</a>`:''}
+          ${d.soundcloudLink?`<a href="${d.soundcloudLink}" target="_blank" class="tbl-btn" style="display:inline-block">SC ↗</a>`:''}
           <button class="tbl-btn" onclick="ADMIN.setDemoStatus('${d.id}','reviewing')">Review</button>
           <button class="tbl-btn" style="color:var(--g1)" onclick="ADMIN.setDemoStatus('${d.id}','approved')">Approve</button>
           <button class="tbl-btn del" onclick="ADMIN.setDemoStatus('${d.id}','declined')">Decline</button>
@@ -432,7 +432,7 @@ const ADMIN = {
     toast(`Demo marked as ${status}`); this.loadDemos();
   },
 
-  /* â•â• ROYALTIES â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ══ ROYALTIES ══════════════════════════════════════════ */
   async loadRoyalties() {
     const data=await api('GET','/royalties')||STORE.royalties;
     const total=data.reduce((s,r)=>s+(Number(r.amount)||0),0);
@@ -481,7 +481,7 @@ const ADMIN = {
     toast('Entry deleted'); this.loadRoyalties();
   },
 
-  /* â•â• CONTRACTS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ══ CONTRACTS ══════════════════════════════════════════ */
   async loadContracts() {
     const data=await api('GET','/contracts')||STORE.contracts; const now=new Date();
     setHTML('adm-con-tbody', data.length ? data.map(c=>{
@@ -526,14 +526,14 @@ const ADMIN = {
     STORE.contracts=STORE.contracts.filter(c=>c.id!==id); toast('Contract removed'); this.loadContracts();
   },
 
-  /* â•â• NEWS / BLOG â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ══ NEWS / BLOG ════════════════════════════════════════ */
   async loadNews() {
     const data=await api('GET','/news')||STORE.news;
     setHTML('adm-news-tbody', data.length ? data.map(n=>`
       <tr>
         <td class="tbl-name">${n.title}</td>
         <td>${badge(n.category,'ab-review')}</td>
-        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${n.author||'â€”'}</td>
+        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${n.author||'—'}</td>
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(n.date||n.createdAt)}</td>
         <td>${badge(n.status,n.status==='published'?'ab-live':'ab-draft')}</td>
         <td><div class="tbl-actions">
@@ -578,7 +578,7 @@ const ADMIN = {
     STORE.news=STORE.news.filter(n=>n.id!==id); toast('Post deleted'); this.loadNews();
   },
 
-  /* â•â• EVENTS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ══ EVENTS ═════════════════════════════════════════════ */
   async loadEvents() {
     const data=await api('GET','/events')||STORE.events;
     const sc={confirmed:'ab-conf',hold:'ab-hold',cancelled:'ab-draft'};
@@ -595,7 +595,7 @@ const ADMIN = {
           <button class="tbl-btn" onclick="ADMIN.toggleEvent('${e.id}','${e.status}')">${e.status==='hold'?'Confirm':'Hold'}</button>
           <button class="tbl-btn del" onclick="ADMIN.deleteEvent('${e.id}','${(e.venue||'').replace(/'/g,'')}')">Remove</button>
         </div></td>
-      </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No shows yet â€” add your first one above</td></tr>');
+      </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No shows yet — add your first one above</td></tr>');
   },
 
   async saveEvent() {
@@ -624,7 +624,7 @@ const ADMIN = {
     STORE.events=STORE.events.filter(e=>e.id!==id); toast('Show removed'); this.loadEvents();
   },
 
-  /* â•â• BOOKINGS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ══ BOOKINGS ═══════════════════════════════════════════ */
   _bf:'all',
   async loadBookings(filter) {
     if(filter) this._bf=filter;
@@ -635,9 +635,9 @@ const ADMIN = {
     const sc={pending:'ab-new',discussing:'ab-hold',confirmed:'ab-conf',declined:'ab-draft'};
     setHTML('adm-bk-container', data.length ? data.map(b=>`
       <div class="book-card">
-        <div class="bk-head"><div class="bk-venue">${b.venue}${b.city?` â€” ${b.city}`:''}</div>${badge(b.status,sc[b.status]||'ab-draft')}</div>
+        <div class="bk-head"><div class="bk-venue">${b.venue}${b.city?` — ${b.city}`:''}</div>${badge(b.status,sc[b.status]||'ab-draft')}</div>
         <div class="bk-meta">
-          ${[b.contact,b.email,b.artist?`Artist: ${b.artist}`:'',b.date?fmtDate(b.date):'',b.fee?eur(b.fee):'Fee TBC'].filter(Boolean).join(' Â· ')}
+          ${[b.contact,b.email,b.artist?`Artist: ${b.artist}`:'',b.date?fmtDate(b.date):'',b.fee?eur(b.fee):'Fee TBC'].filter(Boolean).join(' · ')}
         </div>
         <div class="bk-msg">${b.notes||''}</div>
         <div class="bk-actions">
@@ -664,7 +664,7 @@ const ADMIN = {
     STORE.bookings=STORE.bookings.filter(b=>b.id!==id); toast('Booking removed'); this.loadBookings();
   },
 
-  /* â•â• PROMOTER CRM â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ══ PROMOTER CRM ═══════════════════════════════════════ */
   async loadPromoters() {
     const data=await api('GET','/promoters')||STORE.promoters;
     setHTML('adm-promo-tbody', data.length ? data.map(p=>`
@@ -697,7 +697,7 @@ const ADMIN = {
     STORE.promoters=STORE.promoters.filter(p=>p.id!==id); toast('Promoter removed'); this.loadPromoters();
   },
 
-  /* â•â• NEWSLETTER â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ══ NEWSLETTER ═════════════════════════════════════════ */
   async loadNLStats() {
     const res=await api('GET','/newsletter/subscribers');
     if(!res){
@@ -724,7 +724,7 @@ const ADMIN = {
     const ok=document.getElementById('nl-send-ok'); if(ok){ok.style.display='block';setTimeout(()=>ok.style.display='none',5000);}
   },
 
-  /* â•â• SUBSCRIBERS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ══ SUBSCRIBERS ════════════════════════════════════════ */
   _subs: [],
   async loadSubscribers() {
     const res=await api('GET','/newsletter/subscribers');
@@ -740,7 +740,7 @@ const ADMIN = {
     const count=this._subs.length;
     setText('subs-total-count',count.toLocaleString());
     const more=document.getElementById('subs-load-more');
-    if(more) more.textContent=count>50?`Showing 50 of ${count.toLocaleString()} â€” export CSV to see all`:'';
+    if(more) more.textContent=count>50?`Showing 50 of ${count.toLocaleString()} — export CSV to see all`:'';
     this._renderSubs(this._subs.slice(0,50));
   },
 
@@ -749,7 +749,7 @@ const ADMIN = {
       <div class="subs-row">
         <span class="subs-email">${s.email}</span>
         <span class="subs-date">${fmtDate(s.joinedAt)}</span>
-        <span class="adm-badge ${s.source==='homepage'?'ab-live':'ab-draft'}" style="font-size:8px">${s.source||'â€”'}</span>
+        <span class="adm-badge ${s.source==='homepage'?'ab-live':'ab-draft'}" style="font-size:8px">${s.source||'—'}</span>
       </div>`).join('') : '<div style="text-align:center;color:var(--muted);padding:24px;font-family:var(--Mono);font-size:11px">No subscribers yet</div>');
   },
 
@@ -766,7 +766,7 @@ const ADMIN = {
     toast(`Exported ${data.length} subscribers`);
   },
 
-  /* â•â• ANALYTICS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+  /* ══ ANALYTICS ══════════════════════════════════════════ */
   async loadAnalytics() {
     const [d,b]=await Promise.all([api('GET','/demos'),api('GET','/bookings')]);
     setText('analytics-demos',d ? d.length : 'Unavailable');
@@ -774,14 +774,14 @@ const ADMIN = {
   },
 };
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ─────────────────────────────────────────────────────────
    NEWSLETTER TEMPLATES
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+───────────────────────────────────────────────────────── */
 const NL_TPLS = {
-  release:{sub:'New Release â€” [Title] is out now on Mixxea Records',body:'Hey,\n\nWe\'re excited to announce that [Artist]\'s "[Title]" is out now.\n\nâ†’ Beatport: [link]\nâ†’ Spotify: [link]\nâ†’ Apple Music: [link]\n\nStay underground,\nMixxea Records'},
-  event:{sub:'[Artist] Live â€” [Venue], [Date]',body:'Hey,\n\n[Artist] performs live at [Venue] on [Date].\n\nTickets: [link]\n\nSee you on the floor,\nFreqVault Agency'},
-  monthly:{sub:'Mixxea Monthly â€” [Month] Roundup',body:'Hey,\n\nðŸŽµ NEW RELEASES\nâ†’ [Release 1]\n\nðŸŽ› UPCOMING SHOWS\nâ†’ [Show 1]\n\nðŸ“° LABEL NEWS\nâ†’ [Item]\n\nMixxea Records'},
-  artist:{sub:'Artist Spotlight: [Artist Name]',body:'Hey,\n\nThis month we\'re spotlighting [Artist].\n\n[Bio / news]\n\nListen: [link]\nBook: bookings@freqvault.com\n\nâ€” Mixxea Records'},
+  release:{sub:'New Release — [Title] is out now on Mixxea Records',body:'Hey,\n\nWe\'re excited to announce that [Artist]\'s "[Title]" is out now.\n\nâ†’ Beatport: [link]\nâ†’ Spotify: [link]\nâ†’ Apple Music: [link]\n\nStay underground,\nMixxea Records'},
+  event:{sub:'[Artist] Live — [Venue], [Date]',body:'Hey,\n\n[Artist] performs live at [Venue] on [Date].\n\nTickets: [link]\n\nSee you on the floor,\nFreqVault Agency'},
+  monthly:{sub:'Mixxea Monthly — [Month] Roundup',body:'Hey,\n\n🎵 NEW RELEASES\nâ†’ [Release 1]\n\n🎛 UPCOMING SHOWS\nâ†’ [Show 1]\n\nðŸ“° LABEL NEWS\nâ†’ [Item]\n\nMixxea Records'},
+  artist:{sub:'Artist Spotlight: [Artist Name]',body:'Hey,\n\nThis month we\'re spotlighting [Artist].\n\n[Bio / news]\n\nListen: [link]\nBook: bookings@freqvault.com\n\n— Mixxea Records'},
   custom:{sub:'',body:''},
 };
 
@@ -821,9 +821,9 @@ function sendNl() { ADMIN.sendNewsletter(false); }
   const el=document.getElementById(id); if(el)el.addEventListener('input',previewNl);
 });
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ─────────────────────────────────────────────────────────
    ANALYTICS CHART
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+───────────────────────────────────────────────────────── */
 function buildChart() {
   const bars=document.getElementById('chartBars'), lbls=document.getElementById('chartLabels');
   if(!bars)return;
@@ -838,9 +838,9 @@ function buildChart() {
   });
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ─────────────────────────────────────────────────────────
    OPEN / CLOSE
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+───────────────────────────────────────────────────────── */
 function openAdmin() {
   const o=document.getElementById('admin-overlay'); if(!o)return;
   o.classList.add('open'); o.classList.remove('admin-nav-open'); document.body.style.overflow='hidden';
@@ -859,9 +859,9 @@ function closeAdmin() {
   document.body.style.overflow='';
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ─────────────────────────────────────────────────────────
    TOAST ANIMATION + ESC
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+───────────────────────────────────────────────────────── */
 const _s=document.createElement('style');
 _s.textContent='@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}';
 document.head.appendChild(_s);
@@ -896,5 +896,5 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-console.log('âœ“ Mixxea Admin â€” all 12 modules loaded and ready');
+console.log('✓ Mixxea Admin — all 12 modules loaded and ready');
 

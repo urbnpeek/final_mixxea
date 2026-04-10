@@ -1,5 +1,5 @@
-﻿/**
- * MIXXEA RECORDS â€” Main Server
+/**
+ * MIXXEA RECORDS -- Main Server
  * Express.js backend powering the label website + admin panel
  */
 
@@ -11,9 +11,12 @@ const cors       = require('cors');
 const path       = require('path');
 const fs         = require('fs');
 
-// â”€â”€ Ensure upload directories exist â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Ensure upload directories exist (silently skip if read-only, e.g. Vercel) --
 const uploadDirs = ['public/uploads/audio','public/uploads/artwork','public/uploads/contracts'];
-uploadDirs.forEach(dir => { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); });
+uploadDirs.forEach(dir => {
+  try { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); }
+  catch (e) { /* read-only filesystem (Vercel) -- skip */ }
+});
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -45,7 +48,7 @@ if (isProduction) {
   cspDirectives.upgradeInsecureRequests = [];
 }
 
-// â”€â”€ Security & middleware â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Security & middleware --
 app.use(helmet({
   contentSecurityPolicy: {
     directives: cspDirectives,
@@ -56,7 +59,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// â”€â”€ Sessions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Sessions --
 app.use(session({
   name: 'mixxea.sid',
   secret: process.env.SESSION_SECRET || 'mixxea-dev-secret',
@@ -70,10 +73,10 @@ app.use(session({
   }
 }));
 
-// â”€â”€ Data store (JSON files â€” swap for DB later) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Data store (JSON files -- swap for DB later) --
 const db = require('./src/api/db');
 
-// â”€â”€ API Routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- API Routes --
 app.use('/api/auth',         require('./src/api/auth'));
 app.use('/api/releases',     require('./src/api/releases'));
 app.use('/api/artists',      require('./src/api/artists'));
@@ -86,15 +89,15 @@ app.use('/api/royalties',    require('./src/api/royalties'));
 app.use('/api/contracts',    require('./src/api/contracts'));
 app.use('/api/promoters',    require('./src/api/promoters'));
 app.use('/api/news',         require('./src/api/news'));
-app.use('/api/supabase',    require('./src/api/supabase'));
+app.use('/api/supabase',     require('./src/api/supabase'));
 
-// â”€â”€ Serve main HTML (SPA-style) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Serve SEO pages --
 const seoPageRoutes = new Map([
-  ['/record-label', 'record-label.html'],
-  ['/artist-management', 'artist-management.html'],
-  ['/booking-agency', 'booking-agency.html'],
-  ['/submit-demo', 'submit-demo.html'],
-  ['/electronic-music-artists', 'electronic-music-artists.html']
+  ['/record-label',              'record-label.html'],
+  ['/artist-management',         'artist-management.html'],
+  ['/booking-agency',            'booking-agency.html'],
+  ['/submit-demo',               'submit-demo.html'],
+  ['/electronic-music-artists',  'electronic-music-artists.html']
 ]);
 
 seoPageRoutes.forEach((fileName, routePath) => {
@@ -111,25 +114,28 @@ const serveSeoDetail = (folder) => (req, res, next) => {
   return next();
 };
 
-app.get('/artists/:slug', serveSeoDetail('artists'));
+app.get('/artists/:slug',  serveSeoDetail('artists'));
 app.get('/releases/:slug', serveSeoDetail('releases'));
-app.get('/events/:slug', serveSeoDetail('events'));
+app.get('/events/:slug',   serveSeoDetail('events'));
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// â”€â”€ Error handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Error handler --
 app.use((err, req, res, next) => {
   console.error('[ERROR]', err.message);
   res.status(err.status || 500).json({ error: err.message || 'Server error' });
 });
 
-// â”€â”€ Start â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-app.listen(PORT, () => {
-  console.log(`\nðŸŽµ  MIXXEA RECORDS â€” Server running`);
-  console.log(`    Local:   http://localhost:${PORT}`);
-  console.log(`    Admin:   http://localhost:${PORT}  (click Admin button)`);
-  console.log(`    API:     http://localhost:${PORT}/api/\n`);
-});
+// -- Start (local dev) / export (Vercel) --
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log('\n[MIXXEA] Server running');
+    console.log('  Local:  http://localhost:' + PORT);
+    console.log('  Admin:  http://localhost:' + PORT + '  (click Admin button)');
+    console.log('  API:    http://localhost:' + PORT + '/api/\n');
+  });
+}
 
+module.exports = app;

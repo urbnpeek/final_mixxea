@@ -1,12 +1,12 @@
-﻿/**
- * app.js â€” Mixxea Records Frontend
+/**
+ * app.js — Mixxea Records Frontend
  * Connects the static HTML to the Express API
  * Loaded after the main HTML via <script src="/js/app.js">
  */
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ─────────────────────────────────────────────────────
    API HELPERS
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+───────────────────────────────────────────────────── */
 const API = {
   async request(path, options = {}) {
     const response = await fetch(`/api${path}`, options);
@@ -75,9 +75,9 @@ function slugify(value) {
     .replace(/^-+|-+$/g, '');
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   RELEASES â€” load from API and render
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─────────────────────────────────────────────────────
+   RELEASES — load from API and render
+───────────────────────────────────────────────────── */
 async function loadReleases(genre = 'all') {
   try {
     const url = genre === 'all' ? '/releases' : `/releases?genre=${genre}`;
@@ -92,9 +92,9 @@ async function loadReleases(genre = 'all') {
         </div>
         <div class="rc-grad"></div>
         <div class="rc-status ${r.status === 'out' ? 's-out' : 's-pre'}">${r.status === 'out' ? 'Out Now' : r.status === 'pre' ? 'Pre-Order' : 'Coming Soon'}</div>
-        <button class="rc-play" onclick="playTrack(${i}, event)">â–¶</button>
+        <button class="rc-play" onclick="playTrack(${i}, event)">▶</button>
         <div class="rc-cnt${i === 0 ? ' big' : ''}">
-          <div class="rc-cat">${r.genre} Â· ${r.catNo}</div>
+          <div class="rc-cat">${r.genre} · ${r.catNo}</div>
           <div class="rc-title${i === 0 ? ' big' : ''}">${r.title.toUpperCase()}</div>
           <div class="rc-who">${r.artist}</div>
         </div>
@@ -120,9 +120,9 @@ async function loadReleases(genre = 'all') {
   }
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   ARTISTS â€” load roster from API
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─────────────────────────────────────────────────────
+   ARTISTS — load roster from API
+───────────────────────────────────────────────────── */
 async function loadArtists() {
   try {
     const artists = await API.get('/artists');
@@ -152,9 +152,9 @@ async function loadArtists() {
   }
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   EVENTS â€” load from API
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─────────────────────────────────────────────────────
+   EVENTS — load from API
+───────────────────────────────────────────────────── */
 async function loadEvents() {
   try {
     const events = await API.get('/events');
@@ -170,7 +170,7 @@ async function loadEvents() {
           <div><div class="ev-venue">${e.venue}</div><div class="ev-loc">${e.city}, ${e.country}</div></div>
           <div class="ev-artist">${e.artist}</div>
           <div class="ev-type">${e.type}</div>
-          <div class="ev-tix">${e.ticketLink ? `<a href="${e.ticketLink}" target="_blank" style="color:inherit">Get Tickets â†—</a>` : e.status === 'hold' ? 'On Hold' : 'TBA'}</div>
+          <div class="ev-tix">${e.ticketLink ? `<a href="${e.ticketLink}" target="_blank" style="color:inherit">Get Tickets ↗</a>` : e.status === 'hold' ? 'On Hold' : 'TBA'}</div>
         </div>
       `;
     }).join('');
@@ -179,9 +179,9 @@ async function loadEvents() {
   }
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   NEWS â€” load from API
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─────────────────────────────────────────────────────
+   NEWS — load from API
+───────────────────────────────────────────────────── */
 async function loadNews() {
   try {
     const news = await API.get('/news');
@@ -194,7 +194,7 @@ async function loadNews() {
         <div class="nc-cat">${n.category}</div>
         <div class="nc-title">${n.title}</div>
         <div class="nc-date">${new Date(n.date || n.createdAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</div>
-        <div class="nc-arr">â†—</div>
+        <div class="nc-arr">↗</div>
       </div>
     `).join('');
   } catch (e) {
@@ -202,9 +202,9 @@ async function loadNews() {
   }
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   NEWSLETTER FORM â€” live submit
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─────────────────────────────────────────────────────
+   NEWSLETTER FORM — live submit
+───────────────────────────────────────────────────── */
 async function nlSubscribe() {
   const emailEl = document.getElementById('nl-email');
   const email   = emailEl?.value?.trim();
@@ -224,9 +224,9 @@ async function nlSubscribe() {
   }
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   CONTACT FORM â€” live submit
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─────────────────────────────────────────────────────
+   CONTACT FORM — live submit
+───────────────────────────────────────────────────── */
 async function doCt() {
   const form = {
     name:        document.querySelector('#contact input[type=text]')?.value?.trim(),
@@ -254,9 +254,9 @@ async function doCt() {
   }
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   DEMO SUBMIT â€” live submit with file upload
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─────────────────────────────────────────────────────
+   DEMO SUBMIT — live submit with file upload
+───────────────────────────────────────────────────── */
 async function doSub() {
   const agr = document.getElementById('agr');
   if (!agr?.checked) {
@@ -303,9 +303,9 @@ async function doSub() {
   }
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   ARTIST PORTAL â€” live auth
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─────────────────────────────────────────────────────
+   ARTIST PORTAL — live auth
+───────────────────────────────────────────────────── */
 async function checkArtistSession() {
   try {
     const res = await API.get('/auth/artist/check');
@@ -383,9 +383,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   FILTER BUTTONS â€” wire to live API
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─────────────────────────────────────────────────────
+   FILTER BUTTONS — wire to live API
+───────────────────────────────────────────────────── */
 document.querySelectorAll('.f-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('on'));
@@ -394,9 +394,9 @@ document.querySelectorAll('.f-btn').forEach(btn => {
   });
 });
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-   INIT â€” Load all dynamic content on page load
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─────────────────────────────────────────────────────
+   INIT — Load all dynamic content on page load
+───────────────────────────────────────────────────── */
 function setupMobileNav() {
   const toggle = document.getElementById('nav-mobile-toggle');
   const panel = document.getElementById('nav-mobile-panel');

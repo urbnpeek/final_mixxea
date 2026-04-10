@@ -7,4 +7,3 @@ data/*.db
 Thumbs.db
 dist/
 .vscode/settings.json
-{public/

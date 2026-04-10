@@ -1,0 +1,20 @@
+{
+  "name": "Mixxea & Freq Vault",
+  "short_name": "Mixxea",
+  "description": "Electronic music record label, artist management and booking agency.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#02020a",
+  "theme_color": "#e8ff00",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["music", "entertainment"],
+  "lang": "en"
+}
