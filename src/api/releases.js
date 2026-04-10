@@ -9,18 +9,8 @@ const db      = require('./db');
 const { requireAdmin } = require('./middleware');
 const router  = express.Router();
 
-// ── Multer config for artwork + audio ─────────────────────────────
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = file.fieldname === 'artwork' ? 'public/uploads/artwork' : 'public/uploads/audio';
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${uuid()}${ext}`);
-  }
-});
-const upload = multer({ storage, limits: { fileSize: 200 * 1024 * 1024 } });
+// ── Multer config — memoryStorage (Vercel read-only FS) ───────────
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200 * 1024 * 1024 } });
 
 // ── GET all releases (public) ──────────────────────────────────────
 router.get('/', (req, res) => {
@@ -58,8 +48,8 @@ router.post('/', requireAdmin, upload.fields([{ name:'artwork',max:1 },{ name:'a
     date:        req.body.date || '',
     status:      req.body.status || 'draft',
     description: req.body.description || '',
-    artwork:     files.artwork  ? `/uploads/artwork/${files.artwork[0].filename}`  : '',
-    audioPreview:files.audio    ? `/uploads/audio/${files.audio[0].filename}`      : '',
+    artwork:     files.artwork  ? `/uploads/artwork/${uuid()}${path.extname(files.artwork[0].originalname)}`  : '',
+    audioPreview:files.audio    ? `/uploads/audio/${uuid()}${path.extname(files.audio[0].originalname)}`      : '',
     spotify:     req.body.spotify     || '',
     beatport:    req.body.beatport    || '',
     apple:       req.body.apple       || '',
@@ -82,8 +72,8 @@ router.put('/:id', requireAdmin, upload.fields([{ name:'artwork',max:1 },{ name:
     ...releases[idx],
     ...req.body,
     bpm: parseInt(req.body.bpm) || releases[idx].bpm,
-    ...(files.artwork  ? { artwork:      `/uploads/artwork/${files.artwork[0].filename}` }  : {}),
-    ...(files.audio    ? { audioPreview: `/uploads/audio/${files.audio[0].filename}` }      : {}),
+    ...(files.artwork  ? { artwork:      `/uploads/artwork/${uuid()}${path.extname(files.artwork[0].originalname)}` }  : {}),
+    ...(files.audio    ? { audioPreview: `/uploads/audio/${uuid()}${path.extname(files.audio[0].originalname)}` }      : {}),
     updatedAt: new Date().toISOString()
   };
   db.set('releases', releases);

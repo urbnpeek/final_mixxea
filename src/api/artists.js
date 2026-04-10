@@ -9,11 +9,7 @@ const db      = require('./db');
 const { requireAdmin } = require('./middleware');
 const router  = express.Router();
 
-const photoStorage = multer.diskStorage({
-  destination: 'public/uploads/artwork',
-  filename: (req, file, cb) => cb(null, uuid() + path.extname(file.originalname))
-});
-const upload = multer({ storage: photoStorage });
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.get('/',    (req, res) => res.json(db.get('artists')));
 router.get('/:id', (req, res) => {
@@ -23,7 +19,7 @@ router.get('/:id', (req, res) => {
 });
 router.post('/', requireAdmin, upload.single('photo'), (req, res) => {
   const artists = db.get('artists');
-  const artist  = { id: uuid(), ...req.body, photo: req.file ? `/uploads/artwork/${req.file.filename}` : '', createdAt: new Date().toISOString() };
+  const artist  = { id: uuid(), ...req.body, photo: req.file ? `/uploads/artwork/${uuid()}${path.extname(req.file.originalname)}` : '', createdAt: new Date().toISOString() };
   artists.push(artist);
   db.set('artists', artists);
   res.status(201).json(artist);
@@ -32,7 +28,7 @@ router.put('/:id', requireAdmin, upload.single('photo'), (req, res) => {
   const artists = db.get('artists');
   const idx     = artists.findIndex(a => a.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
-  artists[idx]  = { ...artists[idx], ...req.body, ...(req.file ? { photo: `/uploads/artwork/${req.file.filename}` } : {}), updatedAt: new Date().toISOString() };
+  artists[idx]  = { ...artists[idx], ...req.body, ...(req.file ? { photo: `/uploads/artwork/${uuid()}${path.extname(req.file.originalname)}` } : {}), updatedAt: new Date().toISOString() };
   db.set('artists', artists);
   res.json(artists[idx]);
 });

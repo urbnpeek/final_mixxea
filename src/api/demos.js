@@ -20,11 +20,7 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-const storage = multer.diskStorage({
-  destination: 'public/uploads/audio',
-  filename: (req, file, cb) => cb(null, uuid() + path.extname(file.originalname))
-});
-const upload = multer({ storage, limits: { fileSize: 200 * 1024 * 1024 } });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200 * 1024 * 1024 } });
 
 router.post('/submit', upload.single('track'), async (req, res) => {
   try {
@@ -38,7 +34,7 @@ router.post('/submit', upload.single('track'), async (req, res) => {
       bpm: parseInt(req.body.bpm, 10) || 0,
       notes: req.body.notes || '',
       soundcloudLink: req.body.soundcloudLink || '',
-      file: req.file ? `/uploads/audio/${req.file.filename}` : '',
+      file: req.file ? `/uploads/audio/${uuid()}${path.extname(req.file.originalname)}` : '',
       submittedAt: new Date().toISOString(),
       status: 'new'
     };
