@@ -778,9 +778,9 @@ const ADMIN = {
    NEWSLETTER TEMPLATES
 ───────────────────────────────────────────────────────── */
 const NL_TPLS = {
-  release:{sub:'New Release — [Title] is out now on Mixxea Records',body:'Hey,\n\nWe\'re excited to announce that [Artist]\'s "[Title]" is out now.\n\nâ†’ Beatport: [link]\nâ†’ Spotify: [link]\nâ†’ Apple Music: [link]\n\nStay underground,\nMixxea Records'},
+  release:{sub:'New Release — [Title] is out now on Mixxea Records',body:'Hey,\n\nWe\'re excited to announce that [Artist]\'s "[Title]" is out now.\n\n→ Beatport: [link]\n→ Spotify: [link]\n→ Apple Music: [link]\n\nStay underground,\nMixxea Records'},
   event:{sub:'[Artist] Live — [Venue], [Date]',body:'Hey,\n\n[Artist] performs live at [Venue] on [Date].\n\nTickets: [link]\n\nSee you on the floor,\nFreqVault Agency'},
-  monthly:{sub:'Mixxea Monthly — [Month] Roundup',body:'Hey,\n\n🎵 NEW RELEASES\nâ†’ [Release 1]\n\n🎛 UPCOMING SHOWS\nâ†’ [Show 1]\n\nðŸ“° LABEL NEWS\nâ†’ [Item]\n\nMixxea Records'},
+  monthly:{sub:'Mixxea Monthly — [Month] Roundup',body:'Hey,\n\n🎵 NEW RELEASES\n→ [Release 1]\n\n🎛 UPCOMING SHOWS\n→ [Show 1]\n\n📰 LABEL NEWS\n→ [Item]\n\nMixxea Records'},
   artist:{sub:'Artist Spotlight: [Artist Name]',body:'Hey,\n\nThis month we\'re spotlighting [Artist].\n\n[Bio / news]\n\nListen: [link]\nBook: bookings@freqvault.com\n\n— Mixxea Records'},
   custom:{sub:'',body:''},
 };

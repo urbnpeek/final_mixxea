@@ -304,83 +304,254 @@ async function doSub() {
 }
 
 /* ─────────────────────────────────────────────────────
-   ARTIST PORTAL — live auth
+   ARTIST PORTAL — live auth + dashboard
 ───────────────────────────────────────────────────── */
+let _artistSession = null;
+
+function showPortalError(containerId, msg) {
+  let el = document.getElementById(containerId);
+  if (!el) {
+    const parent = document.querySelector('#' + containerId.replace('-err', '') + ' .auth-wrap') ||
+                   document.getElementById(containerId.replace('-err', ''));
+    if (parent) {
+      el = document.createElement('div');
+      el.id = containerId;
+      el.style.cssText = 'margin-top:10px;padding:10px 14px;border:1px solid rgba(255,45,107,.35);color:var(--g3,#ff2d6b);font-size:13px;border-radius:4px;display:none';
+      parent.appendChild(el);
+    }
+  }
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+function hidePortalError(containerId) {
+  const el = document.getElementById(containerId);
+  if (el) el.style.display = 'none';
+}
+
+function populateArtistDashboard(artist) {
+  const nameEl = document.querySelector('.du-name');
+  const roleEl = document.querySelector('.du-role');
+  if (nameEl) nameEl.textContent = artist.artistName || artist.name || '';
+  if (roleEl) roleEl.innerHTML = (artist.genre || 'Artist') + ' &middot; ' + (artist.country || '');
+
+  loadArtistReleases(artist.artistName || artist.name);
+  loadArtistRoyalties();
+  loadArtistEvents(artist.artistName || artist.name);
+}
+
+async function loadArtistReleases(artistName) {
+  try {
+    const releases = await API.get('/releases');
+    const mine = releases.filter(r => r.artist && r.artist.toLowerCase() === (artistName || '').toLowerCase());
+    const kpi = document.querySelector('.d-kpis .kpi:first-child .kv');
+    if (kpi) kpi.textContent = mine.length;
+    const tbody = document.querySelector('#ds-tr tbody') || document.getElementById('ds-tr');
+    if (!tbody) return;
+    tbody.innerHTML = mine.length ? mine.map(r => `
+      <tr>
+        <td>${r.title}</td>
+        <td>${r.catNo || '—'}</td>
+        <td>${r.genre || '—'}</td>
+        <td><span class="rc-status ${r.status === 'out' ? 's-out' : 's-pre'}" style="position:static;font-size:11px">${r.status === 'out' ? 'Out Now' : 'Pre-Order'}</span></td>
+        <td>${new Date(r.releaseDate || r.createdAt || Date.now()).toLocaleDateString('en-GB')}</td>
+      </tr>`).join('') : '<tr><td colspan="5" style="opacity:.4;text-align:center;padding:24px">No releases yet</td></tr>';
+  } catch (e) { console.warn('loadArtistReleases:', e.message); }
+}
+
+async function loadArtistRoyalties() {
+  try {
+    const royalties = await API.get('/royalties/my');
+    const kpi = document.querySelector('.d-kpis .kpi:nth-child(2) .kv');
+    const total = Array.isArray(royalties) ? royalties.reduce((s, r) => s + (r.amount || 0), 0) : 0;
+    if (kpi) kpi.textContent = '\u20AC' + total.toFixed(2);
+    const tbody = document.querySelector('#ds-ry tbody') || document.getElementById('ds-ry');
+    if (!tbody) return;
+    tbody.innerHTML = Array.isArray(royalties) && royalties.length ? royalties.map(r => `
+      <tr>
+        <td>${r.period || '—'}</td>
+        <td>${r.platform || '—'}</td>
+        <td>${r.release || '—'}</td>
+        <td style="color:var(--g1)">\u20AC${(r.amount || 0).toFixed(2)}</td>
+        <td><span style="opacity:.5">${r.status || 'pending'}</span></td>
+      </tr>`).join('') : '<tr><td colspan="5" style="opacity:.4;text-align:center;padding:24px">No royalty records yet</td></tr>';
+  } catch (e) { console.warn('loadArtistRoyalties:', e.message); }
+}
+
+async function loadArtistEvents(artistName) {
+  try {
+    const events = await API.get('/events');
+    const mine = events.filter(ev => ev.artist && ev.artist.toLowerCase() === (artistName || '').toLowerCase());
+    const kpi = document.querySelector('.d-kpis .kpi:nth-child(3) .kv');
+    if (kpi) kpi.textContent = mine.length;
+    const tbody = document.querySelector('#ds-bk tbody') || document.getElementById('ds-bk');
+    if (!tbody) return;
+    tbody.innerHTML = mine.length ? mine.map(ev => `
+      <tr>
+        <td>${new Date(ev.date).toLocaleDateString('en-GB')}</td>
+        <td>${ev.venue || '—'}</td>
+        <td>${ev.city || '—'}, ${ev.country || ''}</td>
+        <td>${ev.type || '—'}</td>
+        <td style="opacity:.5">${ev.status || '—'}</td>
+      </tr>`).join('') : '<tr><td colspan="5" style="opacity:.4;text-align:center;padding:24px">No bookings yet</td></tr>';
+  } catch (e) { console.warn('loadArtistEvents:', e.message); }
+}
+
+async function dashSubmitTrack() {
+  if (!_artistSession) return;
+  const form = document.getElementById('ds-new');
+  if (!form) return;
+  const btn = form.querySelector('.sub-full') || form.querySelector('button[type=submit]');
+  const formData = new FormData();
+  const artistName = _artistSession.artistName || _artistSession.name || '';
+  const trackTitle = getInputValue(form, 'input[placeholder="Track title"]') ||
+                     getInputValue(form, 'input[type=text]');
+  const genre = form.querySelector('select')?.value || '';
+  const bpm   = getInputValue(form, 'input[type=number]');
+  const notes = form.querySelector('textarea')?.value?.trim() || '';
+  const file  = form.querySelector('input[type=file]')?.files?.[0];
+
+  if (!trackTitle) {
+    showPortalError('ds-new-err', 'Track title is required.'); return;
+  }
+
+  formData.append('artistName', artistName);
+  formData.append('trackTitle', trackTitle);
+  formData.append('email', _artistSession.email || '');
+  formData.append('genre', genre);
+  formData.append('bpm', bpm);
+  formData.append('notes', notes);
+  if (file) formData.append('track', file);
+
+  try {
+    if (btn) btn.disabled = true;
+    await API.postForm('/demos/submit', formData);
+    showPortalError('ds-new-err', ''); hidePortalError('ds-new-err');
+    const okEl = document.getElementById('ds-new-ok') || (() => {
+      const d = document.createElement('div');
+      d.id = 'ds-new-ok';
+      d.style.cssText = 'margin-top:10px;padding:10px 14px;border:1px solid rgba(232,255,0,.3);color:var(--g1);font-size:13px;border-radius:4px';
+      form.appendChild(d); return d;
+    })();
+    okEl.textContent = 'Track submitted successfully.';
+    form.reset();
+  } catch (e) {
+    showPortalError('ds-new-err', e.message || 'Submit failed. Try again.');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function artistLogout() {
+  try { await API.post('/auth/artist/logout', {}); } catch (e) {}
+  _artistSession = null;
+  const tabs = document.querySelectorAll('.p-tab');
+  tabs[0]?.click();
+}
+
 async function checkArtistSession() {
   try {
     const res = await API.get('/auth/artist/check');
-    if (res.loggedIn) {
-      const nameEl = document.querySelector('.du-name');
-      if (nameEl) nameEl.textContent = res.artist.artistName;
+    if (res.loggedIn && res.artist) {
+      _artistSession = res.artist;
+      populateArtistDashboard(res.artist);
     }
   } catch (e) {}
 }
 
-// Wire login button
+function injectLogoutButton() {
+  const sidebar = document.querySelector('.d-side');
+  if (!sidebar || document.getElementById('artist-logout-btn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'artist-logout-btn';
+  btn.textContent = 'Log Out';
+  btn.style.cssText = 'margin-top:auto;width:100%;padding:10px;background:transparent;border:1px solid rgba(255,45,107,.4);color:var(--g3,#ff2d6b);cursor:pointer;font-size:13px;border-radius:4px;letter-spacing:.05em';
+  btn.onclick = artistLogout;
+  sidebar.appendChild(btn);
+}
+
+// Wire login + register buttons
 document.addEventListener('DOMContentLoaded', () => {
-  // Override the inline onclick for artist login
   const loginBtn = document.querySelector('#pp-login .sub-full');
   if (loginBtn) {
-    loginBtn.onclick = async () => {
-      const email    = document.querySelector('#pp-login input[type=email]')?.value;
+    loginBtn.onclick = async (e) => {
+      e.preventDefault();
+      hidePortalError('login-err');
+      const email    = document.querySelector('#pp-login input[type=email]')?.value?.trim();
       const password = document.querySelector('#pp-login input[type=password]')?.value;
+      if (!email || !password) { showPortalError('login-err', 'Email and password are required.'); return; }
       try {
+        loginBtn.disabled = true;
         const res = await API.post('/auth/artist/login', { email, password });
         if (res.success) {
-          const nameEl = document.querySelector('.du-name');
-          if (nameEl) nameEl.textContent = res.artist.artistName;
-          // Switch to dashboard tab
+          _artistSession = res.artist;
+          injectLogoutButton();
+          populateArtistDashboard(res.artist);
           document.querySelectorAll('.p-tab')[3]?.click();
-        } else {
-          alert('Invalid credentials');
         }
       } catch (e) {
-        alert(e.message || 'Login failed.');
+        showPortalError('login-err', e.message || 'Invalid credentials.');
+      } finally {
+        loginBtn.disabled = false;
       }
     };
   }
 
   const registerBtn = document.querySelector('#pp-reg .sub-full');
   if (registerBtn) {
-    registerBtn.onclick = async () => {
-      const section = document.getElementById('pp-reg');
+    registerBtn.onclick = async (e) => {
+      e.preventDefault();
+      hidePortalError('reg-err');
+      const section    = document.getElementById('pp-reg');
       const artistName = getInputValue(section, 'input[placeholder="Your artist name"]');
-      const realName = getInputValue(section, 'input[placeholder="Legal name"]');
-      const email = getInputValue(section, 'input[type=email]');
-      const country = section?.querySelector('select')?.value || '';
-      const genre = section?.querySelectorAll('select')[1]?.value || '';
-      const password = getInputValue(section, 'input[type=password]');
+      const realName   = getInputValue(section, 'input[placeholder="Legal name"]');
+      const email      = getInputValue(section, 'input[type=email]');
+      const country    = section?.querySelector('select')?.value || '';
+      const genre      = section?.querySelectorAll('select')[1]?.value || '';
+      const password   = getInputValue(section, 'input[type=password]');
       const soundcloud = getInputValue(section, 'input[type=url]');
 
       if (!artistName || !email || !password) {
-        alert('Artist name, email, and password are required.');
+        showPortalError('reg-err', 'Artist name, email, and password are required.');
         return;
       }
 
       try {
         registerBtn.disabled = true;
-        const res = await API.post('/auth/artist/register', {
-          artistName,
-          realName,
-          email,
-          country,
-          genre,
-          password,
-          soundcloud,
-        });
-
+        const res = await API.post('/auth/artist/register', { artistName, realName, email, country, genre, password, soundcloud });
         if (res.success) {
-          const nameEl = document.querySelector('.du-name');
-          if (nameEl) nameEl.textContent = res.artist.artistName;
+          _artistSession = res.artist;
+          injectLogoutButton();
+          populateArtistDashboard(res.artist);
           document.querySelectorAll('.p-tab')[3]?.click();
         }
       } catch (e) {
-        alert(e.message || 'Registration failed.');
+        showPortalError('reg-err', e.message || 'Registration failed.');
       } finally {
         registerBtn.disabled = false;
       }
     };
   }
+
+  // Wire dashboard new track submit
+  const dashForm = document.getElementById('ds-new');
+  if (dashForm) {
+    const submitBtn = dashForm.querySelector('.sub-full') || dashForm.querySelector('button[type=submit]');
+    if (submitBtn) submitBtn.onclick = (e) => { e.preventDefault(); dashSubmitTrack(); };
+  }
+
+  // Guard dashboard tab — redirect to login if not authenticated
+  document.querySelectorAll('.p-tab').forEach((tab, i) => {
+    if (i === 3) {
+      const originalClick = tab.onclick;
+      tab.addEventListener('click', (e) => {
+        if (!_artistSession) {
+          e.stopImmediatePropagation();
+          document.querySelectorAll('.p-tab')[0]?.click();
+          showPortalError('login-err', 'Please log in to access your dashboard.');
+        }
+      }, true);
+    }
+  });
 });
 
 /* ─────────────────────────────────────────────────────
@@ -435,7 +606,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadArtists(),
     loadEvents(),
     loadNews(),
-    checkArtistSession()
+    checkArtistSession().then(() => { if (_artistSession) injectLogoutButton(); })
   ]);
 
   setupMobileNav();
