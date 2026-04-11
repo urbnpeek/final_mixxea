@@ -155,28 +155,43 @@ function toggleAdminNav(force) {
   overlay.classList.toggle('admin-nav-open', shouldOpen);
 }
 
-function closeAdminNavOnMobile() {
-  if (window.innerWidth <= 900) toggleAdminNav(false);
-}
+function switchAdminSection(id) {
+  // Deactivate all nav items and sections
+  document.querySelectorAll('.adm-nav-item').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.adm-section').forEach(s => s.classList.remove('on'));
 
-function admsec(btn, id) {
-  document.querySelectorAll('.adm-nav-item').forEach(b=>b.classList.remove('on'));
-  document.querySelectorAll('.adm-section').forEach(s=>s.classList.remove('on'));
-  if(btn) btn.classList.add('on');
-  closeAdminNavOnMobile();
-  const el=document.getElementById(id);
-  if(el) {
-    el.classList.add('on');
-    const overlay=document.getElementById('admin-overlay');
-    if(overlay) overlay.scrollTop=0;
+  // Activate the clicked nav item (match by data-sec)
+  const btn = document.querySelector('.adm-nav-item[data-sec="' + id + '"]');
+  if (btn) btn.classList.add('on');
+
+  // Show the section
+  const section = document.getElementById(id);
+  if (section) {
+    section.classList.add('on');
+    const overlay = document.getElementById('admin-overlay');
+    if (overlay) overlay.scrollTop = 0;
   }
-  ({
-    'a-dash':ADMIN.loadDashboard,'a-rel':ADMIN.loadReleases,'a-art':ADMIN.loadArtists,
-    'a-demo':()=>ADMIN.loadDemos('all'),'a-roy':ADMIN.loadRoyalties,'a-con':ADMIN.loadContracts,
-    'a-news':ADMIN.loadNews,'a-ev':ADMIN.loadEvents,'a-bk':()=>ADMIN.loadBookings('all'),
-    'a-promo':ADMIN.loadPromoters,'a-nl':ADMIN.loadNLStats,'a-subs':ADMIN.loadSubscribers,
-    'a-analytics':()=>{ADMIN.loadAnalytics();buildChart();},
-  }[id]||(() => {}))();
+
+  // Close mobile nav drawer
+  if (window.innerWidth <= 900) toggleAdminNav(false);
+
+  // Load data for the section
+  const loaders = {
+    'a-dash': () => ADMIN.loadDashboard(),
+    'a-rel':  () => ADMIN.loadReleases(),
+    'a-art':  () => ADMIN.loadArtists(),
+    'a-demo': () => ADMIN.loadDemos('all'),
+    'a-roy':  () => ADMIN.loadRoyalties(),
+    'a-con':  () => ADMIN.loadContracts(),
+    'a-news': () => ADMIN.loadNews(),
+    'a-ev':   () => ADMIN.loadEvents(),
+    'a-bk':   () => ADMIN.loadBookings('all'),
+    'a-promo':() => ADMIN.loadPromoters(),
+    'a-nl':   () => ADMIN.loadNLStats(),
+    'a-subs': () => ADMIN.loadSubscribers(),
+    'a-analytics': () => { ADMIN.loadAnalytics(); buildChart(); },
+  };
+  if (loaders[id]) loaders[id]();
 }
 
 const ADMIN_AUTH = {
@@ -886,6 +901,7 @@ window.addEventListener('resize', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+  // ── Admin login button + Enter key ──────────────────────────────
   const loginBtn = document.getElementById('adm-login-submit');
   if (loginBtn) loginBtn.addEventListener('click', () => ADMIN_AUTH.login());
 
@@ -893,21 +909,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const el = document.getElementById(id);
     if (!el) return;
     el.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        ADMIN_AUTH.login();
-      }
+      if (event.key === 'Enter') { event.preventDefault(); ADMIN_AUTH.login(); }
     });
   });
 
-  // Wire ALL sidebar nav items explicitly — do not rely on onclick attributes
-  document.querySelectorAll('.adm-nav-item[onclick]').forEach((btn) => {
-    const match = btn.getAttribute('onclick').match(/admsec\(this,'([^']+)'\)/);
-    if (!match) return;
-    const sectionId = match[1];
-    btn.removeAttribute('onclick');
-    btn.addEventListener('click', () => admsec(btn, sectionId));
-  });
+  // ── Sidebar nav — single delegated listener on the sidebar ──────
+  // Nav items now use data-sec="a-xxx" instead of onclick attributes.
+  // One listener catches all clicks no matter when buttons are rendered.
+  const sidebar = document.querySelector('.adm-side');
+  if (sidebar) {
+    sidebar.addEventListener('click', (e) => {
+      const btn = e.target.closest('.adm-nav-item[data-sec]');
+      if (!btn) return;
+      switchAdminSection(btn.dataset.sec);
+    });
+  }
 });
 
 console.log('✓ Mixxea Admin — all 12 modules loaded and ready');

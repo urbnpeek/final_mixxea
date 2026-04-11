@@ -1401,29 +1401,29 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
         <div class="adm-logo-sub">Admin Panel</div>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Overview</div>
-        <button class="adm-nav-item on" onclick="admsec(this,'a-dash')"><span class="ico">◉</span>Dashboard</button>
+        <button class="adm-nav-item on" data-sec="a-dash"><span class="ico">◉</span>Dashboard</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Label</div>
-        <button class="adm-nav-item" onclick="admsec(this,'a-rel')"><span class="ico">🎵</span>Releases</button>
-        <button class="adm-nav-item" onclick="admsec(this,'a-art')"><span class="ico">👤</span>Artists</button>
-        <button class="adm-nav-item" onclick="admsec(this,'a-demo')"><span class="ico">📥</span>Demo Inbox</button>
-        <button class="adm-nav-item" onclick="admsec(this,'a-roy')"><span class="ico">💰</span>Royalties</button>
-        <button class="adm-nav-item" onclick="admsec(this,'a-con')"><span class="ico">📄</span>Contracts</button>
+        <button class="adm-nav-item" data-sec="a-rel"><span class="ico">🎵</span>Releases</button>
+        <button class="adm-nav-item" data-sec="a-art"><span class="ico">👤</span>Artists</button>
+        <button class="adm-nav-item" data-sec="a-demo"><span class="ico">📥</span>Demo Inbox</button>
+        <button class="adm-nav-item" data-sec="a-roy"><span class="ico">💰</span>Royalties</button>
+        <button class="adm-nav-item" data-sec="a-con"><span class="ico">📄</span>Contracts</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Content</div>
-        <button class="adm-nav-item" onclick="admsec(this,'a-news')"><span class="ico">📰</span>News / Blog</button>
-        <button class="adm-nav-item" onclick="admsec(this,'a-ev')"><span class="ico">🗓</span>Events</button>
+        <button class="adm-nav-item" data-sec="a-news"><span class="ico">📰</span>News / Blog</button>
+        <button class="adm-nav-item" data-sec="a-ev"><span class="ico">🗓</span>Events</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">FreqVault</div>
-        <button class="adm-nav-item" onclick="admsec(this,'a-bk')"><span class="ico">🎛</span>Bookings</button>
-        <button class="adm-nav-item" onclick="admsec(this,'a-promo')"><span class="ico">📋</span>Promoter CRM</button>
+        <button class="adm-nav-item" data-sec="a-bk"><span class="ico">🎛</span>Bookings</button>
+        <button class="adm-nav-item" data-sec="a-promo"><span class="ico">📋</span>Promoter CRM</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Communications</div>
-        <button class="adm-nav-item" onclick="admsec(this,'a-nl')"><span class="ico">📧</span>Newsletter</button>
-        <button class="adm-nav-item" onclick="admsec(this,'a-subs')"><span class="ico">👥</span>Subscribers</button>
+        <button class="adm-nav-item" data-sec="a-nl"><span class="ico">📧</span>Newsletter</button>
+        <button class="adm-nav-item" data-sec="a-subs"><span class="ico">👥</span>Subscribers</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Analytics</div>
-        <button class="adm-nav-item" onclick="admsec(this,'a-analytics')"><span class="ico">🎬</span>Analytics</button>
+        <button class="adm-nav-item" data-sec="a-analytics"><span class="ico">🎬</span>Analytics</button>
       </div>
       <div class="adm-close">
         <button class="adm-close-btn" onclick="closeAdmin()">✕ Exit Admin</button>
@@ -2257,31 +2257,6 @@ function closeAdmin(){
   document.body.style.overflow='';
 }
 
-function admsec(btn,id){
-  document.querySelectorAll('.adm-nav-item').forEach(b=>b.classList.remove('on'));
-  document.querySelectorAll('.adm-section').forEach(s=>s.classList.remove('on'));
-  if(btn) btn.classList.add('on');
-  const el=document.getElementById(id);
-  if(el){
-    el.classList.add('on');
-    // scroll the overlay to the top so the section is in view
-    const overlay=document.getElementById('admin-overlay');
-    if(overlay) overlay.scrollTop=0;
-  }
-  if(id==='a-analytics') buildChart();
-  // If the admin.js ADMIN object is available, trigger the data loader
-  try{
-    var loaders={'a-dash':'loadDashboard','a-rel':'loadReleases','a-art':'loadArtists',
-      'a-demo':'loadDemos','a-roy':'loadRoyalties','a-con':'loadContracts','a-news':'loadNews',
-      'a-ev':'loadEvents','a-bk':'loadBookings','a-promo':'loadPromoters',
-      'a-nl':'loadNLStats','a-subs':'loadSubscribers','a-analytics':'loadAnalytics'};
-    var method=loaders[id];
-    if(method && typeof ADMIN!=='undefined' && typeof ADMIN[method]==='function'){
-      if(id==='a-demo'||id==='a-bk') ADMIN[method]('all');
-      else ADMIN[method]();
-    }
-  }catch(e){}
-}
 
 function toggleRelForm(){
   const f=document.getElementById('rel-form');
