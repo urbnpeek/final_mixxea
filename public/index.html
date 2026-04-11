@@ -2259,20 +2259,32 @@ function closeAdmin(){
 
 /* goSec — inline nav switcher, zero external JS dependency */
 function goSec(id){
-  /* 1. Update nav highlight */
+  /* DIAGNOSTIC — shows in browser tab so we can confirm onclick fires */
+  document.title = 'Admin: ' + id;
+
+  /* 1. Update nav highlight — both class AND inline style for redundancy */
   document.querySelectorAll('.adm-nav-item').forEach(function(b){
-    b.classList.toggle('on', b.getAttribute('data-sec')===id);
+    var active = b.getAttribute('data-sec') === id;
+    b.classList.toggle('on', active);
+    b.style.color = active ? 'var(--g1,#e8ff00)' : '';
+    b.style.borderLeftColor = active ? 'var(--g1,#e8ff00)' : '';
+    b.style.background = active ? 'rgba(232,255,0,.06)' : '';
   });
-  /* 2. Show correct section */
+
+  /* 2. Show correct section — use display directly, not just class */
   document.querySelectorAll('.adm-section').forEach(function(s){
-    s.classList.toggle('on', s.id===id);
+    var show = s.id === id;
+    s.classList.toggle('on', show);
+    s.style.display = show ? 'block' : 'none';
   });
+
   /* 3. Scroll overlay to top */
   var ov=document.getElementById('admin-overlay');
   if(ov) ov.scrollTop=0;
+
   /* 4. Trigger data load from admin.js if available */
   if(typeof switchAdminSection==='function'){
-    try{ switchAdminSection(id); }catch(e){}
+    try{ switchAdminSection(id); }catch(e){ console.error('switchAdminSection error:', e); }
   }
 }
 
@@ -2386,8 +2398,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closeAdmin();});
   });
 })();
 </script>
-<script src="/js/app.js?v=7"></script>
-<script src="/js/admin.js?v=7"></script>
+<script src="/js/app.js?v=8"></script>
+<script src="/js/admin.js?v=8"></script>
 </body>
 </html>
 
