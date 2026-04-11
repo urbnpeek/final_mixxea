@@ -5,7 +5,24 @@ const express  = require('express');
 const bcrypt   = require('bcryptjs');
 const { v4: uuid } = require('uuid');
 const db       = require('./db');
+const { buildAdminToken, getCookie, verifySignedCookie } = require('./middleware');
 const router   = express.Router();
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+function setAdminCookie(res) {
+  res.cookie('mixxea_auth', buildAdminToken(), {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: isProduction,
+    maxAge: 1000 * 60 * 60 * 24, // 24 hours
+    path: '/',
+  });
+}
+
+function clearAdminCookie(res) {
+  res.clearCookie('mixxea_auth', { path: '/' });
+}
 
 // ── Admin Login ───────────────────────────────────────────────────
 router.post('/admin/login', (req, res) => {
@@ -13,6 +30,7 @@ router.post('/admin/login', (req, res) => {
   if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
     req.session.admin = true;
     req.session.adminEmail = email;
+    setAdminCookie(res);
     return res.json({ success: true, message: 'Admin authenticated' });
   }
   res.status(401).json({ error: 'Invalid credentials' });
@@ -21,12 +39,15 @@ router.post('/admin/login', (req, res) => {
 // ── Admin Logout ──────────────────────────────────────────────────
 router.post('/admin/logout', (req, res) => {
   req.session.destroy();
+  clearAdminCookie(res);
   res.json({ success: true });
 });
 
 // ── Check admin session ────────────────────────────────────────────
 router.get('/admin/check', (req, res) => {
-  res.json({ loggedIn: !!req.session.admin });
+  const sessionOk = !!(req.session && req.session.admin);
+  const cookieOk  = verifySignedCookie(getCookie(req, 'mixxea_auth')) === 'admin:1';
+  res.json({ loggedIn: sessionOk || cookieOk });
 });
 
 // ── Artist Portal: Register ────────────────────────────────────────
