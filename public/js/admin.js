@@ -168,8 +168,9 @@ function switchAdminSection(id) {
   const section = document.getElementById(id);
   if (section) {
     section.classList.add('on');
-    const overlay = document.getElementById('admin-overlay');
-    if (overlay) overlay.scrollTop = 0;
+    // Scroll the main content area to top (not the overlay)
+    const main = document.querySelector('.adm-main');
+    if (main) main.scrollTop = 0;
   }
 
   // Close mobile nav drawer
