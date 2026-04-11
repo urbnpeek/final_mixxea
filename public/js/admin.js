@@ -156,27 +156,10 @@ function toggleAdminNav(force) {
 }
 
 function switchAdminSection(id) {
-  // Deactivate all nav items and sections
-  document.querySelectorAll('.adm-nav-item').forEach(b => b.classList.remove('on'));
-  document.querySelectorAll('.adm-section').forEach(s => s.classList.remove('on'));
-
-  // Activate the clicked nav item (match by data-sec)
-  const btn = document.querySelector('.adm-nav-item[data-sec="' + id + '"]');
-  if (btn) btn.classList.add('on');
-
-  // Show the section
-  const section = document.getElementById(id);
-  if (section) {
-    section.classList.add('on');
-    // Scroll the main content area to top (not the overlay)
-    const main = document.querySelector('.adm-main');
-    if (main) main.scrollTop = 0;
-  }
-
-  // Close mobile nav drawer
+  // goSec() in the inline script already handled nav highlight + section show.
+  // This function only handles data loading and mobile drawer.
   if (window.innerWidth <= 900) toggleAdminNav(false);
 
-  // Load data for the section
   const loaders = {
     'a-dash': () => ADMIN.loadDashboard(),
     'a-rel':  () => ADMIN.loadReleases(),
@@ -192,7 +175,7 @@ function switchAdminSection(id) {
     'a-subs': () => ADMIN.loadSubscribers(),
     'a-analytics': () => { ADMIN.loadAnalytics(); buildChart(); },
   };
-  if (loaders[id]) loaders[id]();
+  try { if (loaders[id]) loaders[id](); } catch(e) { console.error('Section load error:', e); }
 }
 
 const ADMIN_AUTH = {

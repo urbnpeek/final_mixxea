@@ -556,21 +556,21 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
 /* ═══════════════════════════════════════════════
    = ADMIN PANEL =
 ═══════════════════════════════════════════════ */
-#admin-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(1,1,8,.98);overflow:hidden}
-#admin-overlay.open{display:flex;flex-direction:column}
-#admin-overlay.auth-ready .adm-auth{display:none}
+#admin-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(1,1,8,.98);overflow-y:auto}
+#admin-overlay.open{display:block}
+#admin-overlay.auth-ready .adm-auth{display:none!important}
 .adm-wrap{display:none}
-#admin-overlay.auth-ready .adm-wrap{display:flex;flex:1;overflow:hidden}
+#admin-overlay.auth-ready .adm-wrap{display:grid}
 .adm-auth{min-height:100vh;display:grid;place-items:center;padding:32px}
 .adm-auth-card{width:min(480px,100%);background:var(--panel);border:1px solid var(--wire);padding:32px}
 .adm-auth-kicker{font-family:var(--Mono);font-size:10px;letter-spacing:3px;color:var(--g1);text-transform:uppercase;margin-bottom:14px}
 .adm-auth-title{font-family:var(--Anton);font-size:40px;letter-spacing:1px;margin-bottom:10px}
 .adm-auth-copy{color:var(--muted);line-height:1.7;margin-bottom:24px}
 .adm-auth-msg{display:none;font-family:var(--Mono);font-size:11px;letter-spacing:1px;margin-top:14px;padding:10px 12px;border:1px solid var(--wire2)}
-.adm-wrap{grid-template-columns:240px 1fr;width:100%}
+.adm-wrap{grid-template-columns:240px 1fr;min-height:100vh}
 
 /* Sidebar */
-.adm-side{background:#060610;border-right:1px solid var(--wire);padding:0;display:flex;flex-direction:column;height:100vh;overflow-y:auto;flex-shrink:0}
+.adm-side{background:#060610;border-right:1px solid var(--wire);padding:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
 .adm-logo{padding:24px 24px 20px;border-bottom:1px solid var(--wire)}
 .adm-logo-txt{font-family:var(--Anton);font-size:20px;letter-spacing:4px}
 .adm-logo-txt .x{color:var(--g1)}
@@ -588,7 +588,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
 
 /* Main content */
 .adm-mobile-bar{display:none}
-.adm-main{padding:40px 48px;background:var(--void);flex:1;overflow-y:auto;height:100vh}
+.adm-main{padding:40px 48px;background:var(--void)}
 .adm-mobile-bar{align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--wire);background:rgba(4,4,12,.96);position:sticky;top:0;z-index:15}
 .adm-mobile-title{font-family:var(--Mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
 .adm-mobile-menu{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 14px;border:1px solid var(--wire2);background:none;color:var(--text);font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer}
@@ -717,7 +717,8 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
   .n-card:first-child{grid-row:span 1}
   .ev-row{grid-template-columns:80px 1fr;gap:10px}
   .ev-artist,.ev-type,.ev-tix{display:none}
-  .dash-wrap{grid-template-columns:1fr}
+  .dash-wrap,.adm-wrap{grid-template-columns:1fr}
+  .adm-side{position:relative;height:auto}
   .kpis,.row2,.adm-row{grid-template-columns:1fr}
   footer{padding:64px 20px 48px;margin-bottom:72px}
   #player{padding:0 16px;gap:12px}
@@ -727,14 +728,13 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
 @media (max-width: 900px){
   .nav-mobile-toggle{display:inline-flex;justify-self:end}
   .nav-center{display:none}
-  .adm-wrap{flex-direction:column}
-  .adm-side{width:100%;height:auto;max-height:50vh;position:relative;transform:none;border-right:none;border-bottom:1px solid var(--wire);flex-direction:row;flex-wrap:wrap;overflow-x:auto;overflow-y:hidden}
-  .adm-side .adm-logo{display:none}
-  .adm-side .adm-nav-group{padding:8px 0}
-  .adm-side .adm-nav-label{display:none}
-  .adm-side .adm-close{border-top:none;border-left:1px solid var(--wire);margin-top:0;padding:8px 12px}
-  .adm-main{height:auto;overflow-y:visible;flex:1}
+  .adm-wrap{position:relative}
+  .adm-side{position:fixed;top:0;left:0;bottom:0;width:min(82vw,320px);max-width:320px;transform:translateX(-102%);transition:transform .28s var(--ease);z-index:30;height:100vh;background:#060610}
+  #admin-overlay.admin-nav-open .adm-side{transform:translateX(0)}
+  #admin-overlay::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s ease}
+  #admin-overlay.admin-nav-open::before{opacity:1;pointer-events:auto}
   .adm-mobile-bar{display:flex}
+  .adm-main{position:relative;z-index:5;padding-top:0}
   html,body{overflow-x:hidden}
   #nav{grid-template-columns:1fr;gap:12px;height:auto;padding:14px 18px 12px}
   .nav-logo{text-align:center}
@@ -1401,29 +1401,29 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
         <div class="adm-logo-sub">Admin Panel</div>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Overview</div>
-        <button class="adm-nav-item on" type="button" onclick="switchAdminSection('a-dash')"><span class="ico">◉</span>Dashboard</button>
+        <button class="adm-nav-item on" type="button" data-sec="a-dash" onclick="goSec('a-dash')"><span class="ico">◉</span>Dashboard</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Label</div>
-        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-rel')"><span class="ico">🎵</span>Releases</button>
-        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-art')"><span class="ico">👤</span>Artists</button>
-        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-demo')"><span class="ico">📥</span>Demo Inbox</button>
-        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-roy')"><span class="ico">💰</span>Royalties</button>
-        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-con')"><span class="ico">📄</span>Contracts</button>
+        <button class="adm-nav-item" type="button" data-sec="a-rel" onclick="goSec('a-rel')"><span class="ico">🎵</span>Releases</button>
+        <button class="adm-nav-item" type="button" data-sec="a-art" onclick="goSec('a-art')"><span class="ico">👤</span>Artists</button>
+        <button class="adm-nav-item" type="button" data-sec="a-demo" onclick="goSec('a-demo')"><span class="ico">📥</span>Demo Inbox</button>
+        <button class="adm-nav-item" type="button" data-sec="a-roy" onclick="goSec('a-roy')"><span class="ico">💰</span>Royalties</button>
+        <button class="adm-nav-item" type="button" data-sec="a-con" onclick="goSec('a-con')"><span class="ico">📄</span>Contracts</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Content</div>
-        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-news')"><span class="ico">📰</span>News / Blog</button>
-        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-ev')"><span class="ico">🗓</span>Events</button>
+        <button class="adm-nav-item" type="button" data-sec="a-news" onclick="goSec('a-news')"><span class="ico">📰</span>News / Blog</button>
+        <button class="adm-nav-item" type="button" data-sec="a-ev" onclick="goSec('a-ev')"><span class="ico">🗓</span>Events</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">FreqVault</div>
-        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-bk')"><span class="ico">🎛</span>Bookings</button>
-        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-promo')"><span class="ico">📋</span>Promoter CRM</button>
+        <button class="adm-nav-item" type="button" data-sec="a-bk" onclick="goSec('a-bk')"><span class="ico">🎛</span>Bookings</button>
+        <button class="adm-nav-item" type="button" data-sec="a-promo" onclick="goSec('a-promo')"><span class="ico">📋</span>Promoter CRM</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Communications</div>
-        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-nl')"><span class="ico">📧</span>Newsletter</button>
-        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-subs')"><span class="ico">👥</span>Subscribers</button>
+        <button class="adm-nav-item" type="button" data-sec="a-nl" onclick="goSec('a-nl')"><span class="ico">📧</span>Newsletter</button>
+        <button class="adm-nav-item" type="button" data-sec="a-subs" onclick="goSec('a-subs')"><span class="ico">👥</span>Subscribers</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Analytics</div>
-        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-analytics')"><span class="ico">🎬</span>Analytics</button>
+        <button class="adm-nav-item" type="button" data-sec="a-analytics" onclick="goSec('a-analytics')"><span class="ico">🎬</span>Analytics</button>
       </div>
       <div class="adm-close">
         <button class="adm-close-btn" onclick="closeAdmin()">✕ Exit Admin</button>
@@ -2257,6 +2257,25 @@ function closeAdmin(){
   document.body.style.overflow='';
 }
 
+/* goSec — inline nav switcher, zero external JS dependency */
+function goSec(id){
+  /* 1. Update nav highlight */
+  document.querySelectorAll('.adm-nav-item').forEach(function(b){
+    b.classList.toggle('on', b.getAttribute('data-sec')===id);
+  });
+  /* 2. Show correct section */
+  document.querySelectorAll('.adm-section').forEach(function(s){
+    s.classList.toggle('on', s.id===id);
+  });
+  /* 3. Scroll overlay to top */
+  var ov=document.getElementById('admin-overlay');
+  if(ov) ov.scrollTop=0;
+  /* 4. Trigger data load from admin.js if available */
+  if(typeof switchAdminSection==='function'){
+    try{ switchAdminSection(id); }catch(e){}
+  }
+}
+
 
 function toggleRelForm(){
   const f=document.getElementById('rel-form');
@@ -2367,8 +2386,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closeAdmin();});
   });
 })();
 </script>
-<script src="/js/app.js?v=6"></script>
-<script src="/js/admin.js?v=6"></script>
+<script src="/js/app.js?v=7"></script>
+<script src="/js/admin.js?v=7"></script>
 </body>
 </html>
 

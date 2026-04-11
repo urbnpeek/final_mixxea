@@ -120,6 +120,7 @@ app.get('/releases/:slug', serveSeoDetail('releases'));
 app.get('/events/:slug',   serveSeoDetail('events'));
 
 app.get('*', (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
