@@ -1401,29 +1401,29 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
         <div class="adm-logo-sub">Admin Panel</div>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Overview</div>
-        <button class="adm-nav-item on" data-sec="a-dash"><span class="ico">◉</span>Dashboard</button>
+        <button class="adm-nav-item on" type="button" onclick="switchAdminSection('a-dash')"><span class="ico">◉</span>Dashboard</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Label</div>
-        <button class="adm-nav-item" data-sec="a-rel"><span class="ico">🎵</span>Releases</button>
-        <button class="adm-nav-item" data-sec="a-art"><span class="ico">👤</span>Artists</button>
-        <button class="adm-nav-item" data-sec="a-demo"><span class="ico">📥</span>Demo Inbox</button>
-        <button class="adm-nav-item" data-sec="a-roy"><span class="ico">💰</span>Royalties</button>
-        <button class="adm-nav-item" data-sec="a-con"><span class="ico">📄</span>Contracts</button>
+        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-rel')"><span class="ico">🎵</span>Releases</button>
+        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-art')"><span class="ico">👤</span>Artists</button>
+        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-demo')"><span class="ico">📥</span>Demo Inbox</button>
+        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-roy')"><span class="ico">💰</span>Royalties</button>
+        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-con')"><span class="ico">📄</span>Contracts</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Content</div>
-        <button class="adm-nav-item" data-sec="a-news"><span class="ico">📰</span>News / Blog</button>
-        <button class="adm-nav-item" data-sec="a-ev"><span class="ico">🗓</span>Events</button>
+        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-news')"><span class="ico">📰</span>News / Blog</button>
+        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-ev')"><span class="ico">🗓</span>Events</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">FreqVault</div>
-        <button class="adm-nav-item" data-sec="a-bk"><span class="ico">🎛</span>Bookings</button>
-        <button class="adm-nav-item" data-sec="a-promo"><span class="ico">📋</span>Promoter CRM</button>
+        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-bk')"><span class="ico">🎛</span>Bookings</button>
+        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-promo')"><span class="ico">📋</span>Promoter CRM</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Communications</div>
-        <button class="adm-nav-item" data-sec="a-nl"><span class="ico">📧</span>Newsletter</button>
-        <button class="adm-nav-item" data-sec="a-subs"><span class="ico">👥</span>Subscribers</button>
+        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-nl')"><span class="ico">📧</span>Newsletter</button>
+        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-subs')"><span class="ico">👥</span>Subscribers</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Analytics</div>
-        <button class="adm-nav-item" data-sec="a-analytics"><span class="ico">🎬</span>Analytics</button>
+        <button class="adm-nav-item" type="button" onclick="switchAdminSection('a-analytics')"><span class="ico">🎬</span>Analytics</button>
       </div>
       <div class="adm-close">
         <button class="adm-close-btn" onclick="closeAdmin()">✕ Exit Admin</button>
@@ -2367,8 +2367,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closeAdmin();});
   });
 })();
 </script>
-<script src="/js/app.js?v=4"></script>
-<script src="/js/admin.js?v=4"></script>
+<script src="/js/app.js?v=5"></script>
+<script src="/js/admin.js?v=5"></script>
 </body>
 </html>
 
