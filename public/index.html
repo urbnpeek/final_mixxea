@@ -559,6 +559,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
 #admin-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(1,1,8,.98);overflow-y:auto}
 #admin-overlay.open{display:block}
 #admin-overlay.auth-ready .adm-auth{display:none}
+.adm-wrap{display:none}
 #admin-overlay.auth-ready .adm-wrap{display:grid}
 .adm-auth{min-height:100vh;display:grid;place-items:center;padding:32px}
 .adm-auth-card{width:min(480px,100%);background:var(--panel);border:1px solid var(--wire);padding:32px}
@@ -566,7 +567,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
 .adm-auth-title{font-family:var(--Anton);font-size:40px;letter-spacing:1px;margin-bottom:10px}
 .adm-auth-copy{color:var(--muted);line-height:1.7;margin-bottom:24px}
 .adm-auth-msg{display:none;font-family:var(--Mono);font-size:11px;letter-spacing:1px;margin-top:14px;padding:10px 12px;border:1px solid var(--wire2)}
-.adm-wrap{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.adm-wrap{grid-template-columns:240px 1fr;min-height:100vh}
 
 /* Sidebar */
 .adm-side{background:#060610;border-right:1px solid var(--wire);padding:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
@@ -2261,8 +2262,25 @@ function admsec(btn,id){
   document.querySelectorAll('.adm-section').forEach(s=>s.classList.remove('on'));
   if(btn) btn.classList.add('on');
   const el=document.getElementById(id);
-  if(el) el.classList.add('on');
+  if(el){
+    el.classList.add('on');
+    // scroll the overlay to the top so the section is in view
+    const overlay=document.getElementById('admin-overlay');
+    if(overlay) overlay.scrollTop=0;
+  }
   if(id==='a-analytics') buildChart();
+  // If the admin.js ADMIN object is available, trigger the data loader
+  try{
+    var loaders={'a-dash':'loadDashboard','a-rel':'loadReleases','a-art':'loadArtists',
+      'a-demo':'loadDemos','a-roy':'loadRoyalties','a-con':'loadContracts','a-news':'loadNews',
+      'a-ev':'loadEvents','a-bk':'loadBookings','a-promo':'loadPromoters',
+      'a-nl':'loadNLStats','a-subs':'loadSubscribers','a-analytics':'loadAnalytics'};
+    var method=loaders[id];
+    if(method && typeof ADMIN!=='undefined' && typeof ADMIN[method]==='function'){
+      if(id==='a-demo'||id==='a-bk') ADMIN[method]('all');
+      else ADMIN[method]();
+    }
+  }catch(e){}
 }
 
 function toggleRelForm(){

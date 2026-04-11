@@ -164,7 +164,12 @@ function admsec(btn, id) {
   document.querySelectorAll('.adm-section').forEach(s=>s.classList.remove('on'));
   if(btn) btn.classList.add('on');
   closeAdminNavOnMobile();
-  const el=document.getElementById(id); if(el) el.classList.add('on');
+  const el=document.getElementById(id);
+  if(el) {
+    el.classList.add('on');
+    const overlay=document.getElementById('admin-overlay');
+    if(overlay) overlay.scrollTop=0;
+  }
   ({
     'a-dash':ADMIN.loadDashboard,'a-rel':ADMIN.loadReleases,'a-art':ADMIN.loadArtists,
     'a-demo':()=>ADMIN.loadDemos('all'),'a-roy':ADMIN.loadRoyalties,'a-con':ADMIN.loadContracts,
@@ -893,6 +898,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ADMIN_AUTH.login();
       }
     });
+  });
+
+  // Wire ALL sidebar nav items explicitly — do not rely on onclick attributes
+  document.querySelectorAll('.adm-nav-item[onclick]').forEach((btn) => {
+    const match = btn.getAttribute('onclick').match(/admsec\(this,'([^']+)'\)/);
+    if (!match) return;
+    const sectionId = match[1];
+    btn.removeAttribute('onclick');
+    btn.addEventListener('click', () => admsec(btn, sectionId));
   });
 });
 
