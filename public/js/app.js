@@ -539,19 +539,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (submitBtn) submitBtn.onclick = (e) => { e.preventDefault(); dashSubmitTrack(); };
   }
 
-  // Guard dashboard tab — redirect to login if not authenticated
-  document.querySelectorAll('.p-tab').forEach((tab, i) => {
-    if (i === 3) {
-      const originalClick = tab.onclick;
-      tab.addEventListener('click', (e) => {
-        if (!_artistSession) {
-          e.stopImmediatePropagation();
-          document.querySelectorAll('.p-tab')[0]?.click();
-          showPortalError('login-err', 'Please log in to access your dashboard.');
-        }
-      }, true);
-    }
-  });
+  // Guard dashboard: wrap global ptab so navigating to pp-dash without
+  // a session silently redirects to login instead.
+  if (typeof window.ptab === 'function') {
+    const _origPtab = window.ptab;
+    window.ptab = function(btn, id) {
+      if (id === 'pp-dash' && !_artistSession) {
+        const loginTab = document.querySelector('.p-tab');
+        _origPtab(loginTab, 'pp-login');
+        showPortalError('login-err', 'Log in to access your dashboard.');
+        return;
+      }
+      _origPtab(btn, id);
+    };
+  }
 });
 
 /* ─────────────────────────────────────────────────────
