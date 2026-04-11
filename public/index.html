@@ -2269,9 +2269,27 @@ function buildChart(){
 }
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape') closeAdmin();});
+
+/* EXPLICIT WIRING — belt + suspenders, independent of app.js loading */
+(function(){
+  try {
+    /* Admin buttons — wire ALL .n-admin buttons to openAdmin */
+    document.querySelectorAll('.n-admin').forEach(function(b){
+      b.removeAttribute('onclick');
+      b.addEventListener('click', openAdmin);
+    });
+    /* Portal tabs — re-wire with addEventListener on top of onclick */
+    var tabIds = ['pp-login','pp-reg','pp-sub','pp-dash'];
+    document.querySelectorAll('.p-tab').forEach(function(t, i){
+      t.removeAttribute('onclick');
+      t.onclick = null;
+      (function(tab, id){ tab.addEventListener('click', function(){ ptab(tab, id); }); })(t, tabIds[i]);
+    });
+  } catch(e){ console.warn('Button wiring failed:', e.message); }
+})();
 </script>
-<script src="/js/app.js"></script>
-<script src="/js/admin.js"></script>
+<script src="/js/app.js?v=2"></script>
+<script src="/js/admin.js?v=2"></script>
 </body>
 </html>
 

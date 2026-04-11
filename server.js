@@ -56,6 +56,8 @@ app.use(helmet({
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// JS files: never cache so updates deploy immediately
+app.use('/js', express.static(path.join(__dirname, 'public', 'js'), { maxAge: 0, etag: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // -- Sessions --

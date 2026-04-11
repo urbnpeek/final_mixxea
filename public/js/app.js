@@ -539,19 +539,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (submitBtn) submitBtn.onclick = (e) => { e.preventDefault(); dashSubmitTrack(); };
   }
 
-  // Guard dashboard: wrap global ptab so navigating to pp-dash without
-  // a session silently redirects to login instead.
-  if (typeof window.ptab === 'function') {
-    const _origPtab = window.ptab;
-    window.ptab = function(btn, id) {
-      if (id === 'pp-dash' && !_artistSession) {
+  // Dashboard tab guard: capture phase fires before the addEventListener
+  // click handler, so stopImmediatePropagation prevents the tab switch.
+  const dashTab = document.querySelectorAll('.p-tab')[3];
+  if (dashTab) {
+    dashTab.addEventListener('click', function(e) {
+      if (!_artistSession) {
+        e.stopImmediatePropagation();
         const loginTab = document.querySelector('.p-tab');
-        _origPtab(loginTab, 'pp-login');
+        if (loginTab) loginTab.click();
         showPortalError('login-err', 'Log in to access your dashboard.');
-        return;
       }
-      _origPtab(btn, id);
-    };
+    }, true); // capture = fires before the tab's own click handler
   }
 });
 

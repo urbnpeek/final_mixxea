@@ -11,6 +11,16 @@
   ],
   "routes": [
     {
+      "src": "/js/(.*)\\.js(\\?.*)?",
+      "dest": "/server.js",
+      "headers": { "cache-control": "no-store" }
+    },
+    {
+      "src": "/css/(.*)\\.css(\\?.*)?",
+      "dest": "/server.js",
+      "headers": { "cache-control": "public, max-age=86400" }
+    },
+    {
       "src": "/(.*)",
       "dest": "/server.js"
     }
