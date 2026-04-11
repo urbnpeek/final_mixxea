@@ -1238,16 +1238,16 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
         </div>
         <div id="up-ok" style="display:none;font-family:var(--Mono);font-size:11px;color:var(--g1);padding:10px 14px;border:1px solid rgba(232,255,0,.3);margin-bottom:18px;letter-spacing:1px">✓ <span id="up-fn"></span></div>
         <div class="row2">
-          <div class="field"><label>Track Title</label><input type="text" placeholder="Track name"></div>
-          <div class="field"><label>Artist Name</label><input type="text" placeholder="Stage name"></div>
+          <div class="field"><label>Track Title</label><input type="text" id="sub-title" placeholder="Track name"></div>
+          <div class="field"><label>Artist Name</label><input type="text" id="sub-artist" placeholder="Stage name"></div>
         </div>
-        <div class="field"><label>Email</label><input type="email" placeholder="your@email.com"></div>
+        <div class="field"><label>Email</label><input type="email" id="sub-email" placeholder="your@email.com"></div>
         <div class="row2">
-          <div class="field"><label>Genre</label><select><option>Techno</option><option>Deep House</option><option>Minimal</option><option>Ambient</option><option>Bass</option><option>Industrial</option><option>Experimental</option><option>Melodic House</option></select></div>
-          <div class="field"><label>BPM</label><input type="number" placeholder="128"></div>
+          <div class="field"><label>Genre</label><select id="sub-genre"><option>Techno</option><option>Deep House</option><option>Minimal</option><option>Ambient</option><option>Bass</option><option>Industrial</option><option>Experimental</option><option>Melodic House</option></select></div>
+          <div class="field"><label>BPM</label><input type="number" id="sub-bpm" placeholder="128"></div>
         </div>
-        <div class="field"><label>Notes for A&R</label><textarea placeholder="Tell us about the track — inspiration, process, what makes it stand out..."></textarea></div>
-        <div class="field"><label>Private SoundCloud Link (optional)</label><input type="url" placeholder="https://soundcloud.com/..."></div>
+        <div class="field"><label>Notes for A&R</label><textarea id="sub-notes" placeholder="Tell us about the track — inspiration, process, what makes it stand out..."></textarea></div>
+        <div class="field"><label>Private SoundCloud Link (optional)</label><input type="url" id="sub-link" placeholder="https://soundcloud.com/..."></div>
         <div class="agree-box">
           <div class="agree-ttl">★ Submission Agreement</div>
           <p>By submitting this track you confirm you are the sole copyright owner or hold full rights. Mixxea Records is under no obligation to release any submitted material. All demos are treated confidentially.</p>
@@ -1341,11 +1341,11 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
       <div class="rv">
         <div class="ar-badge">Now Accepting Demos</div>
         <div class="ct-h3">A&R SUBMISSION</div>
-        <div class="field"><label>Artist Name</label><input type="text" placeholder="Your artist name"></div>
-        <div class="field"><label>Email</label><input type="email" placeholder="your@email.com"></div>
-        <div class="field"><label>Inquiry Type</label><select><option>A&R / Demo Submission</option><option>Booking Request</option><option>Artist Management</option><option>Brand / Partnership</option><option>Press / Media</option><option>General</option></select></div>
-        <div class="field"><label>SoundCloud / Private Link</label><input type="url" placeholder="https://..."></div>
-        <div class="field"><label>Message</label><textarea placeholder="Tell us about yourself..."></textarea></div>
+        <div class="field"><label>Artist Name</label><input type="text" id="ct-name" placeholder="Your artist name"></div>
+        <div class="field"><label>Email</label><input type="email" id="ct-email" placeholder="your@email.com"></div>
+        <div class="field"><label>Inquiry Type</label><select id="ct-type"><option>A&R / Demo Submission</option><option>Booking Request</option><option>Artist Management</option><option>Brand / Partnership</option><option>Press / Media</option><option>General</option></select></div>
+        <div class="field"><label>SoundCloud / Private Link</label><input type="url" id="ct-link" placeholder="https://..."></div>
+        <div class="field"><label>Message</label><textarea id="ct-message" placeholder="Tell us about yourself..."></textarea></div>
         <label class="chk" style="margin-bottom:18px"><input type="checkbox" id="ct-newsletter-opt-in"><span>Subscribe me to Mixxea updates as well.</span></label>
         <button class="sub-full" onclick="doCt()">Send Message →</button>
         <div class="ok-msg" id="ct-ok">✓ Message received. We'll be in touch soon.</div>
@@ -2002,22 +2002,82 @@ function onUp(inp){
 }
 
 /* FORM SUBMITS */
-function doSub(){
+async function doSub(){
   const c=document.getElementById('agr');
   if(c && !c.checked){c.style.outline='1px solid var(--g3)';return;}
-  const ok=document.getElementById('sub-ok');
-  if(ok) ok.style.display='block';
+  const btn=document.querySelector('[onclick="doSub()"]');
+  if(btn){btn.disabled=true;btn.textContent='Submitting...';}
+  try{
+    const fd=new FormData();
+    fd.append('artistName', document.getElementById('sub-artist')?.value||'');
+    fd.append('email',      document.getElementById('sub-email')?.value||'');
+    fd.append('trackTitle', document.getElementById('sub-title')?.value||'');
+    fd.append('genre',      document.getElementById('sub-genre')?.value||'');
+    fd.append('bpm',        document.getElementById('sub-bpm')?.value||'');
+    fd.append('notes',      document.getElementById('sub-notes')?.value||'');
+    fd.append('soundcloudLink', document.getElementById('sub-link')?.value||'');
+    const fUp=document.getElementById('fUp');
+    if(fUp&&fUp.files[0]) fd.append('track', fUp.files[0]);
+    const r=await fetch('/api/demos/submit',{method:'POST',body:fd});
+    const d=await r.json();
+    if(d.success||r.ok){
+      const ok=document.getElementById('sub-ok');
+      if(ok) ok.style.display='block';
+    } else {
+      alert(d.error||'Submission failed. Please try again.');
+    }
+  }catch(e){alert('Network error: '+e.message);}
+  finally{if(btn){btn.disabled=false;btn.textContent='Submit to Mixxea A&R →';}}
 }
-function doCt(){
-  const ok=document.getElementById('ct-ok');
-  if(ok) ok.style.display='block';
+async function doCt(){
+  const name=document.getElementById('ct-name')?.value||'';
+  const email=document.getElementById('ct-email')?.value||'';
+  const message=document.getElementById('ct-message')?.value||'';
+  if(!name||!email||!message){alert('Please fill in Name, Email, and Message.');return;}
+  const btn=document.querySelector('[onclick="doCt()"]');
+  if(btn){btn.disabled=true;btn.textContent='Sending...';}
+  try{
+    const r=await fetch('/api/contact',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        name,email,message,
+        inquiryType: document.getElementById('ct-type')?.value||'General',
+        link: document.getElementById('ct-link')?.value||'',
+        newsletterOptIn: document.getElementById('ct-newsletter-opt-in')?.checked||false
+      })
+    });
+    const d=await r.json();
+    if(d.success||r.ok){
+      const ok=document.getElementById('ct-ok');
+      if(ok) ok.style.display='block';
+    } else {
+      alert(d.error||'Failed to send. Please try again.');
+    }
+  }catch(e){alert('Network error: '+e.message);}
+  finally{if(btn){btn.disabled=false;btn.textContent='Send Message →';}}
 }
-function nlSubscribe(){
+async function nlSubscribe(){
   const v=document.getElementById('nl-email');
   const ok=document.getElementById('nl-ok');
   if(!v||!v.value) return;
-  if(ok) ok.style.display='block';
-  v.value='';
+  const btn=document.querySelector('[onclick="nlSubscribe()"]');
+  if(btn){btn.disabled=true;}
+  try{
+    const r=await fetch('/api/newsletter/subscribe',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:v.value,source:'homepage'})
+    });
+    const d=await r.json();
+    if(d.success||r.ok){
+      if(ok) ok.style.display='block';
+      v.value='';
+    } else {
+      alert(d.error||'Subscription failed. Please try again.');
+    }
+  }catch(e){alert('Network error: '+e.message);}
+  finally{if(btn){btn.disabled=false;}}
 }
 
 /* SCROLL REVEAL — elements start visible, then animate on scroll if JS runs */
@@ -2287,9 +2347,35 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closeAdmin();});
     });
   } catch(e){ console.warn('Button wiring failed:', e.message); }
 })();
+
+/* ADMIN LOGIN — inline so it works even if admin.js fails to load */
+(function(){
+  var btn=document.getElementById('adm-login-submit');
+  if(!btn) return;
+  btn.addEventListener('click', async function(){
+    var email=(document.getElementById('adm-login-email')||{}).value||'';
+    var password=(document.getElementById('adm-login-password')||{}).value||'';
+    var msgEl=document.getElementById('adm-auth-msg');
+    function showMsg(txt,col){if(msgEl){msgEl.textContent=txt;msgEl.style.color=col||'#ff2d6b';msgEl.style.display='block';}}
+    if(!email||!password){showMsg('Enter email and password.');return;}
+    btn.disabled=true; btn.textContent='Signing in…';
+    try{
+      var r=await fetch('/api/auth/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:password})});
+      var data=await r.json();
+      if(data.success){
+        var overlay=document.getElementById('admin-overlay');
+        if(overlay) overlay.classList.add('auth-ready');
+        if(typeof loadAdminData==='function') loadAdminData();
+      } else {
+        showMsg(data.error||'Invalid credentials.');
+      }
+    }catch(e){showMsg('Network error: '+e.message);}
+    finally{btn.disabled=false; btn.textContent='Access Admin';}
+  });
+})();
 </script>
-<script src="/js/app.js?v=2"></script>
-<script src="/js/admin.js?v=2"></script>
+<script src="/js/app.js?v=3"></script>
+<script src="/js/admin.js?v=3"></script>
 </body>
 </html>
 
