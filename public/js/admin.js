@@ -199,6 +199,8 @@ const ADMIN_AUTH = {
     const overlay = document.getElementById('admin-overlay');
     if (!overlay) return;
     overlay.classList.toggle('auth-ready', !!loggedIn);
+    // Re-wire nav every time the panel becomes visible
+    if (loggedIn) setTimeout(wireAdminNav, 50);
   },
 
   setMessage(message, type) {
@@ -900,28 +902,40 @@ window.addEventListener('resize', () => {
   if (window.innerWidth > 900) toggleAdminNav(false);
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  // ── Admin login button + Enter key ──────────────────────────────
-  const loginBtn = document.getElementById('adm-login-submit');
-  if (loginBtn) loginBtn.addEventListener('click', () => ADMIN_AUTH.login());
-
-  ['adm-login-email', 'adm-login-password'].forEach((id) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') { event.preventDefault(); ADMIN_AUTH.login(); }
+/* ─────────────────────────────────────────────────────────
+   WIRE NAV — called immediately + after login
+───────────────────────────────────────────────────────── */
+function wireAdminNav() {
+  document.querySelectorAll('.adm-nav-item[data-sec]').forEach(function(btn) {
+    // Remove any stale listeners by cloning the node
+    var fresh = btn.cloneNode(true);
+    btn.parentNode.replaceChild(fresh, btn);
+    fresh.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      switchAdminSection(fresh.getAttribute('data-sec'));
     });
   });
+}
 
-  // ── Sidebar nav — single delegated listener on the sidebar ──────
-  // Nav items now use data-sec="a-xxx" instead of onclick attributes.
-  // One listener catches all clicks no matter when buttons are rendered.
-  const sidebar = document.querySelector('.adm-side');
-  if (sidebar) {
-    sidebar.addEventListener('click', (e) => {
-      const btn = e.target.closest('.adm-nav-item[data-sec]');
-      if (!btn) return;
-      switchAdminSection(btn.dataset.sec);
+/* Wire immediately — scripts at bottom of <body> run after DOM is parsed */
+wireAdminNav();
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Re-wire in case DOMContentLoaded fires after (belt+suspenders)
+  wireAdminNav();
+
+  // Admin login button + Enter key
+  var loginBtn = document.getElementById('adm-login-submit');
+  if (loginBtn) {
+    var freshLogin = loginBtn.cloneNode(true);
+    loginBtn.parentNode.replaceChild(freshLogin, loginBtn);
+    freshLogin.addEventListener('click', function() { ADMIN_AUTH.login(); });
+    ['adm-login-email', 'adm-login-password'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('keydown', function(ev) {
+        if (ev.key === 'Enter') { ev.preventDefault(); ADMIN_AUTH.login(); }
+      });
     });
   }
 });
