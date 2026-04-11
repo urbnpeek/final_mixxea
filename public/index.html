@@ -1203,7 +1203,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
         <div class="field"><label>Email</label><input type="email" placeholder="artist@email.com"></div>
         <div class="field"><label>Password</label><input type="password" placeholder="••••••••••••"></div>
         <button class="sub-full" style="margin-top:20px" onclick="ptab(document.querySelector('.p-tab:nth-child(4)'),'pp-dash')">Access Portal →</button>
-        <div style="text-align:center;margin-top:18px"><a href="#" onclick="ptab(document.querySelector('.p-tab:nth-child(2)'),'pp-reg')" style="font-family:var(--Mono);font-size:10px;color:var(--muted)">New artist? Register here →</a></div>
+        <div style="text-align:center;margin-top:18px"><a href="javascript:void(0)" onclick="ptab(document.querySelector('.p-tab:nth-child(2)'), 'pp-reg')" style="font-family:var(--Mono);font-size:10px;color:var(--muted)">New artist? Register here →</a></div>
       </div></div>
 
       <!-- REGISTER -->
@@ -2276,10 +2276,10 @@ function toggleNewsForm(){
 
 /* NEWSLETTER TEMPLATES */
 const TEMPLATES={
-  release:{sub:'New Release — [Title] is out now',body:'Hey,\n\nWe're excited to announce that [Artist]'s "[Title]" is out now on Beatport, Spotify and Apple Music.\n\n— Mixxea Records'},
-  event:{sub:'[Artist] Live — [Venue], [Date]',body:'Hey,\n\n[Artist] will be performing live at [Venue] on [Date].\n\nTickets at the link below.\n\n— FreqVault Agency'},
-  monthly:{sub:'Mixxea Monthly — [Month] Roundup',body:'Hey,\n\nHere's what happened at Mixxea this month:\n\nNew releases:\nUpcoming shows:\nLabel news:\n\n— Mixxea Records'},
-  artist:{sub:'Artist Spotlight: [Artist]',body:'Hey,\n\nThis month we're shining a light on [Artist]...\n\n— Mixxea Records'},
+  release:{sub:'New Release \u2014 [Title] is out now',body:'Hey,\n\nWe\'re excited to announce that [Artist]\'s "[Title]" is out now on Beatport, Spotify and Apple Music.\n\n\u2014 Mixxea Records'},
+  event:{sub:'[Artist] Live \u2014 [Venue], [Date]',body:'Hey,\n\n[Artist] will be performing live at [Venue] on [Date].\n\nTickets at the link below.\n\n\u2014 FreqVault Agency'},
+  monthly:{sub:'Mixxea Monthly \u2014 [Month] Roundup',body:'Hey,\n\nHere\'s what happened at Mixxea this month:\n\nNew releases:\nUpcoming shows:\nLabel news:\n\n\u2014 Mixxea Records'},
+  artist:{sub:'Artist Spotlight: [Artist]',body:'Hey,\n\nThis month we\'re shining a light on [Artist]...\n\n\u2014 Mixxea Records'},
   custom:{sub:'',body:''},
 };
 function loadTpl(key){
