@@ -8,37 +8,38 @@ const router  = express.Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.get('/', (req, res) => {
-  let news = db.get('news');
+router.get('/', async (req, res) => {
+  let news = await db.get('news');
   if (!req.session.admin) news = news.filter(n => n.status === 'published');
   res.json(news);
 });
 
-router.get('/:id', (req, res) => {
-  const item = db.get('news').find(n => n.id === req.params.id);
+router.get('/:id', async (req, res) => {
+  const item = (await db.get('news')).find(n => n.id === req.params.id);
   if (!item) return res.status(404).json({ error: 'Not found' });
   res.json(item);
 });
 
-router.post('/', requireAdmin, upload.single('image'), (req, res) => {
-  const items = db.get('news');
+router.post('/', requireAdmin, upload.single('image'), async (req, res) => {
+  const items = await db.get('news');
   const item  = { id: uuid(), ...req.body, image: req.file ? `/uploads/artwork/${uuid()}${path.extname(req.file.originalname)}` : '', createdAt: new Date().toISOString() };
   items.unshift(item);
-  db.set('news', items);
+  await db.set('news', items);
   res.status(201).json(item);
 });
 
-router.put('/:id', requireAdmin, upload.single('image'), (req, res) => {
-  const items = db.get('news');
+router.put('/:id', requireAdmin, upload.single('image'), async (req, res) => {
+  const items = await db.get('news');
   const idx   = items.findIndex(i => i.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
   items[idx] = { ...items[idx], ...req.body, ...(req.file ? { image: `/uploads/artwork/${uuid()}${path.extname(req.file.originalname)}` } : {}) };
-  db.set('news', items);
+  await db.set('news', items);
   res.json(items[idx]);
 });
 
-router.delete('/:id', requireAdmin, (req, res) => {
-  db.set('news', db.get('news').filter(i => i.id !== req.params.id));
+router.delete('/:id', requireAdmin, async (req, res) => {
+  const items = await db.get('news');
+  await db.set('news', items.filter(i => i.id !== req.params.id));
   res.json({ success: true });
 });
 

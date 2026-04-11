@@ -1,4 +1,4 @@
-﻿/**
+/**
  * demos.js - A&R demo submission handling
  */
 const express = require('express');
@@ -24,7 +24,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200
 
 router.post('/submit', upload.single('track'), async (req, res) => {
   try {
-    const demos = db.get('demos');
+    const demos = await db.get('demos');
     const demo = {
       id: uuid(),
       artistName: req.body.artistName || '',
@@ -39,7 +39,7 @@ router.post('/submit', upload.single('track'), async (req, res) => {
       status: 'new'
     };
     demos.unshift(demo);
-    db.set('demos', demos);
+    await db.set('demos', demos);
 
     const adminBody = `<p><strong>Artist:</strong> ${escapeHtml(demo.artistName)}</p>
       <p><strong>Email:</strong> ${escapeHtml(demo.email || 'Not provided')}</p>
@@ -50,21 +50,12 @@ router.post('/submit', upload.single('track'), async (req, res) => {
       ${demo.file ? `<p><strong>Uploaded file:</strong> ${escapeHtml(demo.file)}</p>` : ''}`;
 
     const emailResults = await Promise.allSettled([
-      mailer.sendAdminNotification({
-        type: 'demo',
-        subject: `New demo submission: ${demo.trackTitle || 'Untitled'}`,
-        body: adminBody,
-        ctaLabel: 'Open Admin',
-        ctaUrl: getAppUrl(req) || undefined
-      }),
+      mailer.sendAdminNotification({ type: 'demo', subject: `New demo submission: ${demo.trackTitle || 'Untitled'}`, body: adminBody, ctaLabel: 'Open Admin', ctaUrl: getAppUrl(req) || undefined }),
       demo.email ? mailer.sendDemoSubmissionConfirmation(demo) : Promise.resolve({ ok: false, skipped: true })
     ]);
 
-    const failedAll = emailResults.every((result) => result.status === 'rejected' || !result.value.ok);
-    if (failedAll) {
-      return res.status(202).json({ success: true, id: demo.id, warning: 'Demo saved, but email delivery failed.' });
-    }
-
+    const failedAll = emailResults.every((r) => r.status === 'rejected' || !r.value.ok);
+    if (failedAll) return res.status(202).json({ success: true, id: demo.id, warning: 'Demo saved, but email delivery failed.' });
     res.status(201).json({ success: true, id: demo.id });
   } catch (e) {
     console.error(e);
@@ -72,18 +63,15 @@ router.post('/submit', upload.single('track'), async (req, res) => {
   }
 });
 
-router.get('/', requireAdmin, (req, res) => {
-  const demos = db.get('demos');
-  res.json(demos);
-});
+router.get('/', requireAdmin, async (req, res) => res.json(await db.get('demos')));
 
 router.put('/:id/status', requireAdmin, async (req, res) => {
-  const demos = db.get('demos');
+  const demos = await db.get('demos');
   const idx = demos.findIndex((d) => d.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
   demos[idx].status = req.body.status;
   demos[idx].adminNotes = req.body.notes || '';
-  db.set('demos', demos);
+  await db.set('demos', demos);
 
   if (req.body.status === 'declined' && req.body.notify && demos[idx].email) {
     await mailer.sendEmail(
@@ -99,10 +87,10 @@ router.put('/:id/status', requireAdmin, async (req, res) => {
   res.json(demos[idx]);
 });
 
-router.delete('/:id', requireAdmin, (req, res) => {
-  db.set('demos', db.get('demos').filter((d) => d.id !== req.params.id));
+router.delete('/:id', requireAdmin, async (req, res) => {
+  const demos = await db.get('demos');
+  await db.set('demos', demos.filter((d) => d.id !== req.params.id));
   res.json({ success: true });
 });
 
 module.exports = router;
-

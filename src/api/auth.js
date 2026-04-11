@@ -57,14 +57,14 @@ router.post('/artist/register', async (req, res) => {
     if (!artistName || !email || !password) {
       return res.status(400).json({ error: 'Artist name, email, and password are required' });
     }
-    const users = db.get('artistPortalUsers');
+    const users = await db.get('artistPortalUsers');
     if (users.find(u => u.email === email)) {
       return res.status(409).json({ error: 'Email already registered' });
     }
     const hash = await bcrypt.hash(password, 10);
     const user = { id: uuid(), artistName, realName, email, country, genre, soundcloud, passwordHash: hash, status: 'unsigned', createdAt: new Date().toISOString() };
     users.push(user);
-    db.set('artistPortalUsers', users);
+    await db.set('artistPortalUsers', users);
     req.session.artistId = user.id;
     req.session.artistName = user.artistName;
     res.json({ success: true, artist: { id: user.id, artistName: user.artistName, status: user.status } });
@@ -77,13 +77,11 @@ router.post('/artist/register', async (req, res) => {
 router.post('/artist/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const users = db.get('artistPortalUsers');
+    const users = await db.get('artistPortalUsers');
     const user  = users.find(u => u.email === email);
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
     const ok = await bcrypt.compare(password, user.passwordHash || '');
-    if (!ok) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
+    if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
     req.session.artistId = user.id;
     req.session.artistName = user.artistName;
     res.json({ success: true, artist: { id: user.id, artistName: user.artistName, status: user.status } });
@@ -93,9 +91,9 @@ router.post('/artist/login', async (req, res) => {
 });
 
 // ── Artist Portal: Check session ────────────────────────────────────
-router.get('/artist/check', (req, res) => {
+router.get('/artist/check', async (req, res) => {
   if (!req.session.artistId) return res.json({ loggedIn: false });
-  const users  = db.get('artistPortalUsers');
+  const users  = await db.get('artistPortalUsers');
   const artist = users.find(u => u.id === req.session.artistId);
   if (!artist) return res.json({ loggedIn: false });
   res.json({ loggedIn: true, artist: { id: artist.id, artistName: artist.artistName, status: artist.status } });
