@@ -506,9 +506,9 @@ const ADMIN = {
       `<div style="margin-bottom:4px">${lbl('Status')}${badge(d.status,sc[d.status]||'ab-draft')}</div>`;
 
     document.getElementById('adm-demo-detail-actions').innerHTML=
-      `<button class="tbl-btn" onclick="ADMIN.setDemoStatus('${d.id}','reviewing');ADMIN.closeDemoDetail()">Mark Reviewing</button>`+
-      `<button class="tbl-btn" style="color:var(--g1)" onclick="ADMIN.setDemoStatus('${d.id}','approved');ADMIN.closeDemoDetail()">Approve</button>`+
-      `<button class="tbl-btn del" onclick="ADMIN.setDemoStatus('${d.id}','declined');ADMIN.closeDemoDetail()">Decline</button>`+
+      `<button class="tbl-btn" onclick="ADMIN.setDemoStatus('${d.id}','reviewing');closeDemoDetailModal()">Mark Reviewing</button>`+
+      `<button class="tbl-btn" style="color:var(--g1)" onclick="ADMIN.setDemoStatus('${d.id}','approved');closeDemoDetailModal()">Approve</button>`+
+      `<button class="tbl-btn del" onclick="ADMIN.setDemoStatus('${d.id}','declined');closeDemoDetailModal()">Decline</button>`+
       (d.email?`<button class="tbl-btn" style="margin-left:auto" onclick="navigator.clipboard.writeText('${d.email}');toast('Email copied')">Copy Email</button>`:'');
 
     document.getElementById('adm-demo-detail-modal').style.display='flex';
