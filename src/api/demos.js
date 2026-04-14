@@ -142,7 +142,7 @@ router.post('/send-link', requireAdmin, async (req, res) => {
      <p>Please have your track download link ready (WeTransfer, Dropbox, or Google Drive).<br>
      WAV 24-bit is preferred.</p>
      <p style="margin-top:24px">— Mixxea Records A&amp;R Team</p>`,
-    { brand: 'mixxea' }
+    { brand: 'demo' }
   );
 
   if (!result || !result.ok) {

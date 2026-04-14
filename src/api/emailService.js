@@ -68,6 +68,9 @@ function getFromAddress(brand) {
   if (brand === 'admin') {
     return process.env.EMAIL_FROM_ADMIN || process.env.EMAIL_FROM_MIXXEA || 'Mixxea Control <ops@mixxea.com>';
   }
+  if (brand === 'demo') {
+    return process.env.EMAIL_FROM_DEMO || 'Mixxea Records A&R <demo@mixxea.com>';
+  }
   return process.env.EMAIL_FROM_MIXXEA || process.env.EMAIL_FROM || 'Mixxea Records <info@mixxea.com>';
 }
 
@@ -336,7 +339,7 @@ async function sendDemoSubmissionConfirmation(data) {
     to: data.email,
     subject: `Mixxea demo received${data.trackTitle ? `: ${data.trackTitle}` : ''}`,
     html: renderDemoConfirmation(data),
-    brand: 'mixxea',
+    brand: 'demo',
     replyTo: getAdminRecipients('demo'),
     tags: [{ name: 'flow', value: 'demo-confirmation' }],
   });
