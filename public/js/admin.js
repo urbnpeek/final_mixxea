@@ -401,24 +401,25 @@ const ADMIN = {
 
   /* ══ DEMOS ══════════════════════════════════════════════ */
   _df:'all',
+  _demosCache:[],
   async loadDemos(filter) {
     if(filter) this._df=filter;
     document.querySelectorAll('#a-demo .f-btn').forEach(b=>b.classList.toggle('on',b.textContent.toLowerCase()===this._df));
-    let data=await api('GET','/demos')||STORE.demos;
-    setText('adm-demo-count',(await api('GET','/demos')||STORE.demos).filter(d=>d.status==='new').length+' NEW');
-    if(this._df!=='all') data=data.filter(d=>d.status===this._df);
+    const all=await api('GET','/demos')||STORE.demos;
+    this._demosCache=all;
+    setText('adm-demo-count',all.filter(d=>d.status==='new').length+' NEW');
+    let data=this._df==='all'?all:all.filter(d=>d.status===this._df);
     const sc={new:'ab-new',reviewing:'ab-review',approved:'ab-live',declined:'ab-draft'};
     setHTML('adm-demo-tbody', data.length ? data.map(d=>`
       <tr>
-        <td><div class="tbl-name">${d.artistName}</div><div class="tbl-sub">${d.email}</div></td>
-        <td><div class="tbl-name">${d.trackTitle}</div>${d.notes?`<div class="tbl-sub">${d.notes.slice(0,40)}${d.notes.length>40?'…':''}</div>`:''}</td>
-        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${d.genre}</td>
-        <td style="font-family:var(--Mono);font-size:11px">${d.bpm||'—'}</td>
+        <td><div class="tbl-name">${d.artistName}</div><div class="tbl-sub">${d.email||''}</div></td>
+        <td><div class="tbl-name">${d.trackTitle}</div><div class="tbl-sub" style="color:var(--muted2)">${d.version||'Original Mix'}</div></td>
+        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${d.genre||'—'}<br><span style="color:var(--muted2)">${d.bpm?d.bpm+' BPM':''}</span></td>
+        <td>${d.downloadLink?`<a href="${d.downloadLink}" target="_blank" class="tbl-btn" style="display:inline-block;font-size:9px">DL ↗</a>`:d.file?`<a href="${d.file}" target="_blank" class="tbl-btn" style="display:inline-block;font-size:9px">File ↗</a>`:'<span style="color:var(--muted2);font-size:10px;font-family:var(--Mono)">—</span>'}</td>
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(d.submittedAt)}</td>
         <td>${badge(d.status,sc[d.status]||'ab-draft')}</td>
         <td><div class="tbl-actions">
-          ${d.file?`<a href="${d.file}" target="_blank" class="tbl-btn" style="display:inline-block">Listen ↗</a>`:''}
-          ${d.soundcloudLink?`<a href="${d.soundcloudLink}" target="_blank" class="tbl-btn" style="display:inline-block">SC ↗</a>`:''}
+          <button class="tbl-btn" style="color:#c8b8ff" onclick="ADMIN.viewDemo('${d.id}')">View</button>
           <button class="tbl-btn" onclick="ADMIN.setDemoStatus('${d.id}','reviewing')">Review</button>
           <button class="tbl-btn" style="color:var(--g1)" onclick="ADMIN.setDemoStatus('${d.id}','approved')">Approve</button>
           <button class="tbl-btn del" onclick="ADMIN.setDemoStatus('${d.id}','declined')">Decline</button>
@@ -434,6 +435,88 @@ const ADMIN = {
     if(!result)return;
     const d=STORE.demos.find(x=>x.id===id); if(d)d.status=status;
     toast(`Demo marked as ${status}`); this.loadDemos();
+  },
+
+  openSendLinkModal() {
+    const m=document.getElementById('adm-send-link-modal');
+    if(m){ m.style.display='flex'; document.getElementById('sl-email').value=''; document.getElementById('sl-name').value=''; document.getElementById('sl-result').textContent=''; }
+  },
+
+  closeSendLinkModal() {
+    const m=document.getElementById('adm-send-link-modal');
+    if(m) m.style.display='none';
+  },
+
+  async sendSubmissionLink() {
+    const email=(document.getElementById('sl-email').value||'').trim();
+    const artistName=(document.getElementById('sl-name').value||'').trim();
+    const resultEl=document.getElementById('sl-result');
+    if(!email||!email.includes('@')){ resultEl.style.color='var(--danger)'; resultEl.textContent='Valid email required'; return; }
+    const btn=document.getElementById('sl-send-btn');
+    btn.disabled=true; btn.textContent='Sending...';
+    const result=await api('POST','/demos/send-link',{email,artistName});
+    btn.disabled=false; btn.textContent='SEND LINK';
+    if(result&&result.success){
+      resultEl.style.color='var(--g1)'; resultEl.textContent='✓ Sent to '+email;
+      setTimeout(()=>this.closeSendLinkModal(),2200);
+    } else {
+      resultEl.style.color='var(--danger)'; resultEl.textContent='Failed — check email settings';
+    }
+  },
+
+  viewDemo(id) {
+    const d=this._demosCache.find(x=>x.id===id)||(STORE.demos.find(x=>x.id===id));
+    if(!d)return;
+    const sampMap={none:'No samples — 100% original',cleared:'Samples cleared & licensed',uncleared:'Samples used — not cleared'};
+    const writersMap={sole:'Sole author',collab:'Multiple writers / collaborators'};
+    const pubMap={mixxea:'Mixxea Publishing (full administration)',own:'Own publisher — co-pub TBD'};
+    const prevRel=d.prevReleased==='yes'?'Yes — previously released':'No — unreleased & exclusive';
+    const sc={new:'ab-new',reviewing:'ab-review',approved:'ab-live',declined:'ab-draft'};
+    const lbl=(t)=>`<div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-family:var(--Mono);margin-bottom:3px">${t}</div>`;
+    const val=(v,mono)=>`<div style="font-size:13px;color:var(--text);${mono?'font-family:var(--Mono);font-size:11px;word-break:break-all':''}">${v||'—'}</div>`;
+    const cell=(t,v,mono,sub)=>`<div>${lbl(t)}${val(v,mono)}${sub?`<div style="font-size:11px;color:var(--muted);margin-top:3px">${sub}</div>`:''}</div>`;
+    const grid2=(cells)=>`<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 24px;margin-bottom:18px">${cells}</div>`;
+    const hr=`<hr style="border:none;border-top:0.5px solid rgba(255,255,255,.08);margin:18px 0">`;
+
+    document.getElementById('adm-demo-detail-title').textContent=`"${d.trackTitle}" by ${d.artistName}`;
+    document.getElementById('adm-demo-detail-body').innerHTML=
+      grid2(
+        cell('Artist',d.artistName)+
+        cell('Legal name',d.realName)+
+        cell('Email',d.email)+
+        cell('Country',d.country)+
+        cell('PRO',d.pro||'None')+
+        cell('Profile',d.social||d.soundcloudLink?(d.social||d.soundcloudLink).replace(/^https?:\/\//,'').slice(0,40)+'…':'—')
+      )+hr+
+      grid2(
+        cell('Track',`${d.trackTitle} — ${d.version||'Original Mix'}`)+
+        cell('Genre / BPM',`${d.genre||'—'} · ${d.bpm||'—'} BPM`)+
+        cell('Key',d.musKey||'Unknown')+
+        cell('Format',d.fileFormat||'—')
+      )+
+      `<div style="margin-bottom:18px">${lbl('Download link')}<div style="font-size:12px;font-family:var(--Mono);word-break:break-all">${d.downloadLink?`<a href="${d.downloadLink}" target="_blank" style="color:#c8b8ff">${d.downloadLink}</a>`:'—'}</div></div>`+
+      (d.description||d.notes?`<div style="background:rgba(255,255,255,.04);border:0.5px solid rgba(255,255,255,.08);padding:14px;border-radius:6px;margin-bottom:18px">${lbl('Description')}<div style="font-size:13px;line-height:1.65;margin-top:4px">${(d.description||d.notes).replace(/\n/g,'<br>')}</div></div>`:'')+
+      hr+
+      grid2(
+        cell('Previously released',prevRel,'',d.prevWhere||'')+
+        cell('Samples',sampMap[d.samples]||d.samples||'—')+
+        cell('Writers',writersMap[d.writers]||d.writers||'—','',d.cowriters||'')+
+        cell('Publishing',pubMap[d.pubAgree]||d.pubAgree||'—','',d.ownPubName||'')
+      )+
+      `<div style="margin-bottom:4px">${lbl('Status')}${badge(d.status,sc[d.status]||'ab-draft')}</div>`;
+
+    document.getElementById('adm-demo-detail-actions').innerHTML=
+      `<button class="tbl-btn" onclick="ADMIN.setDemoStatus('${d.id}','reviewing');ADMIN.closeDemoDetail()">Mark Reviewing</button>`+
+      `<button class="tbl-btn" style="color:var(--g1)" onclick="ADMIN.setDemoStatus('${d.id}','approved');ADMIN.closeDemoDetail()">Approve</button>`+
+      `<button class="tbl-btn del" onclick="ADMIN.setDemoStatus('${d.id}','declined');ADMIN.closeDemoDetail()">Decline</button>`+
+      (d.email?`<button class="tbl-btn" style="margin-left:auto" onclick="navigator.clipboard.writeText('${d.email}');toast('Email copied')">Copy Email</button>`:'');
+
+    document.getElementById('adm-demo-detail-modal').style.display='flex';
+  },
+
+  closeDemoDetail() {
+    const m=document.getElementById('adm-demo-detail-modal');
+    if(m) m.style.display='none';
   },
 
   /* ══ ROYALTIES ══════════════════════════════════════════ */

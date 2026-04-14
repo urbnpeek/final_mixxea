@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Track Submission — Mixxea Records</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,200;0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #080808;
+    --bg2:       #0f0f0f;
+    --bg3:       #141414;
+    --border:    rgba(255,255,255,0.08);
+    --border-md: rgba(255,255,255,0.14);
+    --border-hi: rgba(255,255,255,0.28);
+    --text:      #e8e4de;
+    --text-2:    rgba(232,228,222,0.55);
+    --text-3:    rgba(232,228,222,0.28);
+    --accent:    #c8b8ff;
+    --accent-bg: rgba(140,100,255,0.08);
+    --accent-bd: rgba(140,100,255,0.22);
+    --success:   #4ade80;
+    --success-bg:rgba(74,222,128,0.07);
+    --success-bd:rgba(74,222,128,0.2);
+    --danger:    #f87171;
+    --danger-bg: rgba(248,113,113,0.08);
+    --info-bg:   rgba(100,140,255,0.07);
+    --info-bd:   rgba(100,140,255,0.2);
+    --info-text: #a8c4ff;
+    --radius:    6px;
+    --radius-lg: 10px;
+    --font:      'DM Sans', sans-serif;
+    --mono:      'DM Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.022;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* HEADER */
+  .hdr { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 0.5px solid var(--border); }
+  .hdr-tag { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--text-3); font-weight: 400; margin-bottom: 14px; font-family: var(--mono); }
+  .hdr-title { font-size: 32px; font-weight: 200; letter-spacing: -0.03em; color: var(--text); line-height: 1.1; margin-bottom: 10px; }
+  .hdr-title strong { font-weight: 500; }
+  .hdr-sub { font-size: 13px; color: var(--text-2); line-height: 1.65; max-width: 480px; }
+
+  /* PROGRESS */
+  .prog-wrap { margin-bottom: 40px; }
+  .prog-track { display: flex; gap: 0; border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 10px; }
+  .prog-step { flex: 1; padding: 9px 6px; text-align: center; font-size: 11px; letter-spacing: 0.08em; color: var(--text-3); border-right: 0.5px solid var(--border); cursor: pointer; transition: all 0.2s; user-select: none; }
+  .prog-step:last-child { border-right: none; }
+  .prog-step:hover:not(.active):not(.done) { color: var(--text-2); background: rgba(255,255,255,0.02); }
+  .prog-step.active { background: rgba(255,255,255,0.06); color: var(--text); font-weight: 500; }
+  .prog-step.done { background: var(--success-bg); color: var(--success); }
+  .prog-line-wrap { height: 1px; background: var(--border); border-radius: 1px; overflow: hidden; }
+  .prog-line-fill { height: 100%; background: linear-gradient(90deg, rgba(140,100,255,0.6), rgba(200,184,255,0.4)); transition: width 0.4s ease; width: 0%; }
+
+  /* PAGES */
+  .page { display: none; animation: fadeUp 0.3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .page-hd { margin-bottom: 28px; }
+  .page-title { font-size: 18px; font-weight: 300; letter-spacing: -0.02em; color: var(--text); margin-bottom: 4px; }
+  .page-sub { font-size: 12px; color: var(--text-3); line-height: 1.5; }
+
+  /* DIVIDERS */
+  .sec-divider { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-3); font-family: var(--mono); margin: 28px 0 16px; display: flex; align-items: center; gap: 12px; }
+  .sec-divider::after { content: ''; flex: 1; height: 0.5px; background: var(--border); }
+
+  /* FIELDS */
+  .field { margin-bottom: 18px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .field-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+
+  .lbl { display: block; font-size: 11px; font-weight: 500; letter-spacing: 0.06em; color: var(--text-2); margin-bottom: 7px; text-transform: uppercase; }
+  .lbl .req { color: var(--accent); margin-left: 2px; }
+  .lbl .opt { color: var(--text-3); font-weight: 300; text-transform: none; letter-spacing: 0; }
+
+  input[type=text], input[type=email], input[type=url], input[type=number], select, textarea {
+    width: 100%; background: var(--bg2); border: 0.5px solid var(--border-md); border-radius: var(--radius);
+    padding: 10px 13px; font-family: var(--font); font-size: 13px; color: var(--text); outline: none;
+    transition: border-color 0.15s, background 0.15s; -webkit-appearance: none; appearance: none;
+  }
+  input::placeholder, textarea::placeholder { color: var(--text-3); }
+  input:focus, select:focus, textarea:focus { border-color: var(--border-hi); background: var(--bg3); }
+  input.err, select.err, textarea.err { border-color: var(--danger) !important; background: var(--danger-bg); }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(255,255,255,0.25)'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer;
+  }
+  select option { background: #1a1a1a; color: #e8e4de; }
+  textarea { resize: vertical; min-height: 90px; line-height: 1.55; }
+
+  .hint { font-size: 11px; color: var(--text-3); margin-top: 5px; line-height: 1.5; font-family: var(--mono); }
+  .err-msg { font-size: 11px; color: var(--danger); margin-top: 5px; display: none; font-family: var(--mono); }
+  .err-msg.show { display: block; }
+
+  /* GENRE GRID */
+  .genre-wrap { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
+  .genre-btn { padding: 9px 8px; border: 0.5px solid var(--border); border-radius: var(--radius); font-size: 12px; color: var(--text-2); cursor: pointer; text-align: center; transition: all 0.15s; background: transparent; font-family: var(--font); letter-spacing: 0.02em; }
+  .genre-btn:hover { border-color: var(--border-md); color: var(--text); background: rgba(255,255,255,0.03); }
+  .genre-btn.sel { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+
+  /* RADIO CARDS */
+  .radio-group { display: flex; flex-direction: column; gap: 6px; }
+  .radio-card { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 0.5px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: all 0.15s; background: var(--bg2); }
+  .radio-card:hover { border-color: var(--border-md); background: var(--bg3); }
+  .radio-card.sel { border-color: var(--border-hi); background: rgba(255,255,255,0.04); }
+  .radio-card input[type=radio] { width: 15px; height: 15px; margin-top: 2px; flex-shrink: 0; accent-color: var(--accent); cursor: pointer; }
+  .rc-main { font-size: 13px; color: var(--text); line-height: 1.3; font-weight: 400; }
+  .rc-sub { font-size: 11px; color: var(--text-3); margin-top: 3px; line-height: 1.4; }
+
+  /* PUBLISH BOX */
+  .pub-box { background: var(--info-bg); border: 0.5px solid var(--info-bd); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 22px; }
+  .pub-badge { display: inline-block; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; background: rgba(100,140,255,0.2); color: var(--info-text); padding: 3px 9px; border-radius: 20px; font-family: var(--mono); margin-bottom: 8px; }
+  .pub-title { font-size: 13px; font-weight: 500; color: var(--info-text); margin-bottom: 6px; }
+  .pub-body { font-size: 12px; color: var(--text-2); line-height: 1.7; }
+  .pub-body strong { color: var(--info-text); font-weight: 500; }
+
+  /* SUMMARY */
+  .summary-box { background: var(--bg2); border: 0.5px solid var(--border-md); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 22px; }
+  .sum-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
+  .sum-item label { display: block; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-3); font-family: var(--mono); margin-bottom: 3px; }
+  .sum-item .val { font-size: 13px; color: var(--text); font-weight: 400; }
+  .sum-item.full { grid-column: 1 / -1; }
+  .sum-item .val.mono { font-family: var(--mono); font-size: 11px; color: var(--text-2); word-break: break-all; }
+
+  /* TERMS */
+  .terms-scroll { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; max-height: 130px; overflow-y: auto; font-size: 11.5px; color: var(--text-2); line-height: 1.75; margin-bottom: 16px; font-family: var(--mono); }
+  .terms-scroll::-webkit-scrollbar { width: 4px; }
+  .terms-scroll::-webkit-scrollbar-track { background: transparent; }
+  .terms-scroll::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 2px; }
+
+  /* CHECKBOXES */
+  .check-card { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 0.5px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; cursor: pointer; transition: background 0.12s; background: var(--bg2); }
+  .check-card:hover { background: var(--bg3); }
+  .check-card input[type=checkbox] { width: 15px; height: 15px; margin-top: 2px; flex-shrink: 0; accent-color: var(--accent); cursor: pointer; }
+  .check-text { font-size: 13px; color: var(--text); line-height: 1.45; }
+  .check-text strong { color: var(--accent); font-weight: 500; }
+
+  /* NAV */
+  .nav-row { display: flex; align-items: center; justify-content: space-between; margin-top: 36px; padding-top: 24px; border-top: 0.5px solid var(--border); }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .step-of { font-size: 11px; color: var(--text-3); font-family: var(--mono); }
+
+  .btn-back { font-size: 12px; color: var(--text-2); background: transparent; border: 0.5px solid var(--border-md); border-radius: var(--radius); padding: 10px 22px; cursor: pointer; font-family: var(--font); transition: all 0.15s; letter-spacing: 0.03em; }
+  .btn-back:hover { border-color: var(--border-hi); color: var(--text); }
+
+  .btn-next { font-size: 12px; font-weight: 500; color: var(--bg); background: var(--text); border: none; border-radius: var(--radius); padding: 10px 28px; cursor: pointer; font-family: var(--font); letter-spacing: 0.04em; transition: opacity 0.15s; }
+  .btn-next:hover { opacity: 0.82; }
+
+  .btn-submit { font-size: 12px; font-weight: 500; letter-spacing: 0.06em; color: #fff; background: linear-gradient(135deg, #6b5fff 0%, #9b6fff 100%); border: none; border-radius: var(--radius); padding: 10px 32px; cursor: pointer; font-family: var(--font); transition: opacity 0.15s; }
+  .btn-submit:hover { opacity: 0.88; }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* SUCCESS */
+  .success { display: none; text-align: center; padding: 60px 20px; animation: fadeUp 0.4s ease; }
+  .success.show { display: block; }
+  .success-ring { width: 56px; height: 56px; border-radius: 50%; border: 0.5px solid var(--success-bd); background: var(--success-bg); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+  .success-ring svg { stroke: var(--success); }
+  .success-title { font-size: 22px; font-weight: 200; letter-spacing: -0.02em; color: var(--text); margin-bottom: 8px; }
+  .success-sub { font-size: 13px; color: var(--text-2); line-height: 1.7; margin-bottom: 20px; max-width: 400px; margin-left: auto; margin-right: auto; }
+  .ref-pill { display: inline-block; font-size: 12px; font-family: var(--mono); color: var(--accent); background: var(--accent-bg); border: 0.5px solid var(--accent-bd); padding: 6px 16px; border-radius: 20px; margin-bottom: 28px; letter-spacing: 0.08em; }
+
+  .btn-reset { font-size: 12px; color: var(--text-2); background: transparent; border: 0.5px solid var(--border-md); border-radius: var(--radius); padding: 9px 20px; cursor: pointer; font-family: var(--font); letter-spacing: 0.03em; transition: all 0.15s; }
+  .btn-reset:hover { border-color: var(--border-hi); color: var(--text); }
+
+  /* GLOBAL ERROR BANNER */
+  .submit-error { display: none; background: var(--danger-bg); border: 0.5px solid var(--danger); border-radius: var(--radius); padding: 10px 14px; font-size: 12px; color: var(--danger); margin-top: 12px; font-family: var(--mono); }
+  .submit-error.show { display: block; }
+
+  /* FOOTER */
+  .form-footer { margin-top: 60px; padding-top: 24px; border-top: 0.5px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .form-footer-l { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-3); font-family: var(--mono); }
+  .form-footer-r { font-size: 10px; color: var(--text-3); font-family: var(--mono); }
+
+  /* RESPONSIVE */
+  @media (max-width: 560px) {
+    .wrap { padding: 32px 16px 60px; }
+    .hdr-title { font-size: 24px; }
+    .field-row, .field-row3 { grid-template-columns: 1fr; }
+    .genre-wrap { grid-template-columns: repeat(3, 1fr); }
+    .sum-grid { grid-template-columns: 1fr; }
+    .prog-step { font-size: 10px; padding: 8px 4px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-tag">Mixxea Records &nbsp;&middot;&nbsp; Official Submission</div>
+    <div class="hdr-title"><strong>Submit</strong> your track</div>
+    <div class="hdr-sub">4 steps &middot; 5 minutes &middot; A&amp;R review within 4&ndash;6 weeks. Unreleased, exclusive material preferred.</div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="prog-wrap">
+    <div class="prog-track">
+      <div class="prog-step active" id="ps1">1 &middot; You</div>
+      <div class="prog-step" id="ps2">2 &middot; Track</div>
+      <div class="prog-step" id="ps3">3 &middot; Publishing</div>
+      <div class="prog-step" id="ps4">4 &middot; Submit</div>
+    </div>
+    <div class="prog-line-wrap"><div class="prog-line-fill" id="progFill"></div></div>
+  </div>
+
+  <!-- FORM -->
+  <div id="mainForm">
+
+    <!-- PAGE 1 - ARTIST -->
+    <div class="page active" id="p1">
+      <div class="page-hd">
+        <div class="page-title">About you</div>
+        <div class="page-sub">Basic info so we can contact you and register the release correctly.</div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label class="lbl">Artist name <span class="req">*</span></label>
+          <input type="text" id="artistName" placeholder="Your stage name" autocomplete="off">
+          <div class="err-msg" id="e-artistName">Required</div>
+        </div>
+        <div>
+          <label class="lbl">Full legal name <span class="req">*</span></label>
+          <input type="text" id="realName" placeholder="For contracts" autocomplete="name">
+          <div class="err-msg" id="e-realName">Required for contracts</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Email address <span class="req">*</span></label>
+        <input type="email" id="email" placeholder="your@email.com" autocomplete="email">
+        <div class="err-msg" id="e-email">Enter a valid email address</div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label class="lbl">Country <span class="req">*</span></label>
+          <select id="country">
+            <option value="">Select country...</option>
+            <option>Germany</option><option>United Kingdom</option><option>France</option>
+            <option>Netherlands</option><option>Spain</option><option>Italy</option>
+            <option>Portugal</option><option>Belgium</option><option>Romania</option>
+            <option>United States</option><option>Canada</option><option>Australia</option>
+            <option>Brazil</option><option>Argentina</option><option>South Africa</option>
+            <option>Japan</option><option>South Korea</option><option>Other</option>
+          </select>
+          <div class="err-msg" id="e-country">Required</div>
+        </div>
+        <div>
+          <label class="lbl">PRO membership <span class="opt">(optional)</span></label>
+          <select id="pro">
+            <option value="None">None / not registered</option>
+            <option>ASCAP</option><option>BMI</option><option>SESAC</option>
+            <option>PPL / PRS</option><option>SACEM</option><option>GEMA</option>
+            <option>SIAE</option><option>UCMR-ADA (Romania)</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Spotify or SoundCloud profile <span class="req">*</span></label>
+        <input type="url" id="social" placeholder="https://open.spotify.com/artist/..." autocomplete="off">
+        <div class="hint">Any streaming or social link works &mdash; Beatport, Instagram, etc.</div>
+        <div class="err-msg" id="e-social">Enter a valid URL (include https://)</div>
+      </div>
+
+      <div class="nav-row">
+        <div class="step-of">Step 1 of 4</div>
+        <div class="nav-right">
+          <button class="btn-next" onclick="goTo(2)">Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 2 - TRACK -->
+    <div class="page" id="p2">
+      <div class="page-hd">
+        <div class="page-title">About the track</div>
+        <div class="page-sub">Tell us exactly what you&rsquo;re sending. A&amp;R reads every word of your description.</div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label class="lbl">Track title <span class="req">*</span></label>
+          <input type="text" id="trackTitle" placeholder="Official release title" autocomplete="off">
+          <div class="err-msg" id="e-trackTitle">Required</div>
+        </div>
+        <div>
+          <label class="lbl">Version</label>
+          <select id="version">
+            <option>Original Mix</option><option>Extended Mix</option>
+            <option>Radio Edit</option><option>Remix</option>
+            <option>Dub Mix</option><option>Instrumental</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Genre <span class="req">*</span></label>
+        <div class="genre-wrap" id="genreWrap">
+          <button type="button" class="genre-btn" onclick="pickGenre(this,'Techno')">Techno</button>
+          <button type="button" class="genre-btn" onclick="pickGenre(this,'Deep House')">Deep House</button>
+          <button type="button" class="genre-btn" onclick="pickGenre(this,'Melodic H&T')">Melodic H&amp;T</button>
+          <button type="button" class="genre-btn" onclick="pickGenre(this,'Afro / Organic')">Afro / Organic</button>
+          <button type="button" class="genre-btn" onclick="pickGenre(this,'Trance / Prog')">Trance / Prog</button>
+          <button type="button" class="genre-btn" onclick="pickGenre(this,'EDM / Big Room')">EDM / Big Room</button>
+          <button type="button" class="genre-btn" onclick="pickGenre(this,'Minimal')">Minimal</button>
+          <button type="button" class="genre-btn" onclick="pickGenre(this,'Ambient')">Ambient</button>
+          <button type="button" class="genre-btn" onclick="pickGenre(this,'Drum & Bass')">Drum &amp; Bass</button>
+          <button type="button" class="genre-btn" onclick="pickGenre(this,'Other')">Other</button>
+        </div>
+        <input type="hidden" id="genre">
+        <div class="err-msg" id="e-genre">Please select a genre</div>
+      </div>
+
+      <div class="field-row3">
+        <div>
+          <label class="lbl">BPM <span class="req">*</span></label>
+          <input type="number" id="bpm" placeholder="e.g. 128" min="60" max="220">
+          <div class="err-msg" id="e-bpm">60&ndash;220</div>
+        </div>
+        <div>
+          <label class="lbl">Key <span class="opt">(optional)</span></label>
+          <select id="musKey">
+            <option value="">Unknown</option>
+            <option>A Major</option><option>A Minor</option><option>A# / Bb Major</option><option>A# / Bb Minor</option>
+            <option>B Major</option><option>B Minor</option><option>C Major</option><option>C Minor</option>
+            <option>C# / Db Major</option><option>C# / Db Minor</option><option>D Major</option><option>D Minor</option>
+            <option>D# / Eb Major</option><option>D# / Eb Minor</option><option>E Major</option><option>E Minor</option>
+            <option>F Major</option><option>F Minor</option><option>F# / Gb Major</option><option>F# / Gb Minor</option>
+            <option>G Major</option><option>G Minor</option><option>G# / Ab Major</option><option>G# / Ab Minor</option>
+          </select>
+        </div>
+        <div>
+          <label class="lbl">Format</label>
+          <select id="fileFormat">
+            <option>WAV 24-bit 44.1 kHz</option>
+            <option>WAV 24-bit 48 kHz</option>
+            <option>AIFF</option>
+            <option>MP3 320 kbps (demo)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Download link <span class="req">*</span></label>
+        <input type="url" id="downloadLink" placeholder="WeTransfer / Dropbox / Google Drive &mdash; https://..." autocomplete="off">
+        <div class="hint">WAV 24-bit preferred &middot; Link must stay active for 30+ days &middot; Do not send via email</div>
+        <div class="err-msg" id="e-downloadLink">Enter a valid download URL (include https://)</div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Describe the track <span class="req">*</span></label>
+        <textarea id="description" placeholder="Mood, energy, story, influences. What makes this track different? What will it do on a dancefloor or a late-night drive?"></textarea>
+        <div class="err-msg" id="e-description">Please add at least a short description</div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Previously released? <span class="req">*</span></label>
+        <div class="radio-group">
+          <label class="radio-card sel" id="rc-no">
+            <input type="radio" name="prevRel" value="no" checked onchange="togglePrev(false)">
+            <div><div class="rc-main">No &mdash; unreleased &amp; exclusive</div></div>
+          </label>
+          <label class="radio-card" id="rc-yes">
+            <input type="radio" name="prevRel" value="yes" onchange="togglePrev(true)">
+            <div><div class="rc-main">Yes &mdash; previously released</div><div class="rc-sub">Please specify below</div></div>
+          </label>
+        </div>
+        <div id="prevDetail" style="display:none; margin-top:8px">
+          <input type="text" id="prevWhere" placeholder="Where and when? (label name, store, date)">
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn-back" onclick="goTo(1)">&larr; Back</button>
+        <div class="nav-right">
+          <div class="step-of">Step 2 of 4</div>
+          <button class="btn-next" onclick="goTo(3)">Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 3 - PUBLISHING -->
+    <div class="page" id="p3">
+      <div class="page-hd">
+        <div class="page-title">Publishing &amp; rights</div>
+        <div class="page-sub">This determines how your royalties are collected and paid. Read carefully.</div>
+      </div>
+
+      <div class="pub-box">
+        <div class="pub-badge">Mixxea Publishing</div>
+        <div class="pub-title">Publishing administered by Mixxea Publishing</div>
+        <div class="pub-body">
+          All releases on Mixxea Records are published under <strong>Mixxea Publishing</strong>. As your publishing administrator, Mixxea Publishing registers your compositions with all major PROs worldwide and collects mechanical and performance royalties on your behalf &mdash; paid to you quarterly. <strong>You retain full compositional ownership.</strong> Mixxea Publishing is the administrator, not the copyright owner.
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Writers &amp; producers <span class="req">*</span></label>
+        <div class="radio-group">
+          <label class="radio-card sel" id="rc-sole">
+            <input type="radio" name="writers" value="sole" checked onchange="toggleWriters('sole')">
+            <div><div class="rc-main">Just me &mdash; sole writer &amp; producer</div><div class="rc-sub">100% ownership, registered under Mixxea Publishing</div></div>
+          </label>
+          <label class="radio-card" id="rc-collab">
+            <input type="radio" name="writers" value="collab" onchange="toggleWriters('collab')">
+            <div><div class="rc-main">Multiple writers or collaborators</div><div class="rc-sub">List everyone with their split percentage below</div></div>
+          </label>
+        </div>
+        <div id="collabSection" style="display:none; margin-top:10px">
+          <textarea id="cowriters" placeholder="List each co-writer, their role, and their % split.&#10;&#10;Example:&#10;John Smith — co-writer / producer — 30%&#10;Maria Lopez — co-writer / lyricist — 20%&#10;&#10;All splits must total 100%." style="min-height:110px"></textarea>
+          <div class="hint">Each co-writer will be registered individually with Mixxea Publishing and their PRO.</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Publishing arrangement</label>
+        <div class="radio-group">
+          <label class="radio-card sel" id="rc-pub-mxr">
+            <input type="radio" name="pubAgree" value="mixxea" checked onchange="togglePubArrange('mixxea')">
+            <div>
+              <div class="rc-main">Mixxea Publishing &mdash; full administration</div>
+              <div class="rc-sub">Recommended. We handle all global collection and registration on your behalf.</div>
+            </div>
+          </label>
+          <label class="radio-card" id="rc-pub-own">
+            <input type="radio" name="pubAgree" value="own" onchange="togglePubArrange('own')">
+            <div>
+              <div class="rc-main">I already have my own publisher</div>
+              <div class="rc-sub">Co-publishing terms will be negotiated before signing. Please specify below.</div>
+            </div>
+          </label>
+        </div>
+        <div id="ownPubDetail" style="display:none; margin-top:8px">
+          <input type="text" id="ownPubName" placeholder="Your publisher name and PRO affiliation (e.g. XYZ Music / ASCAP)">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl">Samples used?</label>
+        <div class="radio-group">
+          <label class="radio-card sel" id="rc-s-none">
+            <input type="radio" name="samples" value="none" checked onchange="syncRadioCards('samples')">
+            <div><div class="rc-main">No samples &mdash; 100% original</div></div>
+          </label>
+          <label class="radio-card" id="rc-s-cleared">
+            <input type="radio" name="samples" value="cleared" onchange="syncRadioCards('samples')">
+            <div><div class="rc-main">Samples used &mdash; all cleared &amp; licensed</div><div class="rc-sub">Clearance documentation required on signing</div></div>
+          </label>
+          <label class="radio-card" id="rc-s-uncleared">
+            <input type="radio" name="samples" value="uncleared" onchange="syncRadioCards('samples')">
+            <div><div class="rc-main">Samples used &mdash; not yet cleared</div><div class="rc-sub">Cannot release until cleared. Label can advise on the process.</div></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn-back" onclick="goTo(2)">&larr; Back</button>
+        <div class="nav-right">
+          <div class="step-of">Step 3 of 4</div>
+          <button class="btn-next" onclick="goTo(4)">Next &rarr;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE 4 - REVIEW & SUBMIT -->
+    <div class="page" id="p4">
+      <div class="page-hd">
+        <div class="page-title">Review &amp; submit</div>
+        <div class="page-sub">Check your details, read the terms, and submit.</div>
+      </div>
+
+      <div class="summary-box" id="summaryBox">
+        <div class="sum-grid" id="sumGrid"></div>
+      </div>
+
+      <div class="terms-scroll">
+        By submitting this form you confirm: (1) You are the sole or co-owner of all rights to this recording and composition, or have obtained all necessary permissions. (2) The track does not infringe on any third-party copyright, trademark, or intellectual property rights. (3) Submission does not guarantee a release offer &mdash; A&amp;R review takes 4&ndash;6 weeks. (4) Mixxea Records will not release or distribute your track without a signed agreement. (5) Publishing will be administered by Mixxea Publishing for the duration of the label deal. Mechanical and performance royalties will be collected worldwide and paid to you quarterly. You retain full compositional ownership &mdash; Mixxea Publishing is the administrator only. (6) If you hold an existing publishing deal, co-publishing terms will be negotiated separately before any agreement is signed. (7) Providing false or misleading information on this form constitutes grounds for immediate termination of any deal. (8) Mixxea Records reserves the right to decline any submission without explanation. (9) The submitted track will not be shared with any third party without your written consent.
+      </div>
+
+      <label class="check-card">
+        <input type="checkbox" id="termsAccept">
+        <div class="check-text">I have read and agree to the submission terms, including publishing administration by <strong>Mixxea Publishing</strong></div>
+      </label>
+      <div class="err-msg" id="e-terms" style="margin-bottom:10px">You must agree to continue</div>
+
+      <label class="check-card">
+        <input type="checkbox" id="ownerConfirm">
+        <div class="check-text">I confirm I am the rightful owner or authorised representative of this recording</div>
+      </label>
+      <div class="err-msg" id="e-owner" style="margin-bottom:10px">Required</div>
+
+      <label class="check-card">
+        <input type="checkbox" id="infoConfirm">
+        <div class="check-text">All information I have provided is accurate and complete</div>
+      </label>
+      <div class="err-msg" id="e-info">Required</div>
+
+      <div class="submit-error" id="submit-error"></div>
+
+      <div class="nav-row">
+        <button class="btn-back" onclick="goTo(3)">&larr; Back</button>
+        <div class="nav-right">
+          <div class="step-of">Step 4 of 4</div>
+          <button class="btn-submit" id="submitBtn" onclick="submitForm()">Submit track</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /mainForm -->
+
+  <!-- SUCCESS -->
+  <div class="success" id="successCard">
+    <div class="success-ring">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="4 11 9 16 18 6"/>
+      </svg>
+    </div>
+    <div class="success-title">Submission received</div>
+    <div class="success-sub">
+      Thank you for submitting to Mixxea Records.<br>
+      A&amp;R will review your track and respond within 4&ndash;6 weeks.<br>
+      Save your reference number below.
+    </div>
+    <div class="ref-pill" id="refPill">REF: MXX-0000000</div>
+    <br>
+    <button class="btn-reset" onclick="resetAll()">Submit another track</button>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="form-footer">
+    <div class="form-footer-l">Mixxea Records &nbsp;&middot;&nbsp; Mixxea Publishing &nbsp;&middot;&nbsp; &copy; 2026</div>
+    <div class="form-footer-r">All rights reserved</div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+  let currentPage = 1;
+  let selectedGenre = '';
+
+  const ge = id => document.getElementById(id);
+
+  function isUrl(v) {
+    try { new URL(v); return v.startsWith('http'); } catch { return false; }
+  }
+
+  function isEmail(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  }
+
+  function setErr(fieldId, bad) {
+    const field = ge(fieldId);
+    const msg   = ge('e-' + fieldId);
+    if (field) field.classList.toggle('err', bad);
+    if (msg)   msg.classList.toggle('show', bad);
+    return bad;
+  }
+
+  function updateProgress(n) {
+    const pct = ((n - 1) / 3) * 100;
+    ge('progFill').style.width = pct + '%';
+    for (let i = 1; i <= 4; i++) {
+      const ps = ge('ps' + i);
+      ps.classList.remove('active', 'done');
+      if (i === n)  ps.classList.add('active');
+      if (i < n)    ps.classList.add('done');
+    }
+  }
+
+  function goTo(n) {
+    if (n > currentPage && !validatePage(currentPage)) return;
+    document.querySelectorAll('.page').forEach((p, i) => p.classList.toggle('active', i === n - 1));
+    currentPage = n;
+    updateProgress(n);
+    if (n === 4) buildSummary();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function validatePage(n) {
+    let ok = true;
+    if (n === 1) {
+      if (setErr('artistName',   !ge('artistName').value.trim()))  ok = false;
+      if (setErr('realName',     !ge('realName').value.trim()))    ok = false;
+      if (setErr('email',        !isEmail(ge('email').value)))     ok = false;
+      if (setErr('country',      !ge('country').value))            ok = false;
+      if (setErr('social',       !isUrl(ge('social').value)))      ok = false;
+    }
+    if (n === 2) {
+      if (setErr('trackTitle',   !ge('trackTitle').value.trim()))  ok = false;
+      if (setErr('genre',        !selectedGenre))                  ok = false;
+      const bv = parseInt(ge('bpm').value);
+      if (setErr('bpm', isNaN(bv) || bv < 60 || bv > 220))       ok = false;
+      if (setErr('downloadLink', !isUrl(ge('downloadLink').value)))ok = false;
+      if (setErr('description',  ge('description').value.trim().length < 15)) ok = false;
+    }
+    return ok;
+  }
+
+  function pickGenre(btn, genre) {
+    document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('sel'));
+    btn.classList.add('sel');
+    selectedGenre = genre;
+    ge('genre').value = genre;
+    setErr('genre', false);
+  }
+
+  function togglePrev(show) {
+    ge('prevDetail').style.display = show ? 'block' : 'none';
+    ge('rc-no').classList.toggle('sel', !show);
+    ge('rc-yes').classList.toggle('sel', show);
+  }
+
+  function toggleWriters(type) {
+    ge('collabSection').style.display = type === 'collab' ? 'block' : 'none';
+    ge('rc-sole').classList.toggle('sel', type === 'sole');
+    ge('rc-collab').classList.toggle('sel', type === 'collab');
+  }
+
+  function togglePubArrange(type) {
+    ge('ownPubDetail').style.display = type === 'own' ? 'block' : 'none';
+    ge('rc-pub-mxr').classList.toggle('sel', type === 'mixxea');
+    ge('rc-pub-own').classList.toggle('sel', type === 'own');
+  }
+
+  function syncRadioCards(name) {
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+      r.closest('.radio-card').classList.toggle('sel', r.checked);
+    });
+  }
+
+  function buildSummary() {
+    const artist  = ge('artistName').value   || '—';
+    const legal   = ge('realName').value     || '—';
+    const track   = ge('trackTitle').value   || '—';
+    const version = ge('version').value      || '—';
+    const bpm     = ge('bpm').value          || '—';
+    const key     = ge('musKey').value       || 'Unknown';
+    const fmt     = ge('fileFormat').value   || '—';
+    const link    = ge('downloadLink').value || '—';
+    const pub     = document.querySelector('input[name="pubAgree"]:checked')?.value === 'own'
+                    ? 'Own publisher (co-pub TBD)' : 'Mixxea Publishing';
+    const writers = document.querySelector('input[name="writers"]:checked')?.value === 'collab'
+                    ? 'Multiple writers' : 'Sole author';
+    const sampMap = { none:'No samples', cleared:'Samples cleared', uncleared:'Samples uncleared' };
+    const samples = sampMap[document.querySelector('input[name="samples"]:checked')?.value] || '—';
+
+    ge('sumGrid').innerHTML = `
+      <div class="sum-item"><label>Artist</label><div class="val">${artist}</div></div>
+      <div class="sum-item"><label>Legal name</label><div class="val">${legal}</div></div>
+      <div class="sum-item"><label>Track</label><div class="val">${track} &mdash; ${version}</div></div>
+      <div class="sum-item"><label>Genre / BPM</label><div class="val">${selectedGenre || '—'} &middot; ${bpm} BPM</div></div>
+      <div class="sum-item"><label>Key / Format</label><div class="val">${key} &middot; ${fmt}</div></div>
+      <div class="sum-item"><label>Publishing</label><div class="val">${pub}</div></div>
+      <div class="sum-item"><label>Writers</label><div class="val">${writers}</div></div>
+      <div class="sum-item"><label>Samples</label><div class="val">${samples}</div></div>
+      <div class="sum-item full"><label>Download link</label><div class="val mono">${link}</div></div>
+    `;
+  }
+
+  function submitForm() {
+    let ok = true;
+    if (!ge('termsAccept').checked) { setErr('terms', true);  ok = false; } else setErr('terms', false);
+    if (!ge('ownerConfirm').checked){ setErr('owner', true);  ok = false; } else setErr('owner', false);
+    if (!ge('infoConfirm').checked) { setErr('info',  true);  ok = false; } else setErr('info',  false);
+    if (!ok) return;
+
+    const btn = ge('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    ge('submit-error').classList.remove('show');
+
+    const payload = {
+      artistName:   ge('artistName').value.trim(),
+      realName:     ge('realName').value.trim(),
+      email:        ge('email').value.trim().toLowerCase(),
+      country:      ge('country').value,
+      pro:          ge('pro').value,
+      social:       ge('social').value.trim(),
+      trackTitle:   ge('trackTitle').value.trim(),
+      version:      ge('version').value,
+      genre:        selectedGenre,
+      bpm:          ge('bpm').value,
+      musKey:       ge('musKey').value,
+      fileFormat:   ge('fileFormat').value,
+      downloadLink: ge('downloadLink').value.trim(),
+      description:  ge('description').value.trim(),
+      prevReleased: document.querySelector('input[name="prevRel"]:checked')?.value || 'no',
+      prevWhere:    ge('prevWhere').value.trim(),
+      writers:      document.querySelector('input[name="writers"]:checked')?.value || 'sole',
+      cowriters:    ge('cowriters').value.trim(),
+      pubAgree:     document.querySelector('input[name="pubAgree"]:checked')?.value || 'mixxea',
+      ownPubName:   ge('ownPubName').value.trim(),
+      samples:      document.querySelector('input[name="samples"]:checked')?.value || 'none',
+    };
+
+    fetch('/api/demos/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success || data.id) {
+        showSuccess(data.id);
+      } else {
+        throw new Error(data.error || 'Submission failed. Please try again.');
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.textContent = 'Submit track';
+      const errEl = ge('submit-error');
+      errEl.textContent = err.message;
+      errEl.classList.add('show');
+    });
+  }
+
+  function showSuccess(id) {
+    const ref = id ? 'MXX-' + String(id).slice(-7).toUpperCase() : 'MXX-' + Date.now().toString().slice(-7);
+    ge('refPill').textContent = 'REF: ' + ref;
+    ge('mainForm').style.display = 'none';
+    ge('successCard').classList.add('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function resetAll() {
+    document.querySelectorAll('input[type=text], input[type=email], input[type=url], input[type=number], textarea')
+      .forEach(i => i.value = '');
+    document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+    document.querySelectorAll('input[type=checkbox]').forEach(c => c.checked = false);
+    document.querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+    document.querySelectorAll('.genre-btn').forEach(b => b.classList.remove('sel'));
+    document.querySelectorAll('.err').forEach(e => e.classList.remove('err'));
+    document.querySelectorAll('.err-msg').forEach(e => e.classList.remove('show'));
+    document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('sel'));
+    ge('rc-no').classList.add('sel');
+    ge('rc-sole').classList.add('sel');
+    ge('rc-pub-mxr').classList.add('sel');
+    ge('rc-s-none').classList.add('sel');
+    ge('prevDetail').style.display    = 'none';
+    ge('collabSection').style.display = 'none';
+    ge('ownPubDetail').style.display  = 'none';
+    ge('submit-error').classList.remove('show');
+    selectedGenre = '';
+    ge('mainForm').style.display = 'block';
+    ge('successCard').classList.remove('show');
+    goTo(1);
+  }
+</script>
+
+</body>
+</html>
