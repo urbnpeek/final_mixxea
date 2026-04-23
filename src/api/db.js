@@ -134,7 +134,7 @@ async function get(collection) {
       await supabaseSet(collection, seed);
       return seed;
     } catch (e) {
-      console.error('[DB] Supabase get failed, using local fallback:', e.message);
+      console.error('[DB] Supabase get failed, using local fallback | status:', e.status, '| msg:', e.message, '| payload:', JSON.stringify(e.payload));
       return localGet(collection);
     }
   }
@@ -147,7 +147,7 @@ async function set(collection, data) {
       await supabaseSet(collection, data);
       return;
     } catch (e) {
-      console.error('[DB] Supabase set failed, using local fallback:', e.message);
+      console.error('[DB] Supabase set failed, using local fallback | status:', e.status, '| msg:', e.message, '| payload:', JSON.stringify(e.payload));
     }
   }
   localSet(collection, data);
