@@ -20,7 +20,14 @@ async function uploadFile(file, folder) {
       token: process.env.BLOB_READ_WRITE_TOKEN,
       contentType: file.mimetype
     });
+    console.log('[UPLOAD] Blob upload ok:', url);
     return url;
+  }
+
+  // In production without Blob token, log clearly and return empty so it's obvious
+  if (process.env.NODE_ENV === 'production') {
+    console.error('[UPLOAD] BLOB_READ_WRITE_TOKEN not set — file upload skipped');
+    return '';
   }
 
   // Local dev — return a path (file won't persist but won't crash)

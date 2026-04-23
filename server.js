@@ -93,6 +93,20 @@ app.use('/api/promoters',    require('./src/api/promoters'));
 app.use('/api/news',         require('./src/api/news'));
 app.use('/api/supabase',     require('./src/api/supabase'));
 
+// Diagnostic: check Blob storage connectivity
+app.get('/api/blob-status', async (req, res) => {
+  const token = process.env.BLOB_READ_WRITE_TOKEN || '';
+  if (!token) return res.json({ configured: false, reason: 'BLOB_READ_WRITE_TOKEN not set' });
+  try {
+    const { put, del } = require('@vercel/blob');
+    const { url } = await put('__ping__/test.txt', 'ok', { access: 'public', token });
+    await del(url, { token });
+    res.json({ configured: true, tokenStart: token.slice(0, 20) + '...', uploadOk: true });
+  } catch (e) {
+    res.json({ configured: true, tokenStart: token.slice(0, 20) + '...', uploadOk: false, error: e.message });
+  }
+});
+
 // Diagnostic: check Redis/KV connectivity
 app.get('/api/db-status', async (req, res) => {
   const { isRedisConfigured, getRedisConfig } = require('./src/api/db');
