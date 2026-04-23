@@ -35,7 +35,7 @@ const cspDirectives = {
   scriptSrcAttr: ["'unsafe-inline'"],
   styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
   fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
-  imgSrc: ["'self'", 'data:', 'https:'],
+  imgSrc: ["'self'", 'data:', 'https:', 'https://*.public.blob.vercel-storage.com'],
   mediaSrc: ["'self'", 'blob:', 'data:', 'https:'],
   connectSrc: ["'self'"],
   objectSrc: ["'none'"],

@@ -3,9 +3,9 @@
  */
 const express = require('express');
 const multer  = require('multer');
-const path    = require('path');
 const { v4: uuid } = require('uuid');
 const db      = require('./db');
+const { uploadFile } = require('./upload');
 const { requireAdmin } = require('./middleware');
 const router  = express.Router();
 
@@ -21,7 +21,8 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', requireAdmin, upload.single('photo'), async (req, res) => {
   const artists = await db.get('artists');
-  const artist  = { id: uuid(), ...req.body, photo: req.file ? `/uploads/artwork/${uuid()}${path.extname(req.file.originalname)}` : '', createdAt: new Date().toISOString() };
+  const photoUrl = await uploadFile(req.file, 'artists');
+  const artist  = { id: uuid(), ...req.body, photo: photoUrl, createdAt: new Date().toISOString() };
   artists.push(artist);
   await db.set('artists', artists);
   res.status(201).json(artist);
@@ -31,7 +32,8 @@ router.put('/:id', requireAdmin, upload.single('photo'), async (req, res) => {
   const artists = await db.get('artists');
   const idx     = artists.findIndex(a => a.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
-  artists[idx]  = { ...artists[idx], ...req.body, ...(req.file ? { photo: `/uploads/artwork/${uuid()}${path.extname(req.file.originalname)}` } : {}), updatedAt: new Date().toISOString() };
+  const photoUrl = req.file ? await uploadFile(req.file, 'artists') : null;
+  artists[idx]  = { ...artists[idx], ...req.body, ...(photoUrl ? { photo: photoUrl } : {}), updatedAt: new Date().toISOString() };
   await db.set('artists', artists);
   res.json(artists[idx]);
 });

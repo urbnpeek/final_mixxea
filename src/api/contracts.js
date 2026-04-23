@@ -1,8 +1,8 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
 const { v4: uuid } = require('uuid');
 const db = require('./db');
+const { uploadFile } = require('./upload');
 const { requireAdmin } = require('./middleware');
 const router = express.Router();
 
@@ -20,7 +20,7 @@ router.post('/', requireAdmin, upload.single('file'), async (req, res) => {
     expiresAt: req.body.expiresAt || '',
     notes:     req.body.notes     || '',
     status:    req.body.status    || 'active',
-    file: req.file ? `/uploads/contracts/${uuid()}${path.extname(req.file.originalname)}` : '',
+    file: await uploadFile(req.file, 'contracts'),
     createdAt: new Date().toISOString()
   };
   items.unshift(item);
@@ -35,7 +35,7 @@ router.put('/:id', requireAdmin, upload.single('file'), async (req, res) => {
   items[idx] = {
     ...items[idx],
     ...req.body,
-    ...(req.file ? { file: `/uploads/contracts/${uuid()}${path.extname(req.file.originalname)}` } : {}),
+    ...(req.file ? { file: await uploadFile(req.file, 'contracts') } : {}),
     updatedAt: new Date().toISOString()
   };
   await db.set('contracts', items);

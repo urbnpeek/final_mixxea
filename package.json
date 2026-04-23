@@ -21,6 +21,7 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
+    "@vercel/blob": "^2.3.3",
     "@vercel/kv": "^3.0.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",

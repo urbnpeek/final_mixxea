@@ -3,9 +3,8 @@
  */
 const express = require('express');
 const multer  = require('multer');
-const path    = require('path');
-const { v4: uuid } = require('uuid');
 const db      = require('./db');
+const { uploadFile } = require('./upload');
 const { requireAdmin } = require('./middleware');
 const router  = express.Router();
 
@@ -32,6 +31,11 @@ router.get('/:id', async (req, res) => {
 router.post('/', requireAdmin, upload.fields([{ name:'artwork',max:1 },{ name:'audio',max:1 }]), async (req, res) => {
   const releases = await db.get('releases');
   const files    = req.files || {};
+  const [artworkUrl, audioUrl] = await Promise.all([
+    uploadFile(files.artwork?.[0],  'artwork'),
+    uploadFile(files.audio?.[0],    'audio'),
+  ]);
+  const { v4: uuid } = require('uuid');
   const release  = {
     id:           uuid(),
     title:        req.body.title || '',
@@ -42,8 +46,8 @@ router.post('/', requireAdmin, upload.fields([{ name:'artwork',max:1 },{ name:'a
     date:         req.body.date || '',
     status:       req.body.status || 'draft',
     description:  req.body.description || '',
-    artwork:      files.artwork   ? `/uploads/artwork/${uuid()}${path.extname(files.artwork[0].originalname)}`  : '',
-    audioPreview: files.audio     ? `/uploads/audio/${uuid()}${path.extname(files.audio[0].originalname)}`      : '',
+    artwork:      artworkUrl,
+    audioPreview: audioUrl,
     spotify:      req.body.spotify     || '',
     beatport:     req.body.beatport    || '',
     apple:        req.body.apple       || '',
@@ -61,12 +65,16 @@ router.put('/:id', requireAdmin, upload.fields([{ name:'artwork',max:1 },{ name:
   const idx      = releases.findIndex(r => r.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
   const files    = req.files || {};
+  const [artworkUrl, audioUrl] = await Promise.all([
+    files.artwork?.[0] ? uploadFile(files.artwork[0], 'artwork') : Promise.resolve(null),
+    files.audio?.[0]   ? uploadFile(files.audio[0],   'audio')   : Promise.resolve(null),
+  ]);
   releases[idx]  = {
     ...releases[idx],
     ...req.body,
     bpm: parseInt(req.body.bpm) || releases[idx].bpm,
-    ...(files.artwork  ? { artwork:      `/uploads/artwork/${uuid()}${path.extname(files.artwork[0].originalname)}` }  : {}),
-    ...(files.audio    ? { audioPreview: `/uploads/audio/${uuid()}${path.extname(files.audio[0].originalname)}` }      : {}),
+    ...(artworkUrl ? { artwork:      artworkUrl } : {}),
+    ...(audioUrl   ? { audioPreview: audioUrl   } : {}),
     updatedAt: new Date().toISOString()
   };
   await db.set('releases', releases);

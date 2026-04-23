@@ -4,9 +4,9 @@
  */
 const express = require('express');
 const multer  = require('multer');
-const path    = require('path');
 const { v4: uuid } = require('uuid');
 const db      = require('./db');
+const { uploadFile } = require('./upload');
 const mailer  = require('./mailer');
 const { requireAdmin } = require('./middleware');
 const { getAppUrl }    = require('./appUrl');
@@ -66,7 +66,7 @@ router.post('/submit', maybeUpload, async (req, res) => {
       // Legacy compat
       notes:        req.body.notes        || req.body.description || '',
       soundcloudLink: req.body.soundcloudLink || req.body.social || '',
-      file:         req.file ? `/uploads/audio/${uuid()}${path.extname(req.file.originalname)}` : '',
+      file:         await uploadFile(req.file, 'audio'),
       submittedAt:  new Date().toISOString(),
       status:       'new',
     };
