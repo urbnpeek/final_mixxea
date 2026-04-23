@@ -1,14 +1,18 @@
 ﻿const DEFAULT_SCHEMA = process.env.SUPABASE_DB_SCHEMA || 'public';
 
+// Anon key is the public client-side key — safe to include as a fallback.
+const FALLBACK_URL      = 'https://cskhkzscjsgkzghdmyfo.supabase.co';
+const FALLBACK_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNza2hrenNjanNna3pnaGRteWZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NTIxNTUsImV4cCI6MjA5MTQyODE1NX0.q1sf2J_Y3STzT6NEfT9q4YqnN_FM4aiyKVBfZczB_yg';
+
 function getSupabaseConfig() {
   return {
-    url: process.env.SUPABASE_URL || '',
-    anonKey: process.env.SUPABASE_ANON_KEY || '',
+    url:            process.env.SUPABASE_URL            || FALLBACK_URL,
+    anonKey:        process.env.SUPABASE_ANON_KEY       || FALLBACK_ANON_KEY,
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     schema: DEFAULT_SCHEMA,
     buckets: {
-      artwork: process.env.SUPABASE_STORAGE_ARTWORK_BUCKET || 'artwork',
-      audio: process.env.SUPABASE_STORAGE_AUDIO_BUCKET || 'audio',
+      artwork:   process.env.SUPABASE_STORAGE_ARTWORK_BUCKET   || 'artwork',
+      audio:     process.env.SUPABASE_STORAGE_AUDIO_BUCKET     || 'audio',
       contracts: process.env.SUPABASE_STORAGE_CONTRACTS_BUCKET || 'contracts'
     }
   };
