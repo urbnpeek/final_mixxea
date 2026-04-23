@@ -76,12 +76,14 @@ const DEFAULTS = {
 
 // ── Supabase helpers ──────────────────────────────────────────────────────────
 
+const useServiceRole = () => Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+
 async function supabaseGet(collection) {
   const result = await supabaseRequest({
     table: 'mixxea_data',
     method: 'GET',
     query: `key=eq.${encodeURIComponent(collection)}&select=value`,
-    serviceRole: true,
+    serviceRole: useServiceRole(),
   });
   if (result.data && result.data.length > 0) {
     return result.data[0].value;
@@ -94,7 +96,7 @@ async function supabaseSet(collection, data) {
     table: 'mixxea_data',
     method: 'POST',
     body: { key: collection, value: data, updated_at: new Date().toISOString() },
-    serviceRole: true,
+    serviceRole: useServiceRole(),
     headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
   });
 }

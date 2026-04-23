@@ -16,7 +16,7 @@ function getSupabaseConfig() {
 
 function isSupabaseConfigured() {
   const config = getSupabaseConfig();
-  return Boolean(config.url && config.anonKey && config.serviceRoleKey);
+  return Boolean(config.url && config.anonKey);
 }
 
 function buildRestUrl(table, query) {
