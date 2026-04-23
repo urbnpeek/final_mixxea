@@ -1,7 +1,9 @@
 /**
  * db.js — Async data store
- * Primary:  Vercel KV (Redis) — auto-configured when KV store is connected in Vercel dashboard
- * Fallback: local JSON files  — used in local dev when KV is not configured
+ * Primary:  Upstash Redis REST API — works with both Vercel native KV env vars
+ *           (KV_REST_API_URL / KV_REST_API_TOKEN) and Upstash marketplace env vars
+ *           (UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN)
+ * Fallback: local JSON files — used in local dev when Redis is not configured
  */
 
 const fs   = require('fs');
@@ -65,21 +67,46 @@ const DEFAULTS = {
   ]
 };
 
-// ── Vercel KV ─────────────────────────────────────────────────────────────────
+// ── Upstash Redis REST API ─────────────────────────────────────────────────────
+// Supports both naming conventions:
+//   Vercel native KV:      KV_REST_API_URL / KV_REST_API_TOKEN
+//   Upstash marketplace:   UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN
 
-function isKvConfigured() {
-  return Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+function getRedisConfig() {
+  return {
+    url:   process.env.KV_REST_API_URL        || process.env.UPSTASH_REDIS_REST_URL   || '',
+    token: process.env.KV_REST_API_TOKEN      || process.env.UPSTASH_REDIS_REST_TOKEN || '',
+  };
 }
 
-async function kvGet(collection) {
-  const { kv } = require('@vercel/kv');
-  const data = await kv.get('db:' + collection);
-  return data ?? null;
+function isRedisConfigured() {
+  const { url, token } = getRedisConfig();
+  return Boolean(url && token);
 }
 
-async function kvSet(collection, data) {
-  const { kv } = require('@vercel/kv');
-  await kv.set('db:' + collection, data);
+async function redisGet(collection) {
+  const { url, token } = getRedisConfig();
+  const key = 'db:' + collection;
+  const res = await fetch(`${url}/get/${encodeURIComponent(key)}`, {
+    headers: { Authorization: 'Bearer ' + token }
+  });
+  if (!res.ok) throw new Error('Redis GET failed: ' + res.status);
+  const json = await res.json();
+  if (json.result === null || json.result === undefined) return null;
+  try { return JSON.parse(json.result); } catch { return json.result; }
+}
+
+async function redisSet(collection, data) {
+  const { url, token } = getRedisConfig();
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer ' + token,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(['SET', 'db:' + collection, JSON.stringify(data)])
+  });
+  if (!res.ok) throw new Error('Redis SET failed: ' + res.status);
 }
 
 // ── Local file helpers ────────────────────────────────────────────────────────
@@ -105,15 +132,15 @@ function localSet(collection, data) {
 // ── Public API ────────────────────────────────────────────────────────────────
 
 async function get(collection) {
-  if (isKvConfigured()) {
+  if (isRedisConfigured()) {
     try {
-      const data = await kvGet(collection);
+      const data = await redisGet(collection);
       if (data !== null) return data;
       const seed = DEFAULTS[collection] ?? [];
-      await kvSet(collection, seed);
+      await redisSet(collection, seed);
       return seed;
     } catch (e) {
-      console.error('[DB] KV get failed:', e.message);
+      console.error('[DB] Redis get failed:', e.message);
       return localGet(collection);
     }
   }
@@ -121,15 +148,15 @@ async function get(collection) {
 }
 
 async function set(collection, data) {
-  if (isKvConfigured()) {
+  if (isRedisConfigured()) {
     try {
-      await kvSet(collection, data);
+      await redisSet(collection, data);
       return;
     } catch (e) {
-      console.error('[DB] KV set failed:', e.message);
+      console.error('[DB] Redis set failed:', e.message);
     }
   }
   localSet(collection, data);
 }
 
-module.exports = { get, set };
+module.exports = { get, set, isRedisConfigured, getRedisConfig };

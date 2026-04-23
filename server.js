@@ -93,6 +93,31 @@ app.use('/api/promoters',    require('./src/api/promoters'));
 app.use('/api/news',         require('./src/api/news'));
 app.use('/api/supabase',     require('./src/api/supabase'));
 
+// Diagnostic: check Redis/KV connectivity
+app.get('/api/db-status', async (req, res) => {
+  const { isRedisConfigured, getRedisConfig } = require('./src/api/db');
+  const cfg = getRedisConfig();
+  const configured = isRedisConfigured();
+  if (!configured) {
+    return res.json({ configured: false, urlPresent: Boolean(cfg.url), tokenPresent: Boolean(cfg.token) });
+  }
+  try {
+    const testKey = 'db:__ping__';
+    const setRes = await fetch(cfg.url, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + cfg.token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(['SET', testKey, 'ok'])
+    });
+    const getRes = await fetch(`${cfg.url}/get/${encodeURIComponent(testKey)}`, {
+      headers: { Authorization: 'Bearer ' + cfg.token }
+    });
+    const getJson = await getRes.json();
+    res.json({ configured: true, setStatus: setRes.status, getStatus: getRes.status, pingResult: getJson.result });
+  } catch (e) {
+    res.json({ configured: true, error: e.message });
+  }
+});
+
 // -- Serve SEO pages --
 const seoPageRoutes = new Map([
   ['/record-label',              'record-label.html'],
