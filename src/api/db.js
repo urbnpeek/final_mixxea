@@ -1,25 +1,16 @@
 /**
  * db.js — Async data store
- * Uses Supabase (mixxea_data table) when configured, falls back to local JSON files.
- *
- * Supabase table required:
- *   CREATE TABLE mixxea_data (
- *     key TEXT PRIMARY KEY,
- *     value JSONB NOT NULL,
- *     updated_at TIMESTAMPTZ DEFAULT NOW()
- *   );
- *   ALTER TABLE mixxea_data ENABLE ROW LEVEL SECURITY;
- *   -- service role key bypasses RLS, so no policy needed for server-side access
+ * Primary:  Vercel KV (Redis) — auto-configured when KV store is connected in Vercel dashboard
+ * Fallback: local JSON files  — used in local dev when KV is not configured
  */
 
 const fs   = require('fs');
 const path = require('path');
-const { supabaseRequest, isSupabaseConfigured } = require('../lib/supabase');
 
 const DATA_DIR = path.join(__dirname, '../../data');
 try {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-} catch (e) { /* read-only filesystem */ }
+} catch (e) {}
 
 const DEFAULTS = {
   releases: [
@@ -51,7 +42,7 @@ const DEFAULTS = {
     { id:'e2', date:'2025-05-24', venue:'Awakenings Festival', city:'Amsterdam', country:'NL', artist:'KRATOS, LYDA', type:'Festival',   ticketLink:'', fee:5000, status:'confirmed' },
     { id:'e3', date:'2025-06-15', venue:'Fabric London',       city:'London',    country:'UK', artist:'SOLV',         type:'Club Night', ticketLink:'', fee:0,    status:'hold' },
   ],
-  newsletter: { subscribers: [], campaigns: [] },
+  newsletter:    { subscribers: [], campaigns: [] },
   contactMessages: [],
   news: [
     { id:'n1', title:"KRATOS Drops Landmark 'Dark Matter' EP",    category:'Release News', author:'Mixxea Team', date:'2025-03-14', status:'published', body:'', image:'' },
@@ -74,31 +65,21 @@ const DEFAULTS = {
   ]
 };
 
-// ── Supabase helpers ──────────────────────────────────────────────────────────
+// ── Vercel KV ─────────────────────────────────────────────────────────────────
 
-const useServiceRole = () => Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
-
-async function supabaseGet(collection) {
-  const result = await supabaseRequest({
-    table: 'mixxea_data',
-    method: 'GET',
-    query: `key=eq.${encodeURIComponent(collection)}&select=value`,
-    serviceRole: useServiceRole(),
-  });
-  if (result.data && result.data.length > 0) {
-    return result.data[0].value;
-  }
-  return null; // not seeded yet
+function isKvConfigured() {
+  return Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 }
 
-async function supabaseSet(collection, data) {
-  await supabaseRequest({
-    table: 'mixxea_data',
-    method: 'POST',
-    body: { key: collection, value: data, updated_at: new Date().toISOString() },
-    serviceRole: useServiceRole(),
-    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-  });
+async function kvGet(collection) {
+  const { kv } = require('@vercel/kv');
+  const data = await kv.get('db:' + collection);
+  return data ?? null;
+}
+
+async function kvSet(collection, data) {
+  const { kv } = require('@vercel/kv');
+  await kv.set('db:' + collection, data);
 }
 
 // ── Local file helpers ────────────────────────────────────────────────────────
@@ -118,23 +99,21 @@ function localSet(collection, data) {
   try {
     const file = path.join(DATA_DIR, `${collection}.json`);
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
-  } catch (e) { /* read-only filesystem */ }
+  } catch (e) {}
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
 async function get(collection) {
-  if (isSupabaseConfigured()) {
+  if (isKvConfigured()) {
     try {
-      const data = await supabaseGet(collection);
+      const data = await kvGet(collection);
       if (data !== null) return data;
-      // Seed defaults into Supabase on first access
-      const def = DEFAULTS[collection];
-      const seed = def !== undefined ? def : (Array.isArray(DEFAULTS[collection]) ? [] : {});
-      await supabaseSet(collection, seed);
+      const seed = DEFAULTS[collection] ?? [];
+      await kvSet(collection, seed);
       return seed;
     } catch (e) {
-      console.error('[DB] Supabase get failed, using local fallback | status:', e.status, '| msg:', e.message, '| payload:', JSON.stringify(e.payload));
+      console.error('[DB] KV get failed:', e.message);
       return localGet(collection);
     }
   }
@@ -142,12 +121,12 @@ async function get(collection) {
 }
 
 async function set(collection, data) {
-  if (isSupabaseConfigured()) {
+  if (isKvConfigured()) {
     try {
-      await supabaseSet(collection, data);
+      await kvSet(collection, data);
       return;
     } catch (e) {
-      console.error('[DB] Supabase set failed, using local fallback | status:', e.status, '| msg:', e.message, '| payload:', JSON.stringify(e.payload));
+      console.error('[DB] KV set failed:', e.message);
     }
   }
   localSet(collection, data);
