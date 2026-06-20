@@ -1,0 +1,16 @@
+[
+  {
+    "id": "mixxea-records",
+    "name": "Mixxea Records",
+    "logo": "",
+    "description": "Dark, forward electronic releases curated for high-impact DJ sets.",
+    "genre_focus": "Techno / Minimal / Industrial"
+  },
+  {
+    "id": "freqvault-promos",
+    "name": "FreqVault Promos",
+    "logo": "",
+    "description": "Limited upfront promos and club tools from the FreqVault network.",
+    "genre_focus": "Peak-time / Bass / Melodic"
+  }
+]

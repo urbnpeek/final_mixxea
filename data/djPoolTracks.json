@@ -1,0 +1,93 @@
+[
+  {
+    "id": "fv-001",
+    "title": "Dark Matter",
+    "artist": "KRATOS",
+    "label": "Mixxea Records",
+    "genre": "Techno",
+    "bpm": 128,
+    "musical_key": "F minor",
+    "energy_level": 5,
+    "audio_url": "",
+    "waveform_url": "",
+    "cover_image": "",
+    "release_date": "2026-05-29T00:00:00.000Z",
+    "is_exclusive": true,
+    "is_promo": false,
+    "is_featured": true,
+    "dj_notes": "Pressure tool with a long percussive intro and clean 32-bar outro.",
+    "formats": [
+      "MP3",
+      "WAV"
+    ],
+    "created_at": "2026-05-29T00:00:00.000Z"
+  },
+  {
+    "id": "fv-002",
+    "title": "Ocean Floor Dub",
+    "artist": "SOLV",
+    "label": "Mixxea Records",
+    "genre": "Deep House",
+    "bpm": 122,
+    "musical_key": "A minor",
+    "energy_level": 3,
+    "audio_url": "",
+    "waveform_url": "",
+    "cover_image": "",
+    "release_date": "2026-05-26T00:00:00.000Z",
+    "is_exclusive": false,
+    "is_promo": true,
+    "is_featured": true,
+    "dj_notes": "Warmup-friendly groove with late-night pads and long blend points.",
+    "formats": [
+      "MP3",
+      "WAV"
+    ],
+    "created_at": "2026-05-26T00:00:00.000Z"
+  },
+  {
+    "id": "fv-003",
+    "title": "Void Protocol",
+    "artist": "LYDA",
+    "label": "FreqVault Promos",
+    "genre": "Industrial",
+    "bpm": 135,
+    "musical_key": "D minor",
+    "energy_level": 5,
+    "audio_url": "",
+    "waveform_url": "",
+    "cover_image": "",
+    "release_date": "2026-05-22T00:00:00.000Z",
+    "is_exclusive": true,
+    "is_promo": true,
+    "is_featured": false,
+    "dj_notes": "Warehouse cut for late peak slots. Works after hardgroove records.",
+    "formats": [
+      "MP3",
+      "WAV"
+    ],
+    "created_at": "2026-05-22T00:00:00.000Z"
+  },
+  {
+    "id": "fv-004",
+    "title": "Signal Loss",
+    "artist": "AXON",
+    "label": "Mixxea Records",
+    "genre": "Ambient Techno",
+    "bpm": 118,
+    "musical_key": "C# minor",
+    "energy_level": 2,
+    "audio_url": "",
+    "waveform_url": "",
+    "cover_image": "",
+    "release_date": "2026-05-18T00:00:00.000Z",
+    "is_exclusive": false,
+    "is_promo": false,
+    "is_featured": false,
+    "dj_notes": "Texture-led bridge record for opening sets and reset moments.",
+    "formats": [
+      "MP3"
+    ],
+    "created_at": "2026-05-18T00:00:00.000Z"
+  }
+]

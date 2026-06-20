@@ -1,0 +1,9 @@
+; Vercel DNS zone recommendations for example.com
+$ORIGIN example.com.
+@ 3600 IN MX 0 smtp.secureserver.net.
+@ 3600 IN MX 10 mailstore1.secureserver.net.
+@ 3600 IN TXT "v=spf1 include:secureserver.net -all"
+_dmarc 3600 IN TXT "v=DMARC1; p=reject; rua=mailto:dmarc_rua@onsecureserver.net"
+email 3600 IN CNAME email.secureserver.net.
+secureserver1._domainkey 3600 IN CNAME s1._domainkey.secureserver.net.
+secureserver2._domainkey 3600 IN CNAME s2._domainkey.secureserver.net.

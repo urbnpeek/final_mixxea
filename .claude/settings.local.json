@@ -6,7 +6,20 @@
       "Bash(powershell -Command \"Get-Content public/index.html -Encoding UTF8 | Select-Object -Skip 910 -First 20\")",
       "Bash(powershell -Command 'Get-Content public/index.html -Encoding UTF8 | Select-String -Pattern '\\\\''[^\\\\x00-\\\\x7F\\\\s]'\\\\'' | Select-Object LineNumber, Line | Where-Object { $_.Line -notmatch '\\\\''^\\\\s*/\\\\*'\\\\'' -and $_.Line -notmatch '\\\\''^\\\\s*\\\\*'\\\\'' } | Format-List')",
       "Bash(powershell -Command ':*)",
-      "mcp__claude_ai_Vercel__list_teams"
+      "mcp__claude_ai_Vercel__list_teams",
+      "Bash(node --input-type=module)",
+      "Bash(node -e ':*)",
+      "Bash(node -e \"const helmet = require\\('helmet'\\); const h = helmet\\({ contentSecurityPolicy: { directives: { scriptSrcAttr: [\\\\\"'unsafe-inline'\\\\\"] } } }\\); console.log\\('OK'\\);\")",
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "mcp__claude_ai_Supabase__get_project_url",
+      "mcp__claude_ai_Supabase__get_publishable_keys",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "mcp__claude_ai_Supabase__get_logs",
+      "mcp__claude_ai_Supabase__get_project",
+      "Bash(npm install:*)",
+      "Bash(grep -n \"a-demo\\\\|submission\\\\|track-sub\" src/api/*.js)",
+      "Bash(node -e \"require\\('./public/js/admin.js'\\)\")"
     ]
   }
 }
