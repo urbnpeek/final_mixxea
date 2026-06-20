@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FreqVault DJ Pool | Mixxea Records</title>
+  <meta name="description" content="FreqVault DJ Pool: curated DJ-ready tracks, smart suggestions, crate builder, and ZIP downloads for professional DJs.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Syne:wght@400;500;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/dj-pool.css">
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="pool-nav">
+  <a class="pool-logo" href="/">MIX<span>X</span>EA <small>FREQVAULT DJ POOL</small></a>
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+    <button class="nav-tab" data-tab="library">Library</button>
+    <button class="nav-tab" data-tab="drops">Drops</button>
+    <button class="nav-tab" data-tab="crate">My Crate</button>
+    <button class="nav-tab" data-tab="hearts">My Hearts</button>
+    <button class="nav-tab" data-tab="labels">Labels</button>
+  </div>
+  <div class="nav-right">
+    <span class="nav-sub-pill" id="sub-pill">No Plan</span>
+    <a class="btn sm" href="/">Main Site</a>
+  </div>
+</nav>
+
+<!-- Subscription banner (shown when no active plan) -->
+<div class="sub-banner" id="sub-banner">
+  <span>Free preview mode — <strong>25 downloads</strong> on Starter · Unlimited on Pro DJ &amp; Elite</span>
+  <button class="btn sm primary" onclick="Pool.showTab('dashboard');setTimeout(()=>document.getElementById('plans').scrollIntoView({behavior:'scroll'}),100)">View Plans</button>
+</div>
+
+<!-- Main content -->
+<div class="pool-shell">
+
+  <!-- ── DASHBOARD ────────────────────────────────────────────── -->
+  <div class="tab-pane active" id="tab-dashboard">
+
+    <section class="pool-hero">
+      <div class="hero-grid-bg"></div>
+      <div class="hero-spectrum" aria-hidden="true">
+        <span style="--i:1"></span><span style="--i:2"></span><span style="--i:3"></span><span style="--i:4"></span><span style="--i:5"></span><span style="--i:6"></span><span style="--i:7"></span><span style="--i:8"></span><span style="--i:9"></span><span style="--i:10"></span><span style="--i:11"></span><span style="--i:12"></span><span style="--i:13"></span><span style="--i:14"></span><span style="--i:15"></span><span style="--i:16"></span><span style="--i:17"></span><span style="--i:18"></span><span style="--i:19"></span><span style="--i:20"></span><span style="--i:21"></span><span style="--i:22"></span><span style="--i:23"></span><span style="--i:24"></span><span style="--i:25"></span><span style="--i:26"></span><span style="--i:27"></span><span style="--i:28"></span>
+      </div>
+      <div>
+        <div class="eyebrow">FreqVault DJ Pool</div>
+        <h1 class="hero-title">Curated<br>DJ-Ready<br>Music</h1>
+        <p class="hero-copy">Label-driven releases, smart suggestions, and bulk ZIP downloads. Built for professional club DJs.</p>
+        <div class="hero-actions">
+          <button class="btn primary" onclick="Pool.showTab('library')">Browse Library</button>
+          <button class="btn" onclick="Pool.showTab('drops')">View Drops</button>
+        </div>
+      </div>
+      <div class="plans-col" id="plans">
+        <div class="plan-card" onclick="Pool.activatePlan('Starter')">
+          <div class="plan-name">Starter</div>
+          <div class="plan-desc">Full preview access + 25 downloads/month.</div>
+          <div class="plan-price">Free tier</div>
+          <button class="btn sm">Activate</button>
+        </div>
+        <div class="plan-card popular" onclick="Pool.activatePlan('Pro DJ')">
+          <div class="plan-name">Pro DJ</div>
+          <div class="plan-desc">Unlimited downloads including exclusive tracks.</div>
+          <div class="plan-price">Pricing TBD</div>
+          <button class="btn sm primary">Activate</button>
+        </div>
+        <div class="plan-card" onclick="Pool.activatePlan('Elite')">
+          <div class="plan-name">Elite</div>
+          <div class="plan-desc">Early access drops + exclusives + priority releases.</div>
+          <div class="plan-price">Pricing TBD</div>
+          <button class="btn sm">Activate</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Suggested For You -->
+    <div class="suggested-section">
+      <div class="suggested-label" id="suggested-label">Picked For You</div>
+      <div class="h-scroll" id="suggested-grid"></div>
+    </div>
+
+    <!-- New This Week -->
+    <div class="sec-head">
+      <div><h2>New This Week</h2><p>Latest uploads</p></div>
+    </div>
+    <div class="h-scroll" id="new-week-grid"></div>
+
+    <!-- Trending -->
+    <div class="sec-head">
+      <div><h2>Trending</h2><p>Most downloaded</p></div>
+    </div>
+    <div class="h-scroll" id="trending-grid"></div>
+
+  </div>
+
+  <!-- ── LIBRARY ───────────────────────────────────────────────── -->
+  <div class="tab-pane" id="tab-library">
+    <div class="sec-head">
+      <div><h2>Full Library</h2><p id="library-count">Loading…</p></div>
+      <div class="sec-actions">
+        <div class="view-toggle">
+          <button id="view-grid" class="active" title="Grid view" onclick="Pool.setView('grid')">⊞</button>
+          <button id="view-list" title="List view" onclick="Pool.setView('list')">☰</button>
+        </div>
+      </div>
+    </div>
+    <div class="pool-filters">
+      <input type="search" id="f-q" placeholder="Search title / artist / label…">
+      <select id="f-genre"><option value="">All Genres</option></select>
+      <select id="f-label"><option value="">All Labels</option></select>
+      <select id="f-key"><option value="">All Keys</option></select>
+      <select id="f-energy"><option value="">Energy</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+      <div class="filter-bpm">
+        <input type="number" id="f-bpm-min" min="60" max="220" placeholder="BPM min">
+        <span>–</span>
+        <input type="number" id="f-bpm-max" min="60" max="220" placeholder="max">
+      </div>
+    </div>
+    <div class="genre-tabs" id="genre-tabs"></div>
+    <div id="library-grid" class="tracks-grid"></div>
+  </div>
+
+  <!-- ── DROPS ────────────────────────────────────────────────── -->
+  <div class="tab-pane" id="tab-drops">
+    <div class="sec-head">
+      <div><h2>Curated Drops</h2><p>Label-selected packs</p></div>
+    </div>
+    <div class="drops-grid" id="drops-grid"></div>
+    <div id="drop-detail"></div>
+  </div>
+
+  <!-- ── MY CRATE ─────────────────────────────────────────────── -->
+  <div class="tab-pane" id="tab-crate">
+    <div class="sec-head">
+      <div><h2>My Crate</h2><p>Build your set list</p></div>
+      <div class="sec-actions">
+        <button class="btn sm" onclick="Pool.crateSort('bpm')">Sort BPM</button>
+        <button class="btn sm" onclick="Pool.crateSort('key')">Sort Key</button>
+        <button class="btn sm" onclick="Pool.crateSort('energy')">Sort Energy</button>
+      </div>
+    </div>
+    <div class="crate-layout">
+      <div class="crate-sidebar">
+        <input type="text" id="crate-name-input" placeholder="New crate name…">
+        <button class="btn primary" onclick="Pool.createCrate()">Create Crate</button>
+        <p style="font-family:var(--font-m);font-size:9px;color:var(--muted2);line-height:1.6">Add tracks from the Library. Sort by BPM or key for harmonic mixing.</p>
+      </div>
+      <div id="crate-panels"></div>
+    </div>
+  </div>
+
+  <!-- ── MY HEARTS ────────────────────────────────────────────── -->
+  <div class="tab-pane" id="tab-hearts">
+    <div class="sec-head">
+      <div><h2>My Hearts</h2><p>Tracks you loved</p></div>
+    </div>
+    <div class="tracks-grid" id="hearts-grid"></div>
+  </div>
+
+  <!-- ── LABELS ───────────────────────────────────────────────── -->
+  <div class="tab-pane" id="tab-labels">
+    <div class="sec-head">
+      <div><h2>Labels</h2><p>Browse by imprint</p></div>
+    </div>
+    <div class="labels-grid" id="labels-grid"></div>
+    <div id="label-detail"></div>
+  </div>
+
+  <!-- ── ADMIN (visible to admin session only) ─────────────────── -->
+  <div class="admin-section" id="admin-section" style="display:none">
+    <div class="sec-head" style="padding-top:0">
+      <div><h2>DJ Pool Manager</h2><p>Admin only</p></div>
+      <a class="btn sm" href="/dj-pool#admin-section">⚙ Console</a>
+    </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="Pool.adminTab('upload')">Upload Track</button>
+      <button class="admin-tab" onclick="Pool.adminTab('drop')">Create Drop</button>
+      <button class="admin-tab" onclick="Pool.adminTab('analytics')">Analytics</button>
+    </div>
+
+    <div class="admin-pane active" id="adm-upload">
+      <form class="upload-form" id="upload-form" onsubmit="event.preventDefault();Pool.uploadTrack()">
+        <input name="title"       placeholder="Track title *" required>
+        <input name="artist"      placeholder="Artist *" required>
+        <input name="label"       placeholder="Label" value="Mixxea Records">
+        <input name="genre"       placeholder="Genre">
+        <input name="bpm"         type="number" placeholder="BPM" min="60" max="220">
+        <input name="musical_key" placeholder="Key (e.g. 12A / F minor)">
+        <select name="energy_level">
+          <option value="1">Energy 1 — Ambient</option>
+          <option value="2">Energy 2 — Warm</option>
+          <option value="3" selected>Energy 3 — Mid</option>
+          <option value="4">Energy 4 — Peak</option>
+          <option value="5">Energy 5 — Intense</option>
+        </select>
+        <input name="release_date" type="date">
+        <div class="form-file-wrap">
+          <div>
+            <div class="file-drop">Audio File (MP3 / WAV / AIFF — max 100MB)</div>
+            <input name="audio" type="file" accept="audio/*" required>
+          </div>
+          <div>
+            <div class="file-drop">Cover Art (JPG / PNG — square)</div>
+            <input name="cover" type="file" accept="image/*">
+          </div>
+        </div>
+        <textarea name="dj_notes" placeholder="DJ notes…" class="span3"></textarea>
+        <label><input name="is_featured"  type="checkbox" value="true"> Featured</label>
+        <label><input name="is_exclusive" type="checkbox" value="true"> Exclusive (Pro DJ+)</label>
+        <label><input name="is_promo"     type="checkbox" value="true"> Promo</label>
+        <button class="btn primary span3" type="submit">Upload Track</button>
+        <div class="empty-state span3" id="upload-msg" style="display:none"></div>
+      </form>
+    </div>
+
+    <div class="admin-pane" id="adm-drop">
+      <form class="upload-form" id="drop-form" onsubmit="event.preventDefault();Pool.createDrop()">
+        <input name="name"        placeholder="Drop name *" required class="span2">
+        <input name="genre"       placeholder="Genre tag">
+        <textarea name="description" placeholder="Drop description…" class="span3"></textarea>
+        <div class="form-file-wrap">
+          <div>
+            <div class="file-drop">Cover Image (2:1 ratio preferred)</div>
+            <input name="cover" type="file" accept="image/*">
+          </div>
+          <div>
+            <div class="file-drop">Track IDs (comma-separated)</div>
+            <input name="track_ids" placeholder="fv-001, fv-002, …">
+          </div>
+        </div>
+        <label><input name="published" type="checkbox" value="true"> Publish immediately</label>
+        <button class="btn primary span3" type="submit">Create Drop</button>
+        <div class="empty-state span3" id="drop-msg" style="display:none"></div>
+      </form>
+    </div>
+
+    <div class="admin-pane" id="adm-analytics">
+      <div class="admin-analytics">
+        <div class="meta-grid" id="adm-meta"></div>
+        <div class="sec-head" style="padding-top:20px"><div><h2>Top Downloads</h2><p>All time</p></div></div>
+        <div class="admin-top-tracks" id="adm-top"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /pool-shell -->
+
+<!-- Sticky player -->
+<div class="pool-player" id="pool-player">
+  <div class="player-art" id="player-art"><span class="p-init" id="player-init">—</span></div>
+  <div class="player-info">
+    <div class="player-title" id="player-title">No track selected</div>
+    <div class="player-artist" id="player-artist"></div>
+  </div>
+  <div class="player-controls">
+    <button class="player-btn" title="Previous" onclick="Pool.playerPrev()">&#9664;</button>
+    <button class="player-btn play" id="play-btn" title="Play / Pause" onclick="Pool.playerToggle()">&#9654;</button>
+    <button class="player-btn" title="Next" onclick="Pool.playerNext()">&#9654;</button>
+  </div>
+  <div class="player-wave" id="player-wave"></div>
+  <div class="player-right">
+    <button class="btn sm" onclick="Pool.downloadCurrent()">⬇ Download</button>
+    <button class="btn sm ghost" onclick="Pool.playerClose()">✕</button>
+  </div>
+  <audio id="pool-audio" preload="none"></audio>
+</div>
+
+<!-- Toast notification -->
+<div class="pool-toast" id="pool-toast"></div>
+
+<!-- ZIP download overlay -->
+<div class="zip-overlay" id="zip-overlay">
+  <div class="zip-box">
+    <div class="zip-title">Packaging ZIP</div>
+    <div class="zip-status" id="zip-status">Preparing…</div>
+    <div class="zip-bar-wrap"><div class="zip-bar" id="zip-bar"></div></div>
+    <button class="btn sm zip-cancel" onclick="Pool.zipCancel()">Cancel</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="/js/dj-pool.js"></script>
+</body>
+</html>

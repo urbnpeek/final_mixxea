@@ -1,79 +1,23 @@
 /**
- * admin.js — Mixxea Admin Panel — Fully Functional
- * All 10 modules: Releases, Artists, Demos, Royalties, Contracts,
- * News, Events, Bookings, Promoters, Newsletter, Subscribers, Analytics
- * Works with Express API when server is running,
- * falls back to built-in data store when offline/static.
+ * admin.js — Mixxea Admin Panel
+ * All modules wired to real API: Releases, Artists, Demos, Contracts,
+ * News, Events, Bookings, Promoters, Newsletter, Subscribers, DJ Pool, Analytics
  */
 'use strict';
 
 /* ─────────────────────────────────────────────────────────
-   LOCAL DATA STORE (fallback when server not running)
+   IN-MEMORY CACHE — populated from API responses only
 ───────────────────────────────────────────────────────── */
 const STORE = {
-  releases: [
-    {id:'r1',title:'Dark Matter EP',artist:'KRATOS',genre:'Techno',bpm:128,catNo:'MXA001',date:'2025-03-14',status:'out',spotify:'',beatport:'',apple:'',soundcloud:'',description:'Landmark techno EP from Berlin.'},
-    {id:'r2',title:'Ocean Floor LP',artist:'SOLV',genre:'Deep House',bpm:122,catNo:'MXA002',date:'2025-01-28',status:'out',spotify:'',beatport:'',apple:'',soundcloud:'',description:'Debut LP from SOLV.'},
-    {id:'r3',title:'Signal Loss',artist:'AXON',genre:'Ambient',bpm:0,catNo:'MXA003',date:'2025-05-02',status:'pre',spotify:'',beatport:'',apple:'',soundcloud:'',description:'Ambient work from Tokyo.'},
-    {id:'r4',title:'Grind System EP',artist:'VEXR',genre:'Bass',bpm:140,catNo:'MXA004',date:'2025-06-01',status:'soon',spotify:'',beatport:'',apple:'',soundcloud:'',description:'Industrial bass from NYC.'},
-    {id:'r5',title:'Void Protocol',artist:'LYDA',genre:'Techno',bpm:135,catNo:'MXA005',date:'2025-02-12',status:'out',spotify:'',beatport:'',apple:'',soundcloud:'',description:'Hard techno from Bucharest.'},
-  ],
-  artists: [
-    {id:'a1',name:'KRATOS',country:'DE',city:'Berlin',genre:'Techno',type:'both',status:'signed',bio:'Berlin-based techno and minimal artist with a raw, hypnotic style.',instagram:'',soundcloud:'',bookingEmail:''},
-    {id:'a2',name:'SOLV',country:'UK',city:'London',genre:'Deep House',type:'both',status:'signed',bio:'UK producer crafting deep, melodic house with emotional depth.',instagram:'',soundcloud:'',bookingEmail:''},
-    {id:'a3',name:'AXON',country:'JP',city:'Tokyo',genre:'Ambient',type:'label',status:'signed',bio:'Tokyo-based ambient and experimental artist.',instagram:'',soundcloud:'',bookingEmail:''},
-    {id:'a4',name:'VEXR',country:'US',city:'New York',genre:'Bass',type:'both',status:'signed',bio:'NYC producer at the intersection of industrial and bass music.',instagram:'',soundcloud:'',bookingEmail:''},
-    {id:'a5',name:'LYDA',country:'RO',city:'Bucharest',genre:'Techno',type:'both',status:'signed',bio:'Romanian techno force bringing Eastern European intensity to global floors.',instagram:'',soundcloud:'',bookingEmail:''},
-  ],
-  demos: [
-    {id:'d1',artistName:'HEXX',email:'hexxtechno@gmail.com',trackTitle:'Acid Vortex',genre:'Techno',bpm:132,notes:'Raw acid techno with 303 work.',soundcloudLink:'',file:'',submittedAt:'2025-04-04T14:32:00Z',status:'new'},
-    {id:'d2',artistName:'DARKFIELD',email:'darkfield@proton.me',trackTitle:'Black Horizon',genre:'Minimal',bpm:128,notes:'Minimal techno, long journey.',soundcloudLink:'',file:'',submittedAt:'2025-04-03T09:10:00Z',status:'new'},
-    {id:'d3',artistName:'SOLVEX',email:'solvex@icloud.com',trackTitle:'Deep Waters',genre:'Deep House',bpm:122,notes:'Deep and rolling.',soundcloudLink:'',file:'',submittedAt:'2025-04-02T17:45:00Z',status:'reviewing'},
-    {id:'d4',artistName:'MVLNT',email:'mvlnt@gmail.com',trackTitle:'Monolith',genre:'Industrial',bpm:138,notes:'Industrial peak time.',soundcloudLink:'',file:'',submittedAt:'2025-04-01T11:20:00Z',status:'reviewing'},
-  ],
-  bookings: [
-    {id:'b1',venue:'Berghain',city:'Berlin',country:'DE',contact:'Thomas MÃ¼ller',email:'thomas@berghain.de',artist:'KRATOS',date:'2025-07-20',type:'Headline',fee:4000,notes:'Saturday main floor. Full rider required.',status:'pending'},
-    {id:'b2',venue:'Sonus Festival',city:'Tisno',country:'HR',contact:'Ana KovaÄ',email:'booking@sonus.hr',artist:'LYDA',date:'2025-08-08',type:'Festival',fee:3500,notes:'Meridian stage. 2h set.',status:'discussing'},
-    {id:'b3',venue:'Panorama Bar',city:'Berlin',country:'DE',contact:'Max R.',email:'booking@panoramabar.de',artist:'AXON',date:'2025-09-13',type:'Live Set',fee:0,notes:'Ambient live format. Budget TBC.',status:'pending'},
-  ],
-  events: [
-    {id:'e1',date:'2025-05-12',venue:'Tresor Berlin',city:'Berlin',country:'DE',artist:'KRATOS',type:'Headline',ticketLink:'',fee:2500,status:'confirmed'},
-    {id:'e2',date:'2025-05-24',venue:'Awakenings Festival',city:'Amsterdam',country:'NL',artist:'KRATOS, LYDA',type:'Festival',ticketLink:'',fee:5000,status:'confirmed'},
-    {id:'e3',date:'2025-06-15',venue:'Fabric London',city:'London',country:'UK',artist:'SOLV',type:'Club Night',ticketLink:'',fee:0,status:'hold'},
-    {id:'e4',date:'2025-06-28',venue:'De School',city:'Amsterdam',country:'NL',artist:'AXON',type:'Live Set',ticketLink:'',fee:1200,status:'confirmed'},
-  ],
-  royalties: [
-    {id:'ry1',artist:'KRATOS',release:'Dark Matter EP',source:'Streaming + Sales',amount:1840,period:'Q1 2025',paidAt:null,createdAt:'2025-04-01'},
-    {id:'ry2',artist:'KRATOS',release:'Void Protocol',source:'Streaming',amount:960,period:'Q1 2025',paidAt:null,createdAt:'2025-04-01'},
-    {id:'ry3',artist:'SOLV',release:'Ocean Floor LP',source:'Streaming + Beatport',amount:2100,period:'Q1 2025',paidAt:null,createdAt:'2025-04-01'},
-    {id:'ry4',artist:'LYDA',release:'Void Protocol',source:'Sync License',amount:440,period:'Q1 2025',paidAt:'2025-04-01',createdAt:'2025-04-01'},
-  ],
-  contracts: [
-    {id:'c1',artist:'KRATOS',type:'Label + Management',signedAt:'2025-01-01',expiresAt:'2027-12-31',status:'active',notes:''},
-    {id:'c2',artist:'SOLV',type:'Label',signedAt:'2024-11-15',expiresAt:'2026-11-14',status:'active',notes:''},
-    {id:'c3',artist:'LYDA',type:'Label + Agency',signedAt:'2025-03-01',expiresAt:'2028-02-28',status:'active',notes:''},
-  ],
-  news: [
-    {id:'n1',title:"KRATOS Drops Landmark 'Dark Matter' EP",category:'Release News',author:'Mixxea Team',date:'2025-03-14',status:'published',body:'The Berlin-based artist delivers his finest work yet.'},
-    {id:'n2',title:'SOLV Announces European Tour via FreqVault',category:'Artist News',author:'Mixxea Team',date:'2025-03-08',status:'published',body:'10-date run across Europe this summer.'},
-    {id:'n3',title:'Mixxea Records Signs 3 New Artists for 2025',category:'Label News',author:'Mixxea Team',date:'2025-03-01',status:'draft',body:'Exciting new additions to the roster coming soon.'},
-  ],
-  subscribers: [
-    {email:'techno.fan@gmail.com',joinedAt:'2025-04-04',source:'homepage'},
-    {email:'underground.music@proton.me',joinedAt:'2025-04-03',source:'ar-form'},
-    {email:'dj.studio@icloud.com',joinedAt:'2025-04-02',source:'footer'},
-    {email:'berlin.nights@outlook.com',joinedAt:'2025-03-30',source:'homepage'},
-    {email:'minimal.techno@yahoo.com',joinedAt:'2025-03-26',source:'ar-form'},
-    {email:'deep.bass@proton.me',joinedAt:'2025-03-24',source:'homepage'},
-    {email:'techno.berlin@gmail.com',joinedAt:'2025-03-22',source:'footer'},
-    {email:'house.music.de@gmail.com',joinedAt:'2025-03-20',source:'homepage'},
-  ],
-  promoters: [
-    {id:'p1',name:'Thomas MÃ¼ller',email:'thomas@berghain.de',venue:'Berghain',city:'Berlin',country:'DE',totalBookings:6,notes:''},
-    {id:'p2',name:'Ana KovaÄ',email:'booking@sonus.hr',venue:'Sonus Festival',city:'Tisno',country:'HR',totalBookings:3,notes:''},
-    {id:'p3',name:'LÃ©a Dubois',email:'lea@rex-club.com',venue:'Rex Club',city:'Paris',country:'FR',totalBookings:4,notes:''},
-    {id:'p4',name:'Mark Evans',email:'mark@fabriclondon.com',venue:'Fabric London',city:'London',country:'UK',totalBookings:7,notes:''},
-  ],
+  releases: [],
+  artists: [],
+  demos: [],
+  bookings: [],
+  events: [],
+  contracts: [],
+  news: [],
+  subscribers: [],
+  promoters: [],
 };
 
 /* ─────────────────────────────────────────────────────────
@@ -98,7 +42,6 @@ function toast(msg, type) {
   t.textContent=(err?'✕ ':'✓ ')+msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3500);
 }
 
-// Try API, but surface failures so admin actions do not look successful when they are not.
 async function api(method, path, data) {
   try {
     const o={method};
@@ -143,6 +86,8 @@ function admClearNews() {
   ['news-edit-id','news-title','news-body'].forEach(id=>setVal(id,''));
   setVal('news-author','Mixxea Team'); setVal('news-cat','Release News'); setVal('news-status','draft');
   setText('news-form-title','NEW POST');
+  const prev=document.getElementById('news-img-preview'); if(prev){prev.src='';prev.style.display='none';}
+  const fi=document.getElementById('news-image'); if(fi)fi.value='';
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -156,8 +101,6 @@ function toggleAdminNav(force) {
 }
 
 function switchAdminSection(id) {
-  // goSec() in the inline script already handled nav highlight + section show.
-  // This function only handles data loading and mobile drawer.
   if (window.innerWidth <= 900) toggleAdminNav(false);
 
   const loaders = {
@@ -165,12 +108,12 @@ function switchAdminSection(id) {
     'a-rel':  () => ADMIN.loadReleases(),
     'a-art':  () => ADMIN.loadArtists(),
     'a-demo': () => ADMIN.loadDemos('all'),
-    'a-roy':  () => ADMIN.loadRoyalties(),
     'a-con':  () => ADMIN.loadContracts(),
     'a-news': () => ADMIN.loadNews(),
     'a-ev':   () => ADMIN.loadEvents(),
     'a-bk':   () => ADMIN.loadBookings('all'),
     'a-promo':() => ADMIN.loadPromoters(),
+    'a-djpool': () => ADMIN.loadDjPool(),
     'a-nl':   () => ADMIN.loadNLStats(),
     'a-subs': () => ADMIN.loadSubscribers(),
     'a-analytics': () => { ADMIN.loadAnalytics(); buildChart(); },
@@ -246,13 +189,12 @@ const ADMIN = {
       const dateEl=document.getElementById('adm-date');
       if(dateEl) dateEl.textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
-      const [rel,art,dem,bk,sub,ev,roy,nws]=await Promise.all([
+      const [rel,art,dem,bk,sub,ev,nws]=await Promise.all([
         api('GET','/releases'),api('GET','/artists'),api('GET','/demos'),api('GET','/bookings'),
-        api('GET','/newsletter/subscribers'),api('GET','/events'),api('GET','/royalties'),api('GET','/news'),
+        api('GET','/newsletter/subscribers'),api('GET','/events'),api('GET','/news'),
       ]);
-      const releases=rel||STORE.releases, artists=art||STORE.artists, demos=dem||STORE.demos;
-      const bookings=bk||STORE.bookings, events=ev||STORE.events;
-      const royalties=roy||STORE.royalties, news=nws||STORE.news;
+      const releases=rel||[], artists=art||[], demos=dem||[];
+      const bookings=bk||[], events=ev||[], news=nws||[];
       const subCount=sub ? ((sub?.count??sub?.subscribers?.length)??0) : null;
 
       setText('dash-release-count', releases.length);
@@ -261,13 +203,12 @@ const ADMIN = {
       setText('dash-booking-count', bookings.filter(b=>b.status==='pending').length);
       setText('dash-subs-count',    subCount === null ? 'Unavailable' : subCount.toLocaleString());
       setText('dash-event-count',   events.length);
-      setText('dash-royalty-total', eur(royalties.reduce((s,r)=>s+(Number(r.amount)||0),0)));
       setText('dash-news-count',    news.filter(n=>n.status==='published').length);
 
       const activity=[
         ...demos.slice(0,3).map(d=>({type:'Demo',label:`"${d.trackTitle}" by ${d.artistName}`,date:d.submittedAt,status:d.status,cls:'ab-new'})),
         ...releases.slice(0,2).map(r=>({type:'Release',label:`${r.title} — ${r.artist}`,date:r.date,status:r.status,cls:'ab-live'})),
-        ...bookings.slice(0,2).map(b=>({type:'Booking',label:`${b.venue} — ${b.artist}`,date:b.date,status:b.status,cls:'ab-hold'})),
+        ...bookings.slice(0,2).map(b=>({type:'Booking',label:`${b.venue} — ${b.artist||b.contact||''}`,date:b.date||b.submittedAt,status:b.status,cls:'ab-hold'})),
       ].sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,8);
 
       setHTML('adm-activity-tbody', activity.length ? activity.map(a=>`
@@ -282,7 +223,8 @@ const ADMIN = {
 
   /* ══ RELEASES ═══════════════════════════════════════════ */
   async loadReleases() {
-    const data=await api('GET','/releases')||STORE.releases;
+    const data=await api('GET','/releases')||[];
+    STORE.releases=data;
     setHTML('adm-rel-tbody', data.length ? data.map(r=>`
       <tr>
         <td><div class="tbl-art">
@@ -343,7 +285,8 @@ const ADMIN = {
 
   /* ══ ARTISTS ════════════════════════════════════════════ */
   async loadArtists() {
-    const data=await api('GET','/artists')||STORE.artists;
+    const data=await api('GET','/artists')||[];
+    STORE.artists=data;
     const COLS=['var(--g1)','var(--g4)','var(--g3)','var(--g5)','rgba(245,240,255,.5)'];
     setHTML('adm-art-tbody', data.length ? data.map((a,i)=>`
       <tr>
@@ -405,8 +348,9 @@ const ADMIN = {
   async loadDemos(filter) {
     if(filter) this._df=filter;
     document.querySelectorAll('#a-demo .f-btn').forEach(b=>b.classList.toggle('on',b.textContent.toLowerCase()===this._df));
-    const all=await api('GET','/demos')||STORE.demos;
+    const all=await api('GET','/demos')||[];
     this._demosCache=all;
+    STORE.demos=all;
     setText('adm-demo-count',all.filter(d=>d.status==='new').length+' NEW');
     let data=this._df==='all'?all:all.filter(d=>d.status===this._df);
     const sc={new:'ab-new',reviewing:'ab-review',approved:'ab-live',declined:'ab-draft'};
@@ -423,6 +367,7 @@ const ADMIN = {
           <button class="tbl-btn" onclick="ADMIN.setDemoStatus('${d.id}','reviewing')">Review</button>
           <button class="tbl-btn" style="color:var(--g1)" onclick="ADMIN.setDemoStatus('${d.id}','approved')">Approve</button>
           <button class="tbl-btn del" onclick="ADMIN.setDemoStatus('${d.id}','declined')">Decline</button>
+          <button class="tbl-btn del" onclick="ADMIN.deleteDemo('${d.id}')">Delete</button>
         </div></td>
       </tr>`).join('') : `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No ${this._df==='all'?'':this._df+' '}demos</td></tr>`);
   },
@@ -435,6 +380,14 @@ const ADMIN = {
     if(!result)return;
     const d=STORE.demos.find(x=>x.id===id); if(d)d.status=status;
     toast(`Demo marked as ${status}`); this.loadDemos();
+  },
+
+  async deleteDemo(id) {
+    if(!confirm('Permanently delete this demo submission?'))return;
+    const result=await api('DELETE',`/demos/${id}`);
+    if(!result)return;
+    STORE.demos=STORE.demos.filter(d=>d.id!==id);
+    toast('Demo deleted'); this.loadDemos();
   },
 
   openSendLinkModal() {
@@ -465,7 +418,7 @@ const ADMIN = {
   },
 
   viewDemo(id) {
-    const d=this._demosCache.find(x=>x.id===id)||(STORE.demos.find(x=>x.id===id));
+    const d=this._demosCache.find(x=>x.id===id);
     if(!d)return;
     const sampMap={none:'No samples — 100% original',cleared:'Samples cleared & licensed',uncleared:'Samples used — not cleared'};
     const writersMap={sole:'Sole author',collab:'Multiple writers / collaborators'};
@@ -519,58 +472,11 @@ const ADMIN = {
     if(m) m.style.display='none';
   },
 
-  /* ══ ROYALTIES ══════════════════════════════════════════ */
-  async loadRoyalties() {
-    const data=await api('GET','/royalties')||STORE.royalties;
-    const total=data.reduce((s,r)=>s+(Number(r.amount)||0),0);
-    const unpaid=data.filter(r=>!r.paidAt).reduce((s,r)=>s+(Number(r.amount)||0),0);
-    setText('roy-total-val',eur(total)); setText('roy-unpaid-val',eur(unpaid)); setText('roy-entries-val',data.length);
-    setHTML('adm-roy-tbody', data.length ? data.map(r=>`
-      <tr>
-        <td class="tbl-name">${r.artist}</td>
-        <td><div class="tbl-name">${r.release}</div></td>
-        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${r.source}</td>
-        <td style="font-family:var(--Anton);font-size:18px;color:var(--g1)">${eur(r.amount)}</td>
-        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${r.period}</td>
-        <td>${r.paidAt?badge('Paid','ab-live'):badge('Unpaid','ab-draft')}</td>
-        <td><div class="tbl-actions">
-          ${!r.paidAt?`<button class="tbl-btn" onclick="ADMIN.markPaid('${r.id}')">Mark Paid</button>`:''}
-          <button class="tbl-btn del" onclick="ADMIN.deleteRoyalty('${r.id}')">Delete</button>
-        </div></td>
-      </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No royalty entries yet</td></tr>');
-  },
-
-  async saveRoyalty() {
-    const artist=val('roy-artist'), amount=val('roy-amount');
-    if(!artist||!amount){toast('Artist and amount are required','error');return;}
-    const entry={id:uid(),artist,release:val('roy-release'),source:val('roy-source'),amount:parseFloat(amount),period:val('roy-period'),paidAt:null,createdAt:new Date().toISOString()};
-    const result=await api('POST','/royalties',entry);
-    if(!result)return;
-    STORE.royalties.unshift(result);
-    toast('Royalty entry saved'); admToggle('roy-form');
-    ['roy-artist','roy-release','roy-source','roy-amount','roy-period'].forEach(id=>setVal(id,''));
-    this.loadRoyalties();
-  },
-
-  async markPaid(id) {
-    const now=new Date().toISOString();
-    const result=await api('PUT',`/royalties/${id}`,{paidAt:now});
-    if(!result)return;
-    const r=STORE.royalties.find(x=>x.id===id); if(r)r.paidAt=now;
-    toast('Marked as paid'); this.loadRoyalties();
-  },
-
-  async deleteRoyalty(id) {
-    if(!confirm('Delete this royalty entry?'))return;
-    const result=await api('DELETE',`/royalties/${id}`);
-    if(!result)return;
-    STORE.royalties=STORE.royalties.filter(r=>r.id!==id);
-    toast('Entry deleted'); this.loadRoyalties();
-  },
-
   /* ══ CONTRACTS ══════════════════════════════════════════ */
   async loadContracts() {
-    const data=await api('GET','/contracts')||STORE.contracts; const now=new Date();
+    const data=await api('GET','/contracts')||[];
+    STORE.contracts=data;
+    const now=new Date();
     setHTML('adm-con-tbody', data.length ? data.map(c=>{
       const exp=new Date(c.expiresAt), days=Math.ceil((exp-now)/(1000*60*60*24)), urgent=days<90&&days>0;
       return `<tr>
@@ -615,10 +521,15 @@ const ADMIN = {
 
   /* ══ NEWS / BLOG ════════════════════════════════════════ */
   async loadNews() {
-    const data=await api('GET','/news')||STORE.news;
-    setHTML('adm-news-tbody', data.length ? data.map(n=>`
+    const data=await api('GET','/news');
+    const newsData = Array.isArray(data) ? data : [];
+    STORE.news = newsData;
+    setHTML('adm-news-tbody', newsData.length ? newsData.map(n=>`
       <tr>
-        <td class="tbl-name">${n.title}</td>
+        <td><div class="tbl-art">
+          <div class="tbl-thumb">${n.image?`<img src="${n.image}" style="width:36px;height:36px;object-fit:cover">`:''}</div>
+          <span class="tbl-name">${n.title}</span>
+        </div></td>
         <td>${badge(n.category,'ab-review')}</td>
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${n.author||'—'}</td>
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(n.date||n.createdAt)}</td>
@@ -650,10 +561,13 @@ const ADMIN = {
     toast(id?'Post updated':'Post published'); admToggle('news-form'); admClearNews(); this.loadNews();
   },
 
-  editNews(id) {
-    const n=STORE.news.find(x=>x.id===id); if(!n)return;
+  async editNews(id) {
+    const n=await api('GET',`/news/${id}`)||STORE.news.find(x=>x.id===id);
+    if(!n){toast('Post not found — try refreshing the page.','error');return;}
     setVal('news-edit-id',n.id); setVal('news-title',n.title); setVal('news-cat',n.category);
     setVal('news-author',n.author); setVal('news-date',n.date); setVal('news-status',n.status); setVal('news-body',n.body||'');
+    const prev=document.getElementById('news-img-preview');
+    if(prev){prev.src=n.image||'';prev.style.display=n.image?'block':'none';}
     setText('news-form-title','EDIT POST');
     const f=document.getElementById('news-form'); f.style.display='block'; f.scrollIntoView({behavior:'smooth'});
   },
@@ -667,7 +581,8 @@ const ADMIN = {
 
   /* ══ EVENTS ═════════════════════════════════════════════ */
   async loadEvents() {
-    const data=await api('GET','/events')||STORE.events;
+    const data=await api('GET','/events')||[];
+    STORE.events=data;
     const sc={confirmed:'ab-conf',hold:'ab-hold',cancelled:'ab-draft'};
     setHTML('adm-ev-tbody', data.length ? data.map(e=>`
       <tr>
@@ -716,7 +631,8 @@ const ADMIN = {
   async loadBookings(filter) {
     if(filter) this._bf=filter;
     document.querySelectorAll('#a-bk .f-btn').forEach(b=>b.classList.toggle('on',b.textContent.toLowerCase()===this._bf));
-    let data=await api('GET','/bookings')||STORE.bookings;
+    let data=await api('GET','/bookings')||[];
+    STORE.bookings=data;
     setText('adm-bk-count',data.filter(b=>b.status==='pending').length+' PENDING');
     if(this._bf!=='all') data=data.filter(b=>b.status===this._bf);
     const sc={pending:'ab-new',discussing:'ab-hold',confirmed:'ab-conf',declined:'ab-draft'};
@@ -753,7 +669,8 @@ const ADMIN = {
 
   /* ══ PROMOTER CRM ═══════════════════════════════════════ */
   async loadPromoters() {
-    const data=await api('GET','/promoters')||STORE.promoters;
+    const data=await api('GET','/promoters')||[];
+    STORE.promoters=data;
     setHTML('adm-promo-tbody', data.length ? data.map(p=>`
       <tr>
         <td><div class="tbl-name">${p.name}</div><div class="tbl-sub">${p.email}</div></td>
@@ -782,6 +699,28 @@ const ADMIN = {
     const result=await api('DELETE',`/promoters/${id}`);
     if(!result)return;
     STORE.promoters=STORE.promoters.filter(p=>p.id!==id); toast('Promoter removed'); this.loadPromoters();
+  },
+
+  /* ══ DJ POOL ════════════════════════════════════════════ */
+  async loadDjPool() {
+    const data = await api('GET', '/dj-pool/admin/analytics');
+    if (!data) {
+      setHTML('adm-djpool-tbody', '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">Log in as admin to view DJ Pool analytics.</td></tr>');
+      return;
+    }
+    setText('djpool-track-count', data.counts?.tracks ?? 0);
+    setText('djpool-download-count', data.counts?.downloads ?? 0);
+    setText('djpool-crate-count', data.counts?.crates ?? 0);
+    setText('djpool-sub-count', data.counts?.active_subscriptions ?? 0);
+    setHTML('adm-djpool-tbody', data.topTracks?.length ? data.topTracks.map(t => `
+      <tr>
+        <td>${t.title || '-'}</td>
+        <td>${t.artist || '-'}</td>
+        <td>${t.label || '-'}</td>
+        <td>${t.bpm || '-'}</td>
+        <td><span class="ab-live" style="position:static">${t.downloads || 0}</span></td>
+      </tr>
+    `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No DJ Pool downloads yet.</td></tr>');
   },
 
   /* ══ NEWSLETTER ═════════════════════════════════════════ */
@@ -846,18 +785,28 @@ const ADMIN = {
   },
 
   exportSubscribers() {
-    const data=this._subs.length?this._subs:STORE.subscribers;
-    const csv=['Email,Joined,Source',...data.map(s=>`${s.email},${s.joinedAt||''},${s.source||''}`)].join('\n');
+    if(!this._subs.length){toast('No subscriber data loaded','error');return;}
+    const csv=['Email,Joined,Source',...this._subs.map(s=>`${s.email},${s.joinedAt||''},${s.source||''}`)].join('\n');
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
     a.download=`mixxea-subscribers-${new Date().toISOString().slice(0,10)}.csv`; a.click();
-    toast(`Exported ${data.length} subscribers`);
+    toast(`Exported ${this._subs.length} subscribers`);
   },
 
   /* ══ ANALYTICS ══════════════════════════════════════════ */
   async loadAnalytics() {
-    const [d,b]=await Promise.all([api('GET','/demos'),api('GET','/bookings')]);
-    setText('analytics-demos',d ? d.length : 'Unavailable');
-    setText('analytics-bookings',b ? b.length : 'Unavailable');
+    const [rel,art,dem,bk,ev,nws,sub]=await Promise.all([
+      api('GET','/releases'),api('GET','/artists'),api('GET','/demos'),
+      api('GET','/bookings'),api('GET','/events'),api('GET','/news'),
+      api('GET','/newsletter/subscribers'),
+    ]);
+    setText('analytics-releases',  rel ? rel.length : 'Unavailable');
+    setText('analytics-artists',   art ? art.length : 'Unavailable');
+    setText('analytics-demos',     dem ? dem.length : 'Unavailable');
+    setText('analytics-bookings',  bk  ? bk.length  : 'Unavailable');
+    setText('analytics-events',    ev  ? ev.length   : 'Unavailable');
+    setText('analytics-news',      nws ? nws.filter(n=>n.status==='published').length : 'Unavailable');
+    const subCount = sub ? (sub?.count??sub?.subscribers?.length??0) : null;
+    setText('analytics-subs', subCount === null ? 'Unavailable' : subCount.toLocaleString());
   },
 };
 
@@ -895,10 +844,10 @@ async function previewNl() {
     if (!res?.success || !res.html || !pb) return;
 
     pb.style.whiteSpace = 'normal';
-    pb.innerHTML =       '<div style="margin-bottom:14px;font-family:var(--Mono);font-size:10px;letter-spacing:1px;color:var(--muted)">LIVE EMAIL PREVIEW</div>' +
+    pb.innerHTML = '<div style="margin-bottom:14px;font-family:var(--Mono);font-size:10px;letter-spacing:1px;color:var(--muted)">LIVE EMAIL PREVIEW</div>' +
       '<iframe title="Newsletter Preview" srcdoc="' + res.html.replace(/"/g, '&quot;') + '" style="width:100%;min-height:520px;border:1px solid var(--line);background:#fff;border-radius:14px"></iframe>';
   } catch(e) {
-    // Keep the existing plain-text preview if the API is unavailable
+    // Keep existing plain-text preview if API unavailable
   }
 }
 
@@ -971,7 +920,6 @@ window.addEventListener('resize', () => {
    INIT — runs once DOM is ready
 ───────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function() {
-  // Login button + Enter key
   var loginBtn = document.getElementById('adm-login-submit');
   if (loginBtn) {
     loginBtn.addEventListener('click', function() { ADMIN_AUTH.login(); });
@@ -984,5 +932,4 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-console.log('✓ Mixxea Admin — all 12 modules loaded and ready');
-
+console.log('✓ Mixxea Admin — 13 modules loaded, all wired to real API');

@@ -67,93 +67,8 @@ src="https://www.facebook.com/tr?id=1331927570650344&ev=PageView&noscript=1"
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Syne:wght@400;500;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
-<script type="application/ld+json">{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebSite",
-      "@id": "https://mixxea.com/#website",
-      "url": "https://mixxea.com/",
-      "name": "Mixxea & Freq Vault",
-      "description": "Electronic music record label, artist management and booking agency.",
-      "publisher": {
-        "@id": "https://mixxea.com/#mixxea"
-      }
-    },
-    {
-      "@type": "Organization",
-      "@id": "https://mixxea.com/#mixxea",
-      "name": "Mixxea",
-      "url": "https://mixxea.com/record-label",
-      "description": "Independent electronic music record label focused on artist development and releases.",
-      "logo": "https://mixxea.com/og/mixxea-og.svg"
-    },
-    {
-      "@type": "Organization",
-      "@id": "https://mixxea.com/#freqvault",
-      "name": "Freq Vault",
-      "url": "https://mixxea.com/booking-agency",
-      "description": "Artist management and booking agency for DJs, producers, and electronic live acts.",
-      "logo": "https://mixxea.com/og/mixxea-og.svg"
-    },
-    {
-      "@type": "MusicAlbum",
-      "name": "Dark Matter EP",
-      "byArtist": {
-        "@type": "MusicGroup",
-        "name": "KRATOS"
-      },
-      "url": "https://mixxea.com/#releases"
-    },
-    {
-      "@type": "MusicRecording",
-      "name": "Void Protocol",
-      "byArtist": {
-        "@type": "MusicGroup",
-        "name": "LYDA"
-      },
-      "inAlbum": {
-        "@type": "MusicAlbum",
-        "name": "Void Protocol"
-      },
-      "url": "https://mixxea.com/#releases"
-    },
-    {
-      "@type": "Event",
-      "name": "Freq Vault Artist Booking Events",
-      "eventStatus": "https://schema.org/EventScheduled",
-      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
-      "organizer": {
-        "@id": "https://mixxea.com/#freqvault"
-      },
-      "url": "https://mixxea.com/#events"
-    },
-    {
-      "@type": "BreadcrumbList",
-      "@id": "https://mixxea.com/#breadcrumb",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "https://mixxea.com/"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Record Label",
-          "item": "https://mixxea.com/record-label"
-        },
-        {
-          "@type": "ListItem",
-          "position": 3,
-          "name": "Booking Agency",
-          "item": "https://mixxea.com/booking-agency"
-        }
-      ]
-    }
-  ]
-}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://mixxea.com/#website","url":"https://mixxea.com/","name":"Mixxea & Freq Vault","description":"Electronic music record label, artist management and booking agency.","publisher":{"@id":"https://mixxea.com/#mixxea"},"potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://mixxea.com/?s={search_term_string}"},"query-input":"required name=search_term_string"}},{"@type":"Organization","@id":"https://mixxea.com/#mixxea","name":"Mixxea","url":"https://mixxea.com/record-label","description":"Independent electronic music record label focused on artist development and releases.","logo":{"@type":"ImageObject","url":"https://mixxea.com/og/mixxea-og.svg"},"sameAs":["https://www.instagram.com/mixxeaofficial/","https://twitter.com/mixxeaofficial"]},{"@type":"Organization","@id":"https://mixxea.com/#freqvault","name":"Freq Vault","url":"https://mixxea.com/booking-agency","description":"Artist management and booking agency for DJs, producers, and electronic live acts.","logo":{"@type":"ImageObject","url":"https://mixxea.com/og/mixxea-og.svg"}},{"@type":"BreadcrumbList","@id":"https://mixxea.com/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://mixxea.com/"},{"@type":"ListItem","position":2,"name":"Record Label","item":"https://mixxea.com/record-label"},{"@type":"ListItem","position":3,"name":"Booking Agency","item":"https://mixxea.com/booking-agency"}]}]}</script>
+<script>fetch('/api/seo/schema.json').then(function(r){return r.ok?r.json():null}).then(function(d){if(!d)return;var s=document.createElement('script');s.type='application/ld+json';s.textContent=JSON.stringify(d);document.head.appendChild(s)}).catch(function(){});</script>
 <style>
 /* ═══════════════════════════════════════════════
    TOKENS & RESET
@@ -872,13 +787,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <a href="#roster">Roster</a>
     <a href="#releases">Releases</a>
     <a href="#news">News</a>
+    <a href="/dj-pool">DJ Pool</a>
     <a href="#freqvault">FreqVault</a>
     <a href="#events">Events</a>
     <a href="#portal">Artist Portal</a>
     <a href="#contact">Contact</a>
   </div>
   <div class="nav-right">
-    <a href="#freqvault" class="n-freq">FreqVault Agency</a>
+    <a href="/dj-pool" class="n-freq">DJ Pool</a>
     <a href="#contact" class="n-ar">Demo Submit</a>
     <button class="n-admin" onclick="openAdmin()">Admin ⚙</button>
   </div>
@@ -888,13 +804,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <a href="#roster">Roster</a>
       <a href="#releases">Releases</a>
       <a href="#news">News</a>
+      <a href="/dj-pool">DJ Pool</a>
       <a href="#freqvault">FreqVault</a>
       <a href="#events">Events</a>
       <a href="#portal">Artist Portal</a>
       <a href="#contact">Contact</a>
     </div>
     <div class="nav-mobile-actions">
-      <a href="#freqvault" class="n-freq">FreqVault Agency</a>
+      <a href="/dj-pool" class="n-freq">DJ Pool</a>
       <a href="#contact" class="n-ar">Demo Submit</a>
       <button class="n-admin" type="button" onclick="openAdmin()">Admin &#9881;</button>
     </div>
@@ -1443,7 +1360,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <button class="adm-nav-item" type="button" data-sec="a-rel" onclick="goSec('a-rel')"><span class="ico">🎵</span>Releases</button>
         <button class="adm-nav-item" type="button" data-sec="a-art" onclick="goSec('a-art')"><span class="ico">👤</span>Artists</button>
         <button class="adm-nav-item" type="button" data-sec="a-demo" onclick="goSec('a-demo')"><span class="ico">📥</span>Demo Inbox</button>
-        <button class="adm-nav-item" type="button" data-sec="a-roy" onclick="goSec('a-roy')"><span class="ico">💰</span>Royalties</button>
         <button class="adm-nav-item" type="button" data-sec="a-con" onclick="goSec('a-con')"><span class="ico">📄</span>Contracts</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Content</div>
@@ -1453,6 +1369,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="adm-nav-group"><div class="adm-nav-label">FreqVault</div>
         <button class="adm-nav-item" type="button" data-sec="a-bk" onclick="goSec('a-bk')"><span class="ico">🎛</span>Bookings</button>
         <button class="adm-nav-item" type="button" data-sec="a-promo" onclick="goSec('a-promo')"><span class="ico">📋</span>Promoter CRM</button>
+        <button class="adm-nav-item" type="button" data-sec="a-djpool" onclick="goSec('a-djpool')"><span class="ico">♫</span>DJ Pool Manager</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Communications</div>
         <button class="adm-nav-item" type="button" data-sec="a-nl" onclick="goSec('a-nl')"><span class="ico">📧</span>Newsletter</button>
@@ -1487,7 +1404,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="adm-kpi"><div class="v c" id="dash-booking-count">—</div><div class="lbl">Pending Bookings</div></div>
           <div class="adm-kpi"><div class="v g" id="dash-subs-count">—</div><div class="lbl">Subscribers</div></div>
           <div class="adm-kpi"><div class="v" id="dash-event-count">—</div><div class="lbl">Events</div></div>
-          <div class="adm-kpi"><div class="v g" id="dash-royalty-total">—</div><div class="lbl">Royalties Q1</div></div>
           <div class="adm-kpi"><div class="v c" id="dash-news-count">—</div><div class="lbl">News Posts</div></div>
         </div>
         <div class="adm-sec-head"><div class="adm-sec-title">Recent Activity</div></div>
@@ -1662,39 +1578,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
       </div>
 
-      <!-- ROYALTIES -->
-      <div id="a-roy" class="adm-section">
-        <div class="adm-top">
-          <div class="adm-h1">ROYALTY <span class="hl">MANAGER</span></div>
-          <button class="adm-add-btn" onclick="admToggle('roy-form')">+ Add Entry</button>
-        </div>
-        <div id="roy-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:24px;margin-bottom:24px">
-          <div style="font-family:var(--Mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:14px">Add Royalty Entry</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
-            <div class="adm-field" style="margin:0"><label>Artist</label><input type="text" id="roy-artist" placeholder="Artist name"></div>
-            <div class="adm-field" style="margin:0"><label>Release</label><input type="text" id="roy-release" placeholder="Release name"></div>
-            <div class="adm-field" style="margin:0"><label>Source</label><input type="text" id="roy-source" placeholder="Streaming / Sync..."></div>
-            <div class="adm-field" style="margin:0"><label>Amount (↑)</label><input type="number" id="roy-amount" placeholder="0.00" step="0.01"></div>
-            <div class="adm-field" style="margin:0"><label>Period</label><input type="text" id="roy-period" placeholder="Q1 2025"></div>
-          </div>
-          <div class="adm-btn-row" style="margin-top:14px">
-            <button class="adm-submit" onclick="ADMIN.saveRoyalty()">Add Entry</button>
-            <button class="adm-cancel" onclick="admToggle('roy-form')">Cancel</button>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
-          <div class="adm-kpi"><div class="v g" id="roy-total-val">—</div><div class="lbl">Total Royalties</div></div>
-          <div class="adm-kpi"><div class="v c" id="roy-unpaid-val">—</div><div class="lbl">Unpaid</div></div>
-          <div class="adm-kpi"><div class="v" id="roy-entries-val">—</div><div class="lbl">Entries</div></div>
-        </div>
-        <table class="adm-table">
-          <thead><tr><th>Artist</th><th>Release</th><th>Source</th><th>Amount</th><th>Period</th><th>Paid</th><th>Actions</th></tr></thead>
-          <tbody id="adm-roy-tbody">
-            <tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-
       <!-- CONTRACTS -->
       <div id="a-con" class="adm-section">
         <div class="adm-top">
@@ -1744,7 +1627,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="adm-field"><label>Publish Date</label><input type="date" id="news-date"></div>
           </div>
           <div class="adm-row">
-            <div class="adm-field"><label>Featured Image</label><input type="file" id="news-image" accept="image/*"></div>
+            <div class="adm-field"><label>Featured Image</label><input type="file" id="news-image" accept="image/*" onchange="(function(f){if(f.files[0]){var u=URL.createObjectURL(f.files[0]);var p=document.getElementById('news-img-preview');p.src=u;p.style.display='block';}})(this)">
+              <img id="news-img-preview" src="" alt="Image preview" style="display:none;margin-top:8px;width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid var(--wire)"></div>
             <div class="adm-field"><label>Status</label>
               <select id="news-status"><option value="draft">Draft</option><option value="published">Published</option></select>
             </div>
@@ -1845,6 +1729,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </table>
       </div>
 
+      <!-- DJ POOL MANAGER -->
+      <div id="a-djpool" class="adm-section">
+        <div class="adm-top">
+          <div class="adm-h1">DJ POOL <span class="hl">MANAGER</span></div>
+          <a class="adm-submit" style="text-decoration:none;padding:10px 20px" href="/dj-pool#admin" target="_blank" rel="noopener">Open Pool Console</a>
+        </div>
+        <div class="adm-stats-row">
+          <div class="adm-kpi"><div class="v g" id="djpool-track-count">--</div><div class="lbl">Tracks</div></div>
+          <div class="adm-kpi"><div class="v c" id="djpool-download-count">--</div><div class="lbl">Downloads</div></div>
+          <div class="adm-kpi"><div class="v" id="djpool-crate-count">--</div><div class="lbl">Crates</div></div>
+          <div class="adm-kpi"><div class="v g" id="djpool-sub-count">--</div><div class="lbl">Active Subs</div></div>
+        </div>
+        <div class="adm-sec-head"><div class="adm-sec-title">Top DJ Pool Tracks</div></div>
+        <table class="adm-table">
+          <thead><tr><th>Track</th><th>Artist</th><th>Label</th><th>BPM</th><th>Downloads</th></tr></thead>
+          <tbody id="adm-djpool-tbody">
+            <tr><td colspan="5" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading DJ Pool analytics...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
       <!-- NEWSLETTER -->
       <div id="a-nl" class="adm-section">
         <div class="adm-top"><div class="adm-h1">NEWSLETTER <span class="hl">COMPOSER</span></div></div>
@@ -1906,11 +1811,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <!-- ANALYTICS -->
       <div id="a-analytics" class="adm-section">
         <div class="adm-top"><div class="adm-h1">SITE <span class="hl">ANALYTICS</span></div><div style="font-family:var(--Mono);font-size:10px;color:var(--muted)">Last 30 days</div></div>
-        <div class="adm-stats-row">
-          <div class="adm-kpi"><div class="v g">18,420</div><div class="lbl">Page Views</div></div>
-          <div class="adm-kpi"><div class="v g">6,840</div><div class="lbl">Unique Visitors</div></div>
+        <div class="adm-stats-row" style="margin-bottom:12px">
           <div class="adm-kpi"><div class="v c" id="analytics-demos">—</div><div class="lbl">Demo Submissions</div></div>
           <div class="adm-kpi"><div class="v" id="analytics-bookings">—</div><div class="lbl">Booking Inquiries</div></div>
+          <div class="adm-kpi"><div class="v g" id="analytics-subs">—</div><div class="lbl">Subscribers</div></div>
+          <div class="adm-kpi"><div class="v" id="analytics-events">—</div><div class="lbl">Events Scheduled</div></div>
+        </div>
+        <div class="adm-stats-row" style="margin-bottom:24px">
+          <div class="adm-kpi"><div class="v g" id="analytics-releases">—</div><div class="lbl">Releases</div></div>
+          <div class="adm-kpi"><div class="v" id="analytics-artists">—</div><div class="lbl">Artists Signed</div></div>
+          <div class="adm-kpi"><div class="v c" id="analytics-news">—</div><div class="lbl">Published Posts</div></div>
         </div>
         <div style="background:var(--panel);border:1px solid var(--wire);padding:24px;margin-bottom:16px">
           <div style="font-family:var(--Mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:16px">Monthly Visitors (Last 12 Months)</div>
@@ -2505,4 +2415,3 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closeAdmin();});
 <script src="/js/admin.js?v=9"></script>
 </body>
 </html>
-

@@ -4,6 +4,7 @@
  * Dev fallback: local path string (file not actually saved — dev only)
  */
 
+const fs = require('fs');
 const path = require('path');
 const { v4: uuid } = require('uuid');
 
@@ -30,8 +31,19 @@ async function uploadFile(file, folder) {
     return '';
   }
 
-  // Local dev — return a path (file won't persist but won't crash)
-  return `/uploads/${filename}`;
+  // Local dev fallback: write the file to the public uploads folder so URLs work.
+  const uploadDir = path.join(__dirname, '../../public/uploads', folder);
+  const targetPath = path.join(uploadDir, path.basename(filename));
+
+  try {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    fs.writeFileSync(targetPath, file.buffer);
+    console.log('[UPLOAD] Local file saved:', `/uploads/${filename}`);
+    return `/uploads/${filename}`;
+  } catch (error) {
+    console.error('[UPLOAD] Failed to save local file:', error.message);
+    return '';
+  }
 }
 
 module.exports = { uploadFile };

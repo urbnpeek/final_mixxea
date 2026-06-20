@@ -7,7 +7,9 @@
     "start": "node server.js",
     "dev": "nodemon --ignore data/** --ignore public/uploads/** server.js",
     "build": "npm run build:css",
-    "build:css": "echo 'CSS served as static files'"
+    "build:css": "echo 'CSS served as static files'",
+    "check-email-dns": "npx ts-node scripts/check-email-dns.ts",
+    "generate-dns-fix": "npx ts-node scripts/generate-dns-fix.ts"
   },
   "keywords": [
     "music",
@@ -35,7 +37,10 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "@types/node": "^20.16.0",
+    "nodemon": "^3.0.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.5.4"
   },
   "engines": {
     "node": "22.x"
