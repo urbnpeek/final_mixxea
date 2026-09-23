@@ -11,6 +11,7 @@
 const express = require('express');
 const db      = require('./db');
 const slugify = require('../utils/slugify');
+const { visibleReleases, visibleEvents, visibleNews } = require('../lib/rosterCatalog');
 const router  = express.Router();
 
 const BASE = process.env.CANONICAL_BASE_URL || 'https://mixxea.com';
@@ -35,8 +36,11 @@ async function generateSitemap() {
     { loc: `${BASE}/submit-demo`,               lastmod: today, changefreq: 'monthly', priority: '0.7' },
   ];
 
-  const newsUrls = news
-    .filter(n => n.status === 'published')
+  const publicNews = visibleNews(news, artists);
+  const publicReleases = visibleReleases(releases, artists);
+  const publicEvents = visibleEvents(events, artists);
+
+  const newsUrls = publicNews
     .map(n => ({
       loc: `${BASE}/news/${n.slug || slugify(n.title)}`,
       lastmod: n.date || (n.createdAt || '').slice(0, 10) || today,
@@ -44,8 +48,7 @@ async function generateSitemap() {
       priority: '0.8',
     }));
 
-  const releaseUrls = releases
-    .filter(r => r.status !== 'draft')
+  const releaseUrls = publicReleases
     .map(r => ({
       loc: `${BASE}/releases/${r.slug || slugify(r.title)}`,
       lastmod: r.date || (r.createdAt || '').slice(0, 10) || today,
@@ -60,8 +63,7 @@ async function generateSitemap() {
     priority: '0.7',
   }));
 
-  const eventUrls = events
-    .filter(e => e.status !== 'cancelled')
+  const eventUrls = publicEvents
     .map(e => ({
       loc: `${BASE}/events/${slugify(`${e.artist || ''} ${e.venue} ${e.date || ''}`.trim())}`,
       lastmod: e.date || today,
@@ -98,9 +100,9 @@ router.get('/schema.json', async (req, res) => {
     ]);
 
     const today = new Date().toISOString().slice(0, 10);
-    const liveReleases  = releases.filter(r => r.status === 'out' || r.status === 'pre').slice(0, 6);
-    const signedArtists = artists.filter(a => a.status === 'signed').slice(0, 6);
-    const upcoming      = events.filter(e => e.status === 'confirmed' && (e.date || '') >= today).slice(0, 4);
+    const liveReleases  = visibleReleases(releases, artists).filter(r => r.status === 'out' || r.status === 'pre').slice(0, 6);
+    const signedArtists = artists.filter(a => a && a.name && a.status === 'signed');
+    const upcoming      = visibleEvents(events, artists).filter(e => e.status === 'confirmed' && (e.date || '') >= today).slice(0, 4);
 
     const schema = {
       '@context': 'https://schema.org',

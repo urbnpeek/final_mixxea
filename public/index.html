@@ -221,7 +221,8 @@ canvas#wc{position:absolute;inset:0;opacity:.65;z-index:0}
 /* ═══════════════════════════════════════════════
    STATS BAND
 ═══════════════════════════════════════════════ */
-.stats-band{background:var(--panel);border-top:1px solid var(--wire);border-bottom:1px solid var(--wire);padding:72px 48px;display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.stats-band{background:var(--panel);border-top:1px solid var(--wire);border-bottom:1px solid var(--wire);padding:72px 48px;display:grid;grid-template-columns:1fr;gap:2px}
+.catalog-empty{grid-column:1/-1;margin:28px 0 0;font-family:var(--Mono);font-size:12px;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
 .sb-box{padding:40px 32px;text-align:center;border-right:1px solid var(--wire);transition:background .25s}
 .sb-box:last-child{border-right:none}
 .sb-box:hover{background:rgba(232,255,0,.03)}
@@ -656,7 +657,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
   .label-grid,.roster-top,.fv-top,.ct-grid,.ft-grid,.nl-band,.adm-form{grid-template-columns:1fr;gap:40px}
   .adm-form{grid-template-columns:1fr}
   .adm-form-full{grid-column:span 1}
-  .stats-band,.adm-stats-row{grid-template-columns:repeat(2,1fr)}
+  .adm-stats-row{grid-template-columns:repeat(2,1fr)}
   .svc-grid{grid-template-columns:1fr}
   .rel-grid{grid-template-columns:1fr 1fr}
   .r-card:first-child{grid-column:span 2;grid-row:span 1}
@@ -822,10 +823,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
      AUDIO PLAYER (Howler.js powered)
 ═══════════════════════════════════════════════ -->
 <div id="player">
-  <div class="p-art" id="p-art">DM</div>
+  <div class="p-art" id="p-art">—</div>
   <div class="p-info">
-    <div class="p-title" id="p-title">Dark Matter</div>
-    <div class="p-artist" id="p-artist">KRATOS</div>
+    <div class="p-title" id="p-title">No release selected</div>
+    <div class="p-artist" id="p-artist"></div>
   </div>
   <div class="p-controls">
     <button class="p-btn" onclick="prevTrack()" title="Previous">⏮</button>
@@ -880,45 +881,29 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
     <p class="sr-only">Mixxea is an independent electronic music record label. Freq Vault is the connected artist management and booking agency for DJs, producers, releases, demos, and events.</p>
-    <div class="h-stats">
-      <div class="hs-item"><div class="sn">24<em>+</em></div><div class="sl">Artists</div></div>
-      <div class="hs-item"><div class="sn">180<em>+</em></div><div class="sl">Releases</div></div>
-      <div class="hs-item"><div class="sn">60<em>+</em></div><div class="sl">Countries</div></div>
-      <div class="hs-item"><div class="sn">3M<em>+</em></div><div class="sl">Streams</div></div>
+      <div class="h-stats">
+      <div class="hs-item"><div class="sn" data-artist-count><!--ARTIST_COUNT-->0<!--/ARTIST_COUNT--></div><div class="sl">On the roster</div></div>
     </div>
   </div>
 </section>
 
 <!-- MARQUEE -->
 <div class="mq-wrap">
-  <div class="mq-track">
+  <div class="mq-track"><!--MARQUEE_ITEMS-->
     <span class="mq-i">MIXXEA RECORDS <span class="mq-dot">◆</span></span>
-    <span class="mq-i">ELECTRONIC MUSIC <span class="mq-dot">◆</span></span>
-    <span class="mq-i">FREQVAULT AGENCY <span class="mq-dot">◆</span></span>
-    <span class="mq-i">TECHNO <span class="mq-dot">◆</span></span>
-    <span class="mq-i">DEEP HOUSE <span class="mq-dot">◆</span></span>
-    <span class="mq-i">AMBIENT <span class="mq-dot">◆</span></span>
-    <span class="mq-i">BASS MUSIC <span class="mq-dot">◆</span></span>
-    <span class="mq-i">GLOBAL BOOKINGS <span class="mq-dot">◆</span></span>
-    <span class="mq-i">ARTIST MANAGEMENT <span class="mq-dot">◆</span></span>
+    <span class="mq-i">FREQ VAULT <span class="mq-dot">◆</span></span>
+    <span class="mq-i">BOOKING <span class="mq-dot">◆</span></span>
+    <span class="mq-i">ARTIST ROSTER <span class="mq-dot">◆</span></span>
     <span class="mq-i">MIXXEA RECORDS <span class="mq-dot">◆</span></span>
-    <span class="mq-i">ELECTRONIC MUSIC <span class="mq-dot">◆</span></span>
-    <span class="mq-i">FREQVAULT AGENCY <span class="mq-dot">◆</span></span>
-    <span class="mq-i">TECHNO <span class="mq-dot">◆</span></span>
-    <span class="mq-i">DEEP HOUSE <span class="mq-dot">◆</span></span>
-    <span class="mq-i">AMBIENT <span class="mq-dot">◆</span></span>
-    <span class="mq-i">BASS MUSIC <span class="mq-dot">◆</span></span>
-    <span class="mq-i">GLOBAL BOOKINGS <span class="mq-dot">◆</span></span>
-    <span class="mq-i">ARTIST MANAGEMENT <span class="mq-dot">◆</span></span>
-  </div>
+    <span class="mq-i">FREQ VAULT <span class="mq-dot">◆</span></span>
+    <span class="mq-i">BOOKING <span class="mq-dot">◆</span></span>
+    <span class="mq-i">ARTIST ROSTER <span class="mq-dot">◆</span></span>
+  <!--/MARQUEE_ITEMS--></div>
 </div>
 
 <!-- STATS -->
 <div class="stats-band rv">
-  <div class="sb-box"><div class="sb-big">24<sup>+</sup></div><div class="sb-lbl">Signed Artists</div></div>
-  <div class="sb-box"><div class="sb-big">180<sup>+</sup></div><div class="sb-lbl">Releases</div></div>
-  <div class="sb-box"><div class="sb-big">60<sup>+</sup></div><div class="sb-lbl">Countries</div></div>
-  <div class="sb-box"><div class="sb-big">3M<sup>+</sup></div><div class="sb-lbl">Monthly Streams</div></div>
+  <div class="sb-box"><div class="sb-big" data-artist-count><!--ARTIST_COUNT-->0<!--/ARTIST_COUNT--></div><div class="sb-lbl">Artists on the roster</div></div>
 </div>
 
 <!-- ═══════════════════════════════════════════
@@ -958,7 +943,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="sec-kicker">02 · Who We Work With</div>
         <h2 class="sec-h2">ARTIST<br><span class="out">ROSTER</span></h2>
       </div>
-      <div class="roster-desc"><p>We work with a curated selection of artists defining the sound of electronic music right now. From Berlin's underground to Tokyo's experimental scene — Mixxea is global.<br><br>Each artist on our roster gets full label support, FreqVault bookings, and genuine long-term investment in their career.</p></div>
+      <div class="roster-desc"><p>The artists below are the current Mixxea roster. Profiles and booking links use those same records.<br><br>Booking for agency artists goes through Freq Vault.</p></div>
     </div>
   </div>
   <div class="roster-scroll rv">
@@ -984,48 +969,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <button class="f-btn" data-f="ambient">Ambient</button>
       </div>
     </div>
-    <div class="rel-grid rv" id="rel-grid-dynamic">
-      <div class="r-card" data-track="0">
-        <div class="rc-art big" style="color:rgba(232,255,0,.08)">DM</div>
-        <div class="rc-grad"></div>
-        <div class="rc-status s-out">Out Now</div>
-        <button class="rc-play" onclick="playTrack(0,event)">▶</button>
-        <div class="rc-cnt big"><div class="rc-cat">Techno · MXA001</div><div class="rc-title big">DARK MATTER EP</div><div class="rc-who">KRATOS — Mar 2025</div></div>
-        <div class="rc-dsp"><a href="#" class="dsp-link">Beatport</a><a href="#" class="dsp-link">Spotify</a><a href="#" class="dsp-link">Apple</a><a href="#" class="dsp-link">SoundCloud</a></div>
-      </div>
-      <div class="r-card" data-track="1">
-        <div class="rc-art" style="color:rgba(0,200,255,.09)">OF</div>
-        <div class="rc-grad"></div>
-        <div class="rc-status s-out">Out Now</div>
-        <button class="rc-play" onclick="playTrack(1,event)">▶</button>
-        <div class="rc-cnt"><div class="rc-cat">Deep House · MXA002</div><div class="rc-title">OCEAN FLOOR LP</div><div class="rc-who">SOLV</div></div>
-        <div class="rc-dsp"><a href="#" class="dsp-link">Beatport</a><a href="#" class="dsp-link">Spotify</a><a href="#" class="dsp-link">Apple</a></div>
-      </div>
-      <div class="r-card" data-track="2">
-        <div class="rc-art" style="color:rgba(255,45,107,.09)">SL</div>
-        <div class="rc-grad"></div>
-        <div class="rc-status s-pre">Pre-Order</div>
-        <button class="rc-play" onclick="playTrack(2,event)">▶</button>
-        <div class="rc-cnt"><div class="rc-cat">Ambient · MXA003</div><div class="rc-title">SIGNAL LOSS</div><div class="rc-who">AXON</div></div>
-        <div class="rc-dsp"><a href="#" class="dsp-link">Pre-Order</a><a href="#" class="dsp-link">SoundCloud</a></div>
-      </div>
-      <div class="r-card" data-track="3">
-        <div class="rc-art" style="color:rgba(255,184,0,.09)">GS</div>
-        <div class="rc-grad"></div>
-        <div class="rc-status s-pre">Coming Soon</div>
-        <button class="rc-play" onclick="playTrack(3,event)">▶</button>
-        <div class="rc-cnt"><div class="rc-cat">Bass · MXA004</div><div class="rc-title">GRIND SYSTEM</div><div class="rc-who">VEXR</div></div>
-        <div class="rc-dsp"><a href="#" class="dsp-link">Notify Me</a></div>
-      </div>
-      <div class="r-card" data-track="4">
-        <div class="rc-art" style="color:rgba(232,255,0,.07)">VP</div>
-        <div class="rc-grad"></div>
-        <div class="rc-status s-out">Out Now</div>
-        <button class="rc-play" onclick="playTrack(4,event)">▶</button>
-        <div class="rc-cnt"><div class="rc-cat">Techno · MXA005</div><div class="rc-title">VOID PROTOCOL</div><div class="rc-who">LYDA</div></div>
-        <div class="rc-dsp"><a href="#" class="dsp-link">Beatport</a><a href="#" class="dsp-link">Spotify</a><a href="#" class="dsp-link">Apple</a></div>
-      </div>
-    </div>
+    <div class="rel-grid rv" id="rel-grid-dynamic"><!--RELEASE_CARDS-->
+      <p class="catalog-empty">No releases on file yet.</p>
+    <!--/RELEASE_CARDS--></div>
   </div>
 </section>
 
@@ -1087,29 +1033,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <section id="news">
   <div class="cx">
     <div class="rv"><div class="sec-kicker">04 · Editorial</div><h2 class="sec-h2">LABEL<br><span class="out">NEWS</span></h2></div>
-    <div class="news-grid rv" id="news-grid-dynamic">
-      <div class="n-card">
-        <div class="nc-img" style="background:var(--edge)"><span style="font-family:var(--Anton);font-size:80px;color:rgba(232,255,0,.08)">DM</span></div>
-        <div class="nc-cat">Release News</div>
-        <div class="nc-title">KRATOS Drops Landmark 'Dark Matter' EP — A Masterclass in Modern Techno</div>
-        <div class="nc-date">14 Mar 2025</div>
-        <div class="nc-arr">↗</div>
-      </div>
-      <div class="n-card">
-        <div class="nc-img" style="height:160px;background:var(--edge)"><span style="font-family:var(--Anton);font-size:60px;color:rgba(0,200,255,.08)">SV</span></div>
-        <div class="nc-cat">Artist News</div>
-        <div class="nc-title">SOLV Announces European Tour via FreqVault</div>
-        <div class="nc-date">08 Mar 2025</div>
-        <div class="nc-arr">↗</div>
-      </div>
-      <div class="n-card">
-        <div class="nc-img" style="height:160px;background:var(--edge)"><span style="font-family:var(--Anton);font-size:60px;color:rgba(255,45,107,.08)">MX</span></div>
-        <div class="nc-cat">Label News</div>
-        <div class="nc-title">Mixxea Records Signs 3 New Artists for 2025 Season</div>
-        <div class="nc-date">01 Mar 2025</div>
-        <div class="nc-arr">↗</div>
-      </div>
-    </div>
+    <div class="news-grid rv" id="news-grid-dynamic"><!--NEWS_CARDS-->
+      <p class="catalog-empty">No news on file yet.</p>
+    <!--/NEWS_CARDS--></div>
   </div>
 </section>
 
@@ -1119,13 +1045,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <section id="events">
   <div class="cx">
     <div class="rv"><div class="sec-kicker">05 · Live</div><h2 class="sec-h2">EVENTS &<br><span class="out">SHOWS</span></h2></div>
-    <div class="ev-list rv" id="ev-list-dynamic">
-      <div class="ev-row"><div class="ev-date">12 MAY<br>2025</div><div><div class="ev-venue">Tresor Berlin</div><div class="ev-loc">Berlin, Germany</div></div><div class="ev-artist">KRATOS</div><div class="ev-type">Headline</div><div class="ev-tix">Get Tickets ↗</div></div>
-      <div class="ev-row"><div class="ev-date">24 MAY<br>2025</div><div><div class="ev-venue">Awakenings Festival</div><div class="ev-loc">Amsterdam, Netherlands</div></div><div class="ev-artist">KRATOS, LYDA</div><div class="ev-type">Festival</div><div class="ev-tix">Get Tickets ↗</div></div>
-      <div class="ev-row"><div class="ev-date">15 JUN<br>2025</div><div><div class="ev-venue">Fabric London</div><div class="ev-loc">London, UK</div></div><div class="ev-artist">SOLV</div><div class="ev-type">Club Night</div><div class="ev-tix">Get Tickets ↗</div></div>
-      <div class="ev-row"><div class="ev-date">28 JUN<br>2025</div><div><div class="ev-venue">De School</div><div class="ev-loc">Amsterdam, Netherlands</div></div><div class="ev-artist">AXON</div><div class="ev-type">Live Set</div><div class="ev-tix">Get Tickets ↗</div></div>
-      <div class="ev-row"><div class="ev-date">12 JUL<br>2025</div><div><div class="ev-venue">ADE — Shelter</div><div class="ev-loc">Amsterdam, Netherlands</div></div><div class="ev-artist">Full Mixxea Roster</div><div class="ev-type">Label Night</div><div class="ev-tix">Get Tickets ↗</div></div>
-    </div>
+    <div class="ev-list rv" id="ev-list-dynamic"><!--EVENT_ROWS-->
+      <p class="catalog-empty">No shows on file yet.</p>
+    <!--/EVENT_ROWS--></div>
   </div>
 </section>
 
@@ -1149,7 +1071,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="a-sub">Artist Portal Access</div>
         <div class="field"><label>Email</label><input type="email" placeholder="artist@email.com"></div>
         <div class="field"><label>Password</label><input type="password" placeholder="••••••••••••"></div>
-        <button class="sub-full" style="margin-top:20px" onclick="ptab(document.querySelector('.p-tab:nth-child(4)'),'pp-dash')">Access Portal →</button>
+        <button class="sub-full" style="margin-top:20px" type="button">Access Portal →</button>
         <div style="text-align:center;margin-top:18px"><a href="javascript:void(0)" onclick="ptab(document.querySelector('.p-tab:nth-child(2)'), 'pp-reg')" style="font-family:var(--Mono);font-size:10px;color:var(--muted)">New artist? Register here →</a></div>
       </div></div>
 
@@ -1209,7 +1131,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div id="pp-dash" class="p-body">
         <div class="dash-wrap">
           <div class="d-side">
-            <div class="du"><div class="du-name">KRATOS</div><div class="du-role"><span class="du-dot"></span>Active · Signed</div></div>
+            <div class="du"><div class="du-name">Artist</div><div class="du-role"><span class="du-dot"></span>Sign in to view your account</div></div>
             <button class="d-nav on" onclick="dsec(this,'ds-ov')"><span>◉</span> Overview</button>
             <button class="d-nav" onclick="dsec(this,'ds-tr')"><span>♪</span> My Tracks</button>
             <button class="d-nav" onclick="dsec(this,'ds-new')"><span>+</span> New Submission</button>
@@ -1219,17 +1141,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
           <div class="d-main">
             <div id="ds-ov" class="d-sec on">
-              <div class="kpis"><div class="kpi"><div class="kpi-v g">12</div><div class="kpi-k">Releases</div></div><div class="kpi"><div class="kpi-v c">↑3,240</div><div class="kpi-k">Royalties YTD</div></div><div class="kpi"><div class="kpi-v">8</div><div class="kpi-k">Shows</div></div></div>
-              <div style="font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px">Recent Activity</div>
-              <div class="trk-row"><button class="trk-play" onclick="playTrack(0,event)">▶</button><div><div class="trk-t">Dark Matter — Title Track</div><div class="trk-m">Released 14 Mar 2025 · 128 BPM · Techno</div></div><div class="bge bg-live">Live</div><div class="trk-dur">6:42</div></div>
-              <div class="trk-row"><button class="trk-play">▶</button><div><div class="trk-t">Sub Ritual (Original Mix)</div><div class="trk-m">Submitted 02 Apr 2025 · 132 BPM · Minimal</div></div><div class="bge bg-rev">In Review</div><div class="trk-dur">7:18</div></div>
-              <div class="trk-row"><button class="trk-play">▶</button><div><div class="trk-t">Sector 9 (Club Mix)</div><div class="trk-m">Submitted 28 Mar 2025 · 135 BPM · Techno</div></div><div class="bge" style="color:var(--muted);border-color:var(--wire2)">Pending</div><div class="trk-dur">8:05</div></div>
+              <div class="kpis"><div class="kpi"><div class="kpi-v g" id="kpi-releases">—</div><div class="kpi-k">Releases</div></div><div class="kpi"><div class="kpi-v c" id="kpi-royalties">—</div><div class="kpi-k">Royalties</div></div><div class="kpi"><div class="kpi-v" id="kpi-shows">—</div><div class="kpi-k">Shows</div></div></div>
+              <p class="catalog-empty">Sign in to see releases, royalties, and shows stored on your account.</p>
             </div>
             <div id="ds-tr" class="d-sec">
-              <div class="trk-row"><button class="trk-play" onclick="playTrack(0,event)">▶</button><div><div class="trk-t">Dark Matter</div><div class="trk-m">Techno · 128 BPM</div></div><div class="bge bg-live">Released</div><div class="trk-dur">6:42</div></div>
-              <div class="trk-row"><button class="trk-play" onclick="playTrack(4,event)">▶</button><div><div class="trk-t">Void Protocol</div><div class="trk-m">Techno · 135 BPM</div></div><div class="bge bg-live">Released</div><div class="trk-dur">5:55</div></div>
-              <div class="trk-row"><button class="trk-play">▶</button><div><div class="trk-t">Sub Ritual</div><div class="trk-m">Minimal · 132 BPM</div></div><div class="bge bg-rev">In Review</div><div class="trk-dur">7:18</div></div>
-              <div class="trk-row"><button class="trk-play">▶</button><div><div class="trk-t">Sector 9</div><div class="trk-m">Techno · 135 BPM</div></div><div class="bge" style="color:var(--muted);border-color:var(--wire2)">Pending</div><div class="trk-dur">8:05</div></div>
+              <p class="catalog-empty">No releases on file yet.</p>
             </div>
             <div id="ds-new" class="d-sec">
               <div class="drop-zone"><span class="drop-ico">♪</span><h4>Upload new track</h4><p>WAV · AIFF · MP3</p></div>
@@ -1238,28 +1154,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <button class="sub-full" style="max-width:280px">Submit Track →</button>
             </div>
             <div id="ds-ct" class="d-sec">
-              <div style="border:1px solid var(--wire);padding:28px;margin-bottom:10px">
-                <div style="font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--g1);margin-bottom:8px;text-transform:uppercase">Active Contract</div>
-                <div style="font-family:var(--Anton);font-size:28px;margin-bottom:4px">MIXXEA LICENSE AGREEMENT</div>
-                <div style="font-family:var(--Mono);font-size:10px;color:var(--muted)">Signed: 01 Jan 2025 · Term: 3 Years · Unlimited Tracks</div>
-                <div style="display:flex;gap:10px;margin-top:18px">
-                  <button class="sub-full" style="max-width:160px;padding:11px">Download PDF</button>
-                  <button class="cta-g" style="padding:11px 20px;font-family:var(--Mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer">Request Amendment</button>
-                </div>
-              </div>
+              <p class="catalog-empty">No contract on file.</p>
             </div>
             <div id="ds-ry" class="d-sec">
-              <div class="kpis" style="grid-template-columns:1fr 1fr"><div class="kpi"><div class="kpi-v g">↑3,240</div><div class="kpi-k">Total 2025</div></div><div class="kpi"><div class="kpi-v">↑890</div><div class="kpi-k">Q1 2025</div></div></div>
-              <div class="r-row"><div><div class="trk-t">Dark Matter EP</div><div class="trk-m">Streaming + Beatport</div></div><div class="r-amt">↑1,840</div></div>
-              <div class="r-row"><div><div class="trk-t">Void Protocol</div><div class="trk-m">Streaming</div></div><div class="r-amt">↑960</div></div>
-              <div class="r-row"><div><div class="trk-t">Sync License — TV Spot</div><div class="trk-m">Sync placement</div></div><div class="r-amt">↑440</div></div>
-              <button class="cta-g" style="margin-top:18px;padding:11px 22px;font-family:var(--Mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer">Download Statement PDF</button>
+              <p class="catalog-empty">No royalty records on file.</p>
             </div>
             <div id="ds-bk" class="d-sec">
-              <div style="font-family:var(--Mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:14px">Upcoming Shows via FreqVault</div>
-              <div class="sh-row"><div class="sh-date">12 MAY<br>2025</div><div><div class="trk-t">Tresor Berlin</div><div class="trk-m">Berlin, Germany · Headline</div></div><div class="bge bg-live">Confirmed</div></div>
-              <div class="sh-row"><div class="sh-date">24 MAY<br>2025</div><div><div class="trk-t">Awakenings Festival</div><div class="trk-m">Amsterdam, NL · Stage B</div></div><div class="bge bg-live">Confirmed</div></div>
-              <div class="sh-row"><div class="sh-date">15 JUN<br>2025</div><div><div class="trk-t">Fabric London</div><div class="trk-m">London, UK · Room 1</div></div><div class="bge bg-rev">On Hold</div></div>
+              <p class="catalog-empty">No shows on file.</p>
             </div>
           </div>
         </div>
@@ -1542,7 +1443,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6">Send the artist an invitation to fill out the official 4-step track submission form.</div>
           <div class="adm-field" style="margin-bottom:14px">
             <label>Artist name <span style="color:var(--muted);font-weight:300">(optional)</span></label>
-            <input type="text" id="sl-name" placeholder="e.g. KRATOS">
+            <input type="text" id="sl-name" placeholder="Artist name">
           </div>
           <div class="adm-field" style="margin-bottom:20px">
             <label>Email address *</label>
@@ -2111,13 +2012,18 @@ async function nlSubscribe(){
 })();
 
 /* ═══ HOWLER.JS AUDIO PLAYER ═══ */
-const TRACKS=[
-  {title:'Dark Matter',artist:'KRATOS',art:'DM',src:null},
-  {title:'Ocean Floor',artist:'SOLV',art:'OF',src:null},
-  {title:'Signal Loss',artist:'AXON',art:'SL',src:null},
-  {title:'Grind System',artist:'VEXR',art:'GS',src:null},
-  {title:'Void Protocol',artist:'LYDA',art:'VP',src:null},
-];
+var TRACKS=[];
+
+function resetPlayerLabels(){
+  const art=document.getElementById('p-art');
+  const title=document.getElementById('p-title');
+  const artist=document.getElementById('p-artist');
+  if(art) art.textContent='—';
+  if(title) title.textContent='No release selected';
+  if(artist) artist.textContent='';
+  const pl=document.getElementById('p-playlist');
+  if(pl) pl.innerHTML='';
+}
 
 let currentIdx=0,howl=null,playing=false,progTimer=null;
 
@@ -2143,18 +2049,20 @@ function buildPlaylist(){
 
 function updatePlayerUI(){
   const t=TRACKS[currentIdx];
+  if(!t){ resetPlayerLabels(); return; }
   const art=document.getElementById('p-art');
   const title=document.getElementById('p-title');
   const artist=document.getElementById('p-artist');
-  if(art) art.textContent=t.art;
-  if(title) title.textContent=t.title;
-  if(artist) artist.textContent=t.artist;
+  if(art) art.textContent=t.art || '—';
+  if(title) title.textContent=t.title || 'No release selected';
+  if(artist) artist.textContent=t.artist || '';
   buildPlaylist();
 }
 
 function playTrack(idx, e){
   try {
     if(e&&e.stopPropagation) e.stopPropagation();
+    if(!TRACKS.length){ resetPlayerLabels(); return; }
 
     /* If no real src and Howler not loaded, show player UI only */
     const track=TRACKS[idx]||TRACKS[0];
@@ -2221,8 +2129,8 @@ function togglePlay(){
   if(playing){howl.pause();}else{howl.play();}
 }
 
-function nextTrack(){ playTrack((currentIdx+1)%TRACKS.length,{stopPropagation:()=>{}}); }
-function prevTrack(){ playTrack((currentIdx-1+TRACKS.length)%TRACKS.length,{stopPropagation:()=>{}}); }
+function nextTrack(){ if(!TRACKS.length) return; playTrack((currentIdx+1)%TRACKS.length,{stopPropagation:()=>{}}); }
+function prevTrack(){ if(!TRACKS.length) return; playTrack((currentIdx-1+TRACKS.length)%TRACKS.length,{stopPropagation:()=>{}}); }
 
 function setVol(v){
   try{
@@ -2404,7 +2312,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closeAdmin();});
   });
 })();
 </script>
-<script src="/js/app.js?v=8"></script>
+<script src="/js/app.js?v=10"></script>
 <script src="/js/admin.js?v=9"></script>
 </body>
 </html>

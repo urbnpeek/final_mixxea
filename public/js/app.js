@@ -67,6 +67,71 @@ function getInputValue(root, selector) {
   return root?.querySelector(selector)?.value?.trim() || '';
 }
 
+const BRAND_WORDS = new Set(['mixxea', 'records', 'freqvault', 'freq', 'vault', 'news', 'label', 'booking', 'agency', 'roster']);
+
+function rosterNameSet(artists) {
+  return new Set((Array.isArray(artists) ? artists : [])
+    .map((artist) => String(artist && artist.name || '').trim().toLowerCase())
+    .filter(Boolean));
+}
+
+function nameTokens(value) {
+  return String(value || '')
+    .toLowerCase()
+    .split(/[,/&+]|\band\b/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function creditedToRoster(value, names) {
+  const tokens = nameTokens(value);
+  if (!tokens.length || !names.size) return false;
+  return tokens.every((token) => names.has(token));
+}
+
+function shoutedOffRoster(text, names) {
+  const tokens = String(text || '').match(/\b[A-Z]{4,}\b/g) || [];
+  return tokens.some((token) => {
+    const key = token.toLowerCase();
+    return !names.has(key) && !BRAND_WORDS.has(key);
+  });
+}
+
+function rosterReleases(releases, artists) {
+  const names = rosterNameSet(artists);
+  return (Array.isArray(releases) ? releases : []).filter((release) => {
+    const status = String(release && release.status || '').toLowerCase();
+    if (status === 'draft' || status === 'hidden') return false;
+    if (!creditedToRoster(release.artist, names)) return false;
+    return !shoutedOffRoster(`${release.title || ''} ${release.description || ''}`, names);
+  });
+}
+
+function rosterEvents(events, artists) {
+  const names = rosterNameSet(artists);
+  return (Array.isArray(events) ? events : []).filter((event) => {
+    const status = String(event && event.status || '').toLowerCase();
+    if (status === 'cancelled' || status === 'hidden') return false;
+    return creditedToRoster(event.artist, names) && !shoutedOffRoster(`${event.venue || ''} ${event.artist || ''}`, names);
+  });
+}
+
+function rosterNews(news, artists) {
+  const names = rosterNameSet(artists);
+  return (Array.isArray(news) ? news : []).filter((item) => {
+    if (!item || String(item.status || 'published').toLowerCase() !== 'published') return false;
+    if (item.artist && !creditedToRoster(item.artist, names)) return false;
+    return !shoutedOffRoster(`${item.title || ''} ${item.body || ''}`, names);
+  });
+}
+
+let rosterArtists = [];
+
+async function loadRosterArtists() {
+  rosterArtists = await API.get('/artists') || [];
+  return rosterArtists.filter((artist) => artist && artist.name);
+}
+
 function slugify(value) {
   return String(value || '')
     .trim()
@@ -89,45 +154,69 @@ function escHtml(value) {
 /* ─────────────────────────────────────────────────────
    RELEASES — load from API and render
 ───────────────────────────────────────────────────── */
-async function loadReleases(genre = 'all') {
-  try {
-    const url = genre === 'all' ? '/releases' : `/releases?genre=${genre}`;
-    const releases = await API.get(url);
-    const grid = document.getElementById('rel-grid-dynamic');
-    if (!grid) return;
+function safeHref(value) {
+  const url = String(value || '').trim();
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith('/') && !url.startsWith('//')) return url;
+  return '';
+}
 
-    grid.innerHTML = releases.map((r, i) => `
+function releaseCardsHtml(releases) {
+  if (!releases.length) return '<p class="catalog-empty">No releases on file yet.</p>';
+  return releases.map((r, i) => {
+    const artwork = safeHref(r.artwork);
+    const mark = escHtml(r.catNo ? String(r.catNo).slice(-3) : String(r.title || '').slice(0, 2).toUpperCase());
+    const visual = artwork
+      ? `<img src="${escHtml(artwork)}" alt="${escHtml(r.title || '')}" style="width:100%;height:100%;object-fit:cover;opacity:.4">`
+      : mark;
+    const links = [
+      ['beatport', 'Beatport'],
+      ['spotify', 'Spotify'],
+      ['apple', 'Apple'],
+      ['soundcloud', 'SoundCloud'],
+      ['bandcamp', 'Bandcamp'],
+    ].map(([key, label]) => {
+      const href = safeHref(r[key]);
+      return href ? `<a href="${escHtml(href)}" target="_blank" rel="noopener noreferrer" class="dsp-link">${label}</a>` : '';
+    }).join('');
+    const status = r.status === 'out' ? ['s-out', 'Out Now'] : r.status === 'pre' ? ['s-pre', 'Pre-Order'] : ['s-pre', 'Coming Soon'];
+    return `
       <div class="r-card${i === 0 ? ' r-card-featured' : ''}" data-track="${i}">
-        <div class="rc-art${i === 0 ? ' big' : ''}" style="color:rgba(232,255,0,.08)">
-          ${r.artwork ? `<img src="${r.artwork}" alt="${r.title}" style="width:100%;height:100%;object-fit:cover;opacity:.4">` : r.catNo?.slice(-3) || r.title.slice(0,2).toUpperCase()}
-        </div>
+        <div class="rc-art${i === 0 ? ' big' : ''}" style="color:rgba(232,255,0,.08)">${visual}</div>
         <div class="rc-grad"></div>
-        <div class="rc-status ${r.status === 'out' ? 's-out' : 's-pre'}">${r.status === 'out' ? 'Out Now' : r.status === 'pre' ? 'Pre-Order' : 'Coming Soon'}</div>
+        <div class="rc-status ${status[0]}">${status[1]}</div>
         <button class="rc-play" onclick="playTrack(${i}, event)">▶</button>
         <div class="rc-cnt${i === 0 ? ' big' : ''}">
-          <div class="rc-cat">${r.genre} · ${r.catNo}</div>
-          <div class="rc-title${i === 0 ? ' big' : ''}">${r.title.toUpperCase()}</div>
-          <div class="rc-who">${r.artist}</div>
+          <div class="rc-cat">${escHtml([r.genre, r.catNo].filter(Boolean).join(' · '))}</div>
+          <div class="rc-title${i === 0 ? ' big' : ''}">${escHtml(String(r.title || '').toUpperCase())}</div>
+          <div class="rc-who">${escHtml(r.artist || '')}</div>
         </div>
-        <div class="rc-dsp">
-          ${r.beatport   ? `<a href="${r.beatport}"   target="_blank" class="dsp-link">Beatport</a>` : ''}
-          ${r.spotify    ? `<a href="${r.spotify}"    target="_blank" class="dsp-link">Spotify</a>` : ''}
-          ${r.apple      ? `<a href="${r.apple}"      target="_blank" class="dsp-link">Apple</a>` : ''}
-          ${r.soundcloud ? `<a href="${r.soundcloud}" target="_blank" class="dsp-link">SoundCloud</a>` : ''}
-          ${r.bandcamp   ? `<a href="${r.bandcamp}"   target="_blank" class="dsp-link">Bandcamp</a>` : ''}
-        </div>
-      </div>
-    `).join('');
+        <div class="rc-dsp">${links}</div>
+      </div>`;
+  }).join('');
+}
 
-    // Update the Howler track list from live data
-    window.TRACKS = releases.map(r => ({
-      title:  r.title,
-      artist: r.artist,
-      art:    r.catNo?.slice(-3) || r.title.slice(0,2).toUpperCase(),
-      src:    r.audioPreview || null
+async function loadReleases(genre = 'all') {
+  try {
+    const url = genre === 'all' ? '/releases' : `/releases?genre=${encodeURIComponent(genre)}`;
+    const [releases, artists] = await Promise.all([
+      API.get(url),
+      rosterArtists.length ? rosterArtists : loadRosterArtists(),
+    ]);
+    const grid = document.getElementById('rel-grid-dynamic');
+    if (!grid) return;
+    const visible = rosterReleases(releases, artists);
+    grid.innerHTML = releaseCardsHtml(visible);
+
+    window.TRACKS = visible.map((r) => ({
+      title: r.title || '',
+      artist: r.artist || '',
+      art: r.catNo ? String(r.catNo).slice(-3) : String(r.title || '').slice(0, 2).toUpperCase(),
+      src: r.audioPreview || null,
     }));
+    if (!window.TRACKS.length && typeof resetPlayerLabels === 'function') resetPlayerLabels();
   } catch (e) {
-    console.warn('Could not load releases from API, using static data');
+    console.warn('Could not load releases from API');
   }
 }
 
@@ -136,7 +225,10 @@ async function loadReleases(genre = 'all') {
 ───────────────────────────────────────────────────── */
 async function loadArtists() {
   try {
-    const artists = await API.get('/artists');
+    const artists = await loadRosterArtists();
+    document.querySelectorAll('[data-artist-count]').forEach((el) => {
+      el.textContent = String(artists.length);
+    });
     const track   = document.getElementById('rTrack');
     if (!track || !artists.length) return;
 
@@ -174,20 +266,31 @@ async function loadArtists() {
 ───────────────────────────────────────────────────── */
 async function loadEvents() {
   try {
-    const events = await API.get('/events');
-    const list   = document.getElementById('ev-list-dynamic');
-    if (!list || !events.length) return;
+    const [events, artists] = await Promise.all([
+      API.get('/events'),
+      rosterArtists.length ? rosterArtists : loadRosterArtists(),
+    ]);
+    const list = document.getElementById('ev-list-dynamic');
+    if (!list) return;
+    const visible = rosterEvents(events, artists);
+    if (!visible.length) {
+      list.innerHTML = '<p class="catalog-empty">No shows on file yet.</p>';
+      return;
+    }
 
-    list.innerHTML = events.map(e => {
-      const d = new Date(e.date);
-      const dateStr = d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }).toUpperCase();
+    list.innerHTML = visible.map((event) => {
+      const d = new Date(event.date);
+      const dateStr = Number.isNaN(d.getTime())
+        ? ''
+        : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }).toUpperCase();
+      const ticket = safeHref(event.ticketLink);
       return `
         <div class="ev-row">
-          <div class="ev-date">${dateStr.replace(' ','\n')}</div>
-          <div><div class="ev-venue">${e.venue}</div><div class="ev-loc">${e.city}, ${e.country}</div></div>
-          <div class="ev-artist">${e.artist}</div>
-          <div class="ev-type">${e.type}</div>
-          <div class="ev-tix">${e.ticketLink ? `<a href="${e.ticketLink}" target="_blank" style="color:inherit">Get Tickets ↗</a>` : e.status === 'hold' ? 'On Hold' : 'TBA'}</div>
+          <div class="ev-date">${escHtml(dateStr).replace(' ', '<br>')}</div>
+          <div><div class="ev-venue">${escHtml(event.venue || '')}</div><div class="ev-loc">${escHtml([event.city, event.country].filter(Boolean).join(', '))}</div></div>
+          <div class="ev-artist">${escHtml(event.artist || '')}</div>
+          <div class="ev-type">${escHtml(event.type || '')}</div>
+          <div class="ev-tix">${ticket ? `<a href="${escHtml(ticket)}" target="_blank" rel="noopener noreferrer" style="color:inherit">Get Tickets ↗</a>` : event.status === 'hold' ? 'On Hold' : 'TBA'}</div>
         </div>
       `;
     }).join('');
@@ -201,19 +304,33 @@ async function loadEvents() {
 ───────────────────────────────────────────────────── */
 async function loadNews() {
   try {
-    const news = await API.get('/news');
+    const [news, artists] = await Promise.all([
+      API.get('/news'),
+      rosterArtists.length ? rosterArtists : loadRosterArtists(),
+    ]);
     const grid = document.getElementById('news-grid-dynamic');
-    if (!grid || !news.length) return;
+    if (!grid) return;
+    const visible = rosterNews(news, artists);
+    if (!visible.length) {
+      grid.innerHTML = '<p class="catalog-empty">No news on file yet.</p>';
+      return;
+    }
 
-    grid.innerHTML = news.map((n, i) => `
+    grid.innerHTML = visible.map((n, i) => {
+      const image = safeHref(n.image);
+      const when = new Date(n.date || n.createdAt);
+      const dateLabel = Number.isNaN(when.getTime())
+        ? ''
+        : when.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+      return `
       <div class="n-card${i === 0 ? ' n-card-featured' : ''}">
-        <div class="nc-img">${n.image ? `<img src="${n.image}" alt="${n.title}" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-family:var(--Anton);font-size:80px;color:rgba(232,255,0,.08)">${n.title.slice(0,2).toUpperCase()}</span>`}</div>
-        <div class="nc-cat">${n.category}</div>
-        <div class="nc-title">${n.title}</div>
-        <div class="nc-date">${new Date(n.date || n.createdAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}</div>
+        <div class="nc-img">${image ? `<img src="${escHtml(image)}" alt="${escHtml(n.title || '')}" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-family:var(--Anton);font-size:80px;color:rgba(232,255,0,.08)">${escHtml(String(n.title || '').slice(0, 2).toUpperCase())}</span>`}</div>
+        <div class="nc-cat">${escHtml(n.category || 'News')}</div>
+        <div class="nc-title">${escHtml(n.title || '')}</div>
+        <div class="nc-date">${escHtml(dateLabel)}</div>
         <div class="nc-arr">↗</div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   } catch (e) {
     console.warn('Could not load news from API');
   }
@@ -360,7 +477,7 @@ async function loadArtistReleases(artistName) {
   try {
     const releases = await API.get('/releases');
     const mine = releases.filter(r => r.artist && r.artist.toLowerCase() === (artistName || '').toLowerCase());
-    const kpi = document.querySelector('.d-kpis .kpi:first-child .kv');
+    const kpi = document.querySelector('#kpi-releases');
     if (kpi) kpi.textContent = mine.length;
     const tbody = document.querySelector('#ds-tr tbody') || document.getElementById('ds-tr');
     if (!tbody) return;
@@ -378,7 +495,7 @@ async function loadArtistReleases(artistName) {
 async function loadArtistRoyalties() {
   try {
     const royalties = await API.get('/royalties/my');
-    const kpi = document.querySelector('.d-kpis .kpi:nth-child(2) .kv');
+    const kpi = document.querySelector('#kpi-royalties');
     const total = Array.isArray(royalties) ? royalties.reduce((s, r) => s + (r.amount || 0), 0) : 0;
     if (kpi) kpi.textContent = '\u20AC' + total.toFixed(2);
     const tbody = document.querySelector('#ds-ry tbody') || document.getElementById('ds-ry');
@@ -398,7 +515,7 @@ async function loadArtistEvents(artistName) {
   try {
     const events = await API.get('/events');
     const mine = events.filter(ev => ev.artist && ev.artist.toLowerCase() === (artistName || '').toLowerCase());
-    const kpi = document.querySelector('.d-kpis .kpi:nth-child(3) .kv');
+    const kpi = document.querySelector('#kpi-shows');
     if (kpi) kpi.textContent = mine.length;
     const tbody = document.querySelector('#ds-bk tbody') || document.getElementById('ds-bk');
     if (!tbody) return;

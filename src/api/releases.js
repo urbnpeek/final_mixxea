@@ -6,17 +6,19 @@ const multer  = require('multer');
 const db      = require('./db');
 const { uploadFile } = require('./upload');
 const { requireAdmin } = require('./middleware');
+const { visibleReleases } = require('../lib/rosterCatalog');
 const router  = express.Router();
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200 * 1024 * 1024 } });
 
 router.get('/', async (req, res) => {
   let releases = await db.get('releases');
-  if (req.query.genre && req.query.genre !== 'all') {
-    releases = releases.filter(r => r.genre.toLowerCase() === req.query.genre.toLowerCase());
-  }
   if (!req.session.admin) {
-    releases = releases.filter(r => r.status !== 'draft');
+    releases = visibleReleases(releases, await db.get('artists'));
+  }
+  if (req.query.genre && req.query.genre !== 'all') {
+    const genre = String(req.query.genre).toLowerCase();
+    releases = releases.filter(r => String(r.genre || '').toLowerCase() === genre);
   }
   res.json(releases);
 });
@@ -25,6 +27,10 @@ router.get('/:id', async (req, res) => {
   const releases = await db.get('releases');
   const release  = releases.find(r => r.id === req.params.id);
   if (!release) return res.status(404).json({ error: 'Not found' });
+  if (!req.session.admin) {
+    const allowed = visibleReleases([release], await db.get('artists'));
+    if (!allowed.length) return res.status(404).json({ error: 'Not found' });
+  }
   res.json(release);
 });
 

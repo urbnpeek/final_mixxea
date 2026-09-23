@@ -7,6 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const slugify = require('../utils/slugify');
+const { visibleReleases, visibleEvents, visibleNews } = require('../lib/rosterCatalog');
 
 const PUBLIC_DIR = path.join(__dirname, '../../public');
 const BASE = String(process.env.CANONICAL_BASE_URL || 'https://mixxea.com').replace(/\/$/, '');
@@ -194,8 +195,152 @@ function renderArtistOptions(artists, selectedSlug) {
   }).join('');
 }
 
-function injectHome(html, artists) {
-  return String(html).replace('<!--ROSTER_TILES-->', renderHomeTiles(artists));
+function formatNewsDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+
+function formatEventDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return esc(value || '');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const month = date.toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' }).toUpperCase();
+  return `${day} ${month}<br>${date.getUTCFullYear()}`;
+}
+
+function releaseStatus(release) {
+  if (release.status === 'out') return { cls: 's-out', label: 'Out Now' };
+  if (release.status === 'pre') return { cls: 's-pre', label: 'Pre-Order' };
+  return { cls: 's-pre', label: 'Coming Soon' };
+}
+
+function renderReleaseCards(releases) {
+  const list = Array.isArray(releases) ? releases : [];
+  if (!list.length) return '<p class="catalog-empty">No releases on file yet.</p>';
+
+  return list.map((release, index) => {
+    const featured = index === 0;
+    const status = releaseStatus(release);
+    const artwork = safeUrl(release.artwork);
+    const mark = esc(release.catNo ? String(release.catNo).slice(-3) : String(release.title || '').slice(0, 2).toUpperCase());
+    const visual = artwork
+      ? `<img src="${esc(artwork)}" alt="${esc(release.title || '')}" style="width:100%;height:100%;object-fit:cover;opacity:.4">`
+      : mark;
+    const links = [
+      ['beatport', 'Beatport'],
+      ['spotify', 'Spotify'],
+      ['apple', 'Apple'],
+      ['soundcloud', 'SoundCloud'],
+      ['bandcamp', 'Bandcamp'],
+    ].map(([key, label]) => {
+      const href = safeUrl(release[key]);
+      return href ? `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" class="dsp-link">${label}</a>` : '';
+    }).join('');
+    const when = formatNewsDate(release.date);
+    const who = [release.artist, when].filter(Boolean).join(' — ');
+    return `<div class="r-card${featured ? ' r-card-featured' : ''}" data-track="${index}">
+        <div class="rc-art${featured ? ' big' : ''}" style="color:rgba(232,255,0,.08)">${visual}</div>
+        <div class="rc-grad"></div>
+        <div class="rc-status ${status.cls}">${status.label}</div>
+        <button class="rc-play" onclick="playTrack(${index}, event)">▶</button>
+        <div class="rc-cnt${featured ? ' big' : ''}">
+          <div class="rc-cat">${esc([release.genre, release.catNo].filter(Boolean).join(' · '))}</div>
+          <div class="rc-title${featured ? ' big' : ''}">${esc(String(release.title || '').toUpperCase())}</div>
+          <div class="rc-who">${esc(who)}</div>
+        </div>
+        <div class="rc-dsp">${links}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderNewsCards(news) {
+  const list = Array.isArray(news) ? news : [];
+  if (!list.length) return '<p class="catalog-empty">No news on file yet.</p>';
+
+  return list.map((item, index) => {
+    const image = safeUrl(item.image);
+    const visual = image
+      ? `<img src="${esc(image)}" alt="${esc(item.title || '')}" style="width:100%;height:100%;object-fit:cover">`
+      : `<span style="font-family:var(--Anton);font-size:80px;color:rgba(232,255,0,.08)">${esc(String(item.title || '').slice(0, 2).toUpperCase())}</span>`;
+    return `<div class="n-card${index === 0 ? ' n-card-featured' : ''}">
+        <div class="nc-img">${visual}</div>
+        <div class="nc-cat">${esc(item.category || 'News')}</div>
+        <div class="nc-title">${esc(item.title || '')}</div>
+        <div class="nc-date">${esc(formatNewsDate(item.date || item.createdAt))}</div>
+        <div class="nc-arr">↗</div>
+      </div>`;
+  }).join('');
+}
+
+function renderEventRows(events) {
+  const list = Array.isArray(events) ? events : [];
+  if (!list.length) return '<p class="catalog-empty">No shows on file yet.</p>';
+
+  return list.map((event) => {
+    const where = [event.city, event.country].filter(Boolean).join(', ');
+    const tickets = safeUrl(event.ticketLink)
+      ? `<a href="${esc(safeUrl(event.ticketLink))}" target="_blank" rel="noopener noreferrer" style="color:inherit">Get Tickets ↗</a>`
+      : (String(event.status || '').toLowerCase() === 'hold' ? 'On Hold' : 'TBA');
+    return `<div class="ev-row">
+        <div class="ev-date">${formatEventDate(event.date)}</div>
+        <div><div class="ev-venue">${esc(event.venue || '')}</div><div class="ev-loc">${esc(where)}</div></div>
+        <div class="ev-artist">${esc(event.artist || '')}</div>
+        <div class="ev-type">${esc(event.type || '')}</div>
+        <div class="ev-tix">${tickets}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderMarquee(artists) {
+  const names = listArtists(artists).map((artist) => String(artist.name).toUpperCase());
+  const brand = ['MIXXEA RECORDS', 'FREQ VAULT', 'BOOKING', 'ARTIST ROSTER'];
+  const items = (names.length ? names.concat(brand) : brand);
+  const line = items.map((text) => `<span class="mq-i">${esc(text)} <span class="mq-dot">◆</span></span>`).join('');
+  return line + line;
+}
+
+function homeBundle(artistsOrBundle) {
+  if (Array.isArray(artistsOrBundle) || artistsOrBundle == null) {
+    return { artists: artistsOrBundle || [], releases: [], events: [], news: [] };
+  }
+  return {
+    artists: artistsOrBundle.artists || [],
+    releases: artistsOrBundle.releases || [],
+    events: artistsOrBundle.events || [],
+    news: artistsOrBundle.news || [],
+  };
+}
+
+function injectHome(html, artistsOrBundle) {
+  const bundle = homeBundle(artistsOrBundle);
+  const artists = bundle.artists;
+  const releases = visibleReleases(bundle.releases, artists);
+  const events = visibleEvents(bundle.events, artists);
+  const news = visibleNews(bundle.news, artists);
+  const swap = (source, marker, value) => source.replace(
+    new RegExp(`<!--${marker}-->[\\s\\S]*?<!--\\/${marker}-->`),
+    `<!--${marker}-->${value}<!--/${marker}-->`
+  );
+  return swap(
+    swap(
+      swap(
+        swap(
+          String(html)
+            .replace('<!--ROSTER_TILES-->', renderHomeTiles(artists))
+            .replaceAll('<!--ARTIST_COUNT-->0<!--/ARTIST_COUNT-->', `<!--ARTIST_COUNT-->${listArtists(artists).length}<!--/ARTIST_COUNT-->`),
+          'MARQUEE_ITEMS',
+          renderMarquee(artists)
+        ),
+        'RELEASE_CARDS',
+        renderReleaseCards(releases)
+      ),
+      'NEWS_CARDS',
+      renderNewsCards(news)
+    ),
+    'EVENT_ROWS',
+    renderEventRows(events)
+  );
 }
 
 function injectBooking(html, artists, selectedSlug) {
@@ -305,21 +450,16 @@ function renderLinkedHeading(href, text) {
   return href ? `<a href="${esc(href)}">${esc(text)}</a>` : esc(text);
 }
 
-function renderArtistPage({ artist, releases, events }) {
+function renderArtistPage({ artist, artists, releases, events }) {
   const slug = artistSlug(artist);
   const name = artist.name;
   const lead = factualLead(artist);
   const bio = String(artist.bio || '').trim();
   const photo = safeUrl(artist.photo);
   const bookable = isBookable(artist);
-  const ownReleases = (Array.isArray(releases) ? releases : []).filter((release) => {
-    const status = String(release.status || '').toLowerCase();
-    return status !== 'draft' && status !== 'hidden' && matchesArtist(release.artist, name);
-  });
-  const ownEvents = (Array.isArray(events) ? events : []).filter((event) => {
-    const status = String(event.status || '').toLowerCase();
-    return status !== 'cancelled' && matchesArtist(event.artist, name);
-  });
+  const roster = Array.isArray(artists) && artists.length ? artists : [artist];
+  const ownReleases = visibleReleases(releases, roster).filter((release) => matchesArtist(release.artist, name));
+  const ownEvents = visibleEvents(events, roster).filter((event) => matchesArtist(event.artist, name));
 
   const facts = [
     artist.genre ? ['Genre', artist.genre] : null,
