@@ -5,6 +5,7 @@ const db        = require('./db');
 const { uploadFile } = require('./upload');
 const { requireAdmin } = require('./middleware');
 const slugify   = require('../utils/slugify');
+const { visibleNews } = require('../lib/rosterCatalog');
 const router    = express.Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -25,21 +26,25 @@ async function pingSitemaps() {
 
 router.get('/', async (req, res) => {
   let news = await db.get('news');
-  if (!req.session.admin) news = news.filter(n => n.status === 'published');
+  if (!req.session.admin) news = visibleNews(news, await db.get('artists'));
   res.json(news);
 });
 
 router.get('/:id', async (req, res) => {
   const item = (await db.get('news')).find(n => n.id === req.params.id);
   if (!item) return res.status(404).json({ error: 'Not found' });
+  if (!req.session.admin) {
+    const allowed = visibleNews([item], await db.get('artists'));
+    if (!allowed.length) return res.status(404).json({ error: 'Not found' });
+  }
   res.json(item);
 });
 
 /* Lookup by slug (used by server-side news page renderer) */
 router.get('/slug/:slug', async (req, res) => {
-  const news   = await db.get('news');
-  const target = news.find(n =>
-    (n.slug || slugify(n.title)) === req.params.slug && n.status === 'published'
+  const [news, artists] = await Promise.all([db.get('news'), db.get('artists')]);
+  const target = visibleNews(news, artists).find(n =>
+    (n.slug || slugify(n.title)) === req.params.slug
   );
   if (!target) return res.status(404).json({ error: 'Not found' });
   res.json(target);

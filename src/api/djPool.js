@@ -9,6 +9,7 @@ const { v4: uuid } = require('uuid');
 const db      = require('./db');
 const { uploadFile } = require('./upload');
 const { requireAdmin, requireArtist } = require('./middleware');
+const { visibleTracks } = require('../lib/rosterCatalog');
 
 const router = express.Router();
 
@@ -24,12 +25,7 @@ const SEED_LABELS = [
   { id: 'freqvault-promos',  name: 'FreqVault Promos',  logo: '', description: 'Limited upfront promos and club tools from the FreqVault network.',          genre_focus: 'Peak-time / Bass / Melodic' }
 ];
 
-const SEED_TRACKS = [
-  { id: 'fv-001', title: 'Dark Matter',     artist: 'KRATOS', label: 'Mixxea Records',   genre: 'Techno',        bpm: 128, musical_key: '12A', energy_level: 5, audio_url: '', cover_image: '', release_date: '2026-05-29', is_exclusive: true,  is_promo: false, is_featured: true,  dj_notes: 'Pressure tool. Long percussive intro, clean 32-bar outro.',  formats: ['MP3','WAV'], download_count: 0, created_at: '2026-05-29T00:00:00Z' },
-  { id: 'fv-002', title: 'Ocean Floor Dub', artist: 'SOLV',   label: 'Mixxea Records',   genre: 'Deep House',    bpm: 122, musical_key: '8A',  energy_level: 3, audio_url: '', cover_image: '', release_date: '2026-05-26', is_exclusive: false, is_promo: true,  is_featured: true,  dj_notes: 'Warmup groove with long blend points.',                      formats: ['MP3','WAV'], download_count: 0, created_at: '2026-05-26T00:00:00Z' },
-  { id: 'fv-003', title: 'Void Protocol',   artist: 'LYDA',   label: 'FreqVault Promos', genre: 'Industrial',    bpm: 135, musical_key: '7A',  energy_level: 5, audio_url: '', cover_image: '', release_date: '2026-05-22', is_exclusive: true,  is_promo: true,  is_featured: false, dj_notes: 'Warehouse cut for late peak slots.',                         formats: ['MP3','WAV'], download_count: 0, created_at: '2026-05-22T00:00:00Z' },
-  { id: 'fv-004', title: 'Signal Loss',     artist: 'AXON',   label: 'Mixxea Records',   genre: 'Ambient Techno',bpm: 118, musical_key: '4A',  energy_level: 2, audio_url: '', cover_image: '', release_date: '2026-05-18', is_exclusive: false, is_promo: false, is_featured: false, dj_notes: 'Texture-led bridge record for opening sets.',                 formats: ['MP3'],       download_count: 0, created_at: '2026-05-18T00:00:00Z' }
-];
+const SEED_TRACKS = [];
 
 const PLAN_RULES = {
   Starter:  { download_limit: 25,   exclusive: false, early_access: false },
@@ -44,6 +40,14 @@ async function col(name, seed = []) {
   if (Array.isArray(data) && data.length) return data;
   if (seed.length) { await db.set(name, seed); return seed; }
   return [];
+}
+
+async function publicTracks() {
+  const [tracks, artists] = await Promise.all([
+    col('djPoolTracks', SEED_TRACKS),
+    db.get('artists'),
+  ]);
+  return visibleTracks(tracks, artists);
 }
 
 /* Persistent visitor ID — works for guests, artists, and admins */
@@ -127,7 +131,7 @@ function signUrl(track, uid) {
 // ─── Tracks ───────────────────────────────────────────────────────────────────
 
 router.get('/tracks', async (req, res) => {
-  const tracks = await col('djPoolTracks', SEED_TRACKS);
+  const tracks = await publicTracks();
   const filtered = filterTracks(tracks, req.query)
     .sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
   res.json({
@@ -141,7 +145,7 @@ router.get('/tracks', async (req, res) => {
 });
 
 router.get('/tracks/suggested', async (req, res) => {
-  const tracks  = await col('djPoolTracks', SEED_TRACKS);
+  const tracks  = await publicTracks();
   const uid     = visitorId(req);
   const hearts  = await col('djPoolHearts');
   const dls     = await col('djPoolDownloads');
@@ -172,7 +176,7 @@ router.get('/tracks/suggested', async (req, res) => {
 });
 
 router.get('/tracks/:id', async (req, res) => {
-  const tracks  = await col('djPoolTracks', SEED_TRACKS);
+  const tracks  = await publicTracks();
   const track   = tracks.find(t => t.id === req.params.id);
   if (!track) return res.status(404).json({ error: 'Track not found' });
   const related = tracks.filter(t => t.id !== track.id && (t.genre === track.genre || t.label === track.label)).slice(0, 6);
@@ -238,7 +242,7 @@ router.delete('/hearts/:trackId', async (req, res) => {
 
 router.get('/drops', async (req, res) => {
   const drops = await col('djPoolDrops');
-  const tracks = await col('djPoolTracks', SEED_TRACKS);
+  const tracks = await publicTracks();
   const pub = drops.filter(d => d.published).map(d => ({
     ...d,
     tracks: (d.track_ids || []).map(id => tracks.find(t => t.id === id)).filter(Boolean)
@@ -275,7 +279,7 @@ router.delete('/drops/:id', requireAdmin, async (req, res) => {
 router.get('/crates', async (req, res) => {
   const uid    = visitorId(req);
   const crates = await col('djPoolCrates');
-  const tracks = await col('djPoolTracks', SEED_TRACKS);
+  const tracks = await publicTracks();
   res.json(
     crates
       .filter(c => c.user_id === uid)
@@ -327,6 +331,10 @@ router.post('/download/:trackId', async (req, res) => {
   const tracks = await col('djPoolTracks', SEED_TRACKS);
   const track  = tracks.find(t => t.id === req.params.trackId);
   if (!track) return res.status(404).json({ error: 'Track not found.' });
+  const artists = await db.get('artists');
+  if (!req.session?.admin && !visibleTracks([track], artists).length) {
+    return res.status(404).json({ error: 'Track not found.' });
+  }
 
   const sub   = await getSubscription(req);
   const check = canDownload(track, sub);
@@ -383,7 +391,7 @@ router.get('/labels', async (req, res) => {
 
 router.get('/labels/:id', async (req, res) => {
   const labels = await col('djPoolLabels', SEED_LABELS);
-  const tracks = await col('djPoolTracks', SEED_TRACKS);
+  const tracks = await publicTracks();
   const label  = labels.find(l => l.id === req.params.id || l.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === req.params.id);
   if (!label) return res.status(404).json({ error: 'Label not found.' });
   res.json({ label, tracks: tracks.filter(t => t.label === label.name), featured: tracks.filter(t => t.label === label.name && t.is_featured) });

@@ -2,11 +2,12 @@ const express = require('express');
 const { v4: uuid } = require('uuid');
 const db = require('./db');
 const { requireAdmin } = require('./middleware');
+const { visibleEvents } = require('../lib/rosterCatalog');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
   let events = await db.get('events');
-  if (!req.session.admin) events = events.filter(e => e.status !== 'cancelled');
+  if (!req.session.admin) events = visibleEvents(events, await db.get('artists'));
   res.json(events);
 });
 

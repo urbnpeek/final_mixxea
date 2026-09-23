@@ -101,8 +101,15 @@ app.get('/artists', (req, res) => {
 
 app.get('/', async (req, res, next) => {
   try {
-    const artists = await db.get('artists');
-    const html = pages.injectHome(fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'), artists);
+    const [artists, releases, events, news] = await Promise.all([
+      db.get('artists'),
+      db.get('releases'),
+      db.get('events'),
+      db.get('news'),
+    ]);
+    const html = pages.injectHome(fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'), {
+      artists, releases, events, news,
+    });
     sendHtml(res, 200, html);
   } catch (e) {
     console.error('[pages] home', e);
@@ -157,7 +164,7 @@ app.get('/artists/:slug', async (req, res) => {
       redirectTo(res, '/artists/' + canonical);
       return;
     }
-    sendHtml(res, 200, pages.renderArtistPage({ artist, releases, events }));
+    sendHtml(res, 200, pages.renderArtistPage({ artist, artists, releases, events }));
   } catch (e) {
     console.error('[pages] artist', e);
     sendHtml(res, 500, pages.renderArtistNotFound());
@@ -257,12 +264,14 @@ seoPageRoutes.forEach((fileName, routePath) => {
   });
 });
 
-const serveSeoDetail = (folder) => (req, res, next) => {
+const serveSeoDetail = (folder) => (req, res) => {
   const filePath = path.join(__dirname, 'public', folder, req.params.slug, 'index.html');
   if (fs.existsSync(filePath)) {
     return res.sendFile(filePath);
   }
-  return next();
+  res.status(404).set('Cache-Control', 'no-store').type('html').send(
+    '<!doctype html><meta charset="utf-8"><title>Not found | Mixxea</title><p>This page is not on the current Mixxea catalog. <a href="/">Home</a></p>'
+  );
 };
 
 app.get('/releases/:slug', serveSeoDetail('releases'));
@@ -288,9 +297,10 @@ app.get('/news/:slug', async (req, res) => {
   const slug = req.params.slug;
 
   try {
-    const allNews = await db.get('news');
-    const article = allNews.find(n =>
-      (n.slug || slugify(n.title)) === slug && n.status === 'published'
+    const { visibleNews } = require('./src/lib/rosterCatalog');
+    const [allNews, artists] = await Promise.all([db.get('news'), db.get('artists')]);
+    const article = visibleNews(allNews, artists).find(n =>
+      (n.slug || slugify(n.title)) === slug
     );
 
     const indexHtml = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
