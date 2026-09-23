@@ -71,8 +71,19 @@ function slugify(value) {
   return String(value || '')
     .trim()
     .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+function escHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 /* ─────────────────────────────────────────────────────
@@ -130,23 +141,29 @@ async function loadArtists() {
     if (!track || !artists.length) return;
 
     const COLORS = ['rgba(232,255,0,.07)','rgba(0,200,255,.08)','rgba(255,45,107,.07)','rgba(255,184,0,.07)','rgba(232,255,0,.06)','rgba(0,200,255,.06)','rgba(255,45,107,.07)'];
-    track.innerHTML = artists.map((a, i) => `
+    track.innerHTML = artists.filter(a => a && a.name).map((a, i) => {
+      const slug = slugify(a.slug || a.name);
+      const name = escHtml(a.name);
+      const where = [a.country, a.city].filter(Boolean).map(escHtml).join(' / ');
+      const photo = /^(https?:\/\/|\/(?!\/))/.test(String(a.photo || '')) ? escHtml(a.photo) : '';
+      const bookable = String(a.type || '').trim().toLowerCase() !== 'label';
+      return `
       <div class="a-tile">
         <div class="at-bg" style="color:${COLORS[i % COLORS.length]}">
-          ${a.photo ? `<img src="${a.photo}" alt="${a.name}" style="width:100%;height:100%;object-fit:cover;opacity:.5">` : a.name.slice(0,2)}
+          ${photo ? `<img src="${photo}" alt="${name}" style="width:100%;height:100%;object-fit:cover;opacity:.55">` : escHtml(String(a.name).slice(0, 2))}
         </div>
         <div class="at-ov"></div>
         <div class="at-c">
-          <div class="at-genre">${a.genre}</div>
-          <div class="at-name">${a.name}</div>
-          <div class="at-meta"><span>${a.country} / ${a.city}</span></div>
+          <div class="at-genre">${escHtml(a.genre || 'Artist')}</div>
+          <a class="at-name" href="/artists/${slug}">${name}</a>
+          <div class="at-meta">${where ? `<span>${where}</span>` : ''}</div>
           <div class="at-btns">
-            <a href="/artists/${slugify(a.slug || a.name)}" class="at-btn at-btn-y">Profile</a>
-            ${a.type !== 'label' ? `<a href="#contact" class="at-btn at-btn-g">Book</a>` : ''}
+            <a href="/artists/${slug}" class="at-btn at-btn-y">Profile</a>
+            ${bookable ? `<a href="/booking-agency?artist=${slug}" class="at-btn at-btn-g">Book</a>` : ''}
           </div>
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   } catch (e) {
     console.warn('Could not load artists from API');
   }
@@ -600,7 +617,17 @@ function setupMobileNav() {
   });
 }
 
+function setInquiry(value) {
+  const select = document.getElementById('ct-type');
+  if (!select || !value) return;
+  const match = [...select.options].find((option) => option.value === value || option.text === value);
+  if (match) select.value = match.value;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+  document.querySelectorAll('[data-inquiry]').forEach((el) => {
+    el.addEventListener('click', () => setInquiry(el.getAttribute('data-inquiry')));
+  });
   await Promise.allSettled([
     loadReleases(),
     loadArtists(),

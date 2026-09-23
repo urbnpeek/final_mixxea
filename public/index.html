@@ -78,7 +78,7 @@ src="https://www.facebook.com/tr?id=1331927570650344&ev=PageView&noscript=1"
   --void:#02020a;--ink:#05050f;--panel:#0c0c1a;--edge:#13132a;
   --wire:rgba(255,255,255,0.06);--wire2:rgba(255,255,255,0.12);--wire3:rgba(255,255,255,0.22);
   --g1:#e8ff00;--g2:#b8ff00;--g3:#ff2d6b;--g4:#00c8ff;--g5:#ffb800;
-  --text:#f5f0ff;--muted:rgba(245,240,255,0.45);--muted2:rgba(245,240,255,0.22);--muted3:rgba(245,240,255,0.1);
+  --text:#f5f0ff;--muted:rgba(245,240,255,0.78);--muted2:rgba(245,240,255,0.38);--muted3:rgba(245,240,255,0.16);
   --Anton:'Anton',sans-serif;--Syne:'Syne',sans-serif;--Mono:'Syne Mono',monospace;
   --ease:cubic-bezier(0.16,1,0.3,1);
 }
@@ -103,15 +103,16 @@ a{text-decoration:none;color:inherit}
 .nav-logo{font-family:var(--Anton);font-size:24px;letter-spacing:5px;color:var(--text)}
 .nav-logo .x{color:var(--g1)}
 .nav-logo sub{font-family:var(--Mono);font-size:7px;letter-spacing:3px;color:var(--muted);vertical-align:baseline;margin-left:3px;margin-top:14px;display:inline-block}
-.nav-center{display:flex;gap:36px;justify-content:center}
-.nav-center a{font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);transition:color .2s;cursor:pointer}
-.nav-center a:hover{color:var(--g1)}
+.nav-center{display:flex;gap:18px;justify-content:center;align-items:center}
+.nav-center a{font-family:var(--Mono);font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);transition:color .2s;cursor:pointer;display:inline-flex;align-items:center;min-height:44px;padding:0 2px}
+.nav-center a:hover,.nav-center a.nav-book:hover{color:var(--g1)}
+.nav-center a.nav-book{color:var(--g4)}
 .nav-right{display:flex;gap:14px;justify-content:flex-end;align-items:center}
-.n-freq{font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--g4);border:1px solid rgba(0,200,255,.3);padding:8px 16px;transition:all .2s;cursor:pointer}
-.n-freq:hover{background:rgba(0,200,255,.07)}
-.n-ar{font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;background:var(--g1);color:var(--void);padding:9px 20px;font-weight:700;border:none;cursor:pointer;transition:all .2s}
+.n-freq,.n-book{font-family:var(--Mono);font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--g4);border:1px solid rgba(0,200,255,.45);padding:0 16px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;cursor:pointer}
+.n-freq:hover,.n-book:hover{background:rgba(0,200,255,.07)}
+.n-ar{font-family:var(--Mono);font-size:11px;letter-spacing:1.6px;text-transform:uppercase;background:var(--g1);color:var(--void);padding:0 20px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;border:none;cursor:pointer;transition:all .2s}
 .n-ar:hover{background:var(--g2);transform:translateY(-1px)}
-.n-admin{font-family:var(--Mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);border:1px solid var(--wire);padding:7px 14px;cursor:pointer;transition:all .2s}
+.n-admin{font-family:var(--Mono);font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted2);border:1px solid var(--wire);padding:0 14px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
 .n-admin:hover{color:var(--text);border-color:var(--wire2)}
 .nav-mobile-toggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--wire2);background:rgba(255,255,255,.02);color:var(--text);cursor:pointer;font-family:var(--Mono);font-size:11px;letter-spacing:1px}
 .nav-mobile-toggle:hover{border-color:rgba(232,255,0,.35);color:var(--g1)}
@@ -122,7 +123,7 @@ a{text-decoration:none;color:inherit}
 .nav-mobile-actions{display:grid;grid-template-columns:1fr;gap:10px}
 .nav-mobile-actions .n-admin{display:flex;width:100%;padding:0;border-color:var(--wire)}
 .nav-mobile-actions .n-ar{padding:0;background:var(--g1);color:var(--void)}
-.nav-mobile-actions .n-freq{padding:0;color:var(--g4);border-color:rgba(0,200,255,.25)}
+.nav-mobile-actions .n-freq,.nav-mobile-actions .n-book{padding:0;color:var(--g4);border-color:rgba(0,200,255,.25)}
 
 /* ═══════════════════════════════════════════════
    HERO
@@ -148,12 +149,12 @@ canvas#wc{position:absolute;inset:0;opacity:.65;z-index:0}
 .h-title .stroke{display:block;color:transparent;-webkit-text-stroke:2px rgba(245,240,255,.22)}
 .h-title .acc{display:block;color:var(--g1)}
 .h-bot{display:flex;align-items:flex-end;justify-content:space-between;margin-top:60px;gap:40px;flex-wrap:wrap}
-.h-tag{font-size:17px;color:var(--muted);line-height:1.65;max-width:440px}
+.h-tag{font-size:18px;color:rgba(245,240,255,0.92);line-height:1.7;max-width:460px}
 .h-tag strong{color:var(--text);font-weight:600}
 .h-ctas{display:flex;gap:12px;align-items:center;flex-shrink:0}
-.cta-y{background:var(--g1);color:var(--void);font-family:var(--Mono);font-size:11px;letter-spacing:2px;font-weight:700;text-transform:uppercase;padding:18px 36px;cursor:pointer;transition:all .2s;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+.cta-y{background:var(--g1);color:var(--void);font-family:var(--Mono);font-size:11px;letter-spacing:2px;font-weight:700;text-transform:uppercase;padding:0 36px;min-height:52px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
 .cta-y:hover{background:var(--g2);transform:scale(1.02)}
-.cta-g{border:1px solid var(--wire2);color:var(--muted);font-family:var(--Mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:18px 28px;cursor:pointer;transition:all .2s;background:transparent}
+.cta-g{border:1px solid var(--wire2);color:var(--text);font-family:var(--Mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:0 28px;min-height:52px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;background:transparent}
 .cta-g:hover{border-color:rgba(232,255,0,.4);color:var(--g1)}
 .h-stats{display:flex;gap:48px;margin-top:48px}
 .hs-item .sn{font-family:var(--Anton);font-size:52px;letter-spacing:1px;line-height:1;color:var(--g1)}
@@ -233,7 +234,7 @@ canvas#wc{position:absolute;inset:0;opacity:.65;z-index:0}
 ═══════════════════════════════════════════════ */
 #label{padding:140px 0;border-top:1px solid var(--wire)}
 .label-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:100px;align-items:start}
-.l-copy{font-size:17px;color:var(--muted);line-height:1.85;margin-top:40px;margin-bottom:36px}
+.l-copy{font-size:17px;color:rgba(245,240,255,0.88);line-height:1.85;margin-top:40px;margin-bottom:36px}
 .l-copy strong{color:var(--text);font-weight:600}
 .g-cloud{display:flex;flex-wrap:wrap;gap:8px}
 .gtag{font-family:var(--Mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;border:1px solid var(--wire2);color:var(--muted);padding:7px 16px;transition:all .25s;cursor:default}
@@ -252,7 +253,7 @@ canvas#wc{position:absolute;inset:0;opacity:.65;z-index:0}
 ═══════════════════════════════════════════════ */
 #roster{padding:140px 0;border-top:1px solid var(--wire);background:var(--panel)}
 .roster-top{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:end;margin-bottom:64px}
-.roster-desc{font-size:16px;color:var(--muted);line-height:1.75;padding-top:16px}
+.roster-desc{font-size:16px;color:rgba(245,240,255,0.88);line-height:1.75;padding-top:16px}
 .roster-scroll{overflow:hidden;position:relative}
 .roster-track{display:flex;gap:3px;width:max-content;transition:transform .6s var(--ease)}
 .a-tile{width:300px;height:420px;position:relative;overflow:hidden;flex-shrink:0;background:var(--edge);cursor:pointer}
@@ -262,11 +263,10 @@ canvas#wc{position:absolute;inset:0;opacity:.65;z-index:0}
 .a-tile:hover .at-ov{background:linear-gradient(to top,rgba(2,2,10,1) 0%,rgba(2,2,10,.7) 60%,rgba(2,2,10,.1) 100%)}
 .at-c{position:absolute;bottom:0;left:0;right:0;padding:28px 24px}
 .at-genre{font-family:var(--Mono);font-size:9px;letter-spacing:3px;color:var(--g1);text-transform:uppercase;margin-bottom:8px}
-.at-name{font-family:var(--Anton);font-size:40px;letter-spacing:1px;line-height:.95;margin-bottom:10px}
-.at-meta{font-family:var(--Mono);font-size:9px;color:var(--muted);display:flex;gap:12px;margin-bottom:18px}
-.at-btns{display:flex;gap:8px;opacity:0;transform:translateY(10px);transition:all .3s var(--ease)}
-.a-tile:hover .at-btns{opacity:1;transform:translateY(0)}
-.at-btn{font-family:var(--Mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;transition:all .2s;cursor:pointer}
+.at-name{font-family:var(--Anton);font-size:40px;letter-spacing:1px;line-height:.95;margin-bottom:10px;display:block;color:inherit}
+.at-meta{font-family:var(--Mono);font-size:11px;color:var(--muted);display:flex;gap:12px;margin-bottom:18px}
+.at-btns{display:flex;gap:8px;opacity:1;transform:none}
+.at-btn{font-family:var(--Mono);font-size:11px;letter-spacing:1.4px;text-transform:uppercase;padding:0 14px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;cursor:pointer}
 .at-btn-y{border:1px solid rgba(232,255,0,.4);color:var(--g1)}
 .at-btn-y:hover{background:var(--g1);color:var(--void)}
 .at-btn-g{border:1px solid var(--wire2);color:var(--muted)}
@@ -338,10 +338,10 @@ canvas#wc{position:absolute;inset:0;opacity:.65;z-index:0}
 .fv-logo .freq{color:var(--g4)}
 .fv-logo .vault{color:transparent;-webkit-text-stroke:1.5px rgba(0,200,255,.35)}
 .fv-sub{font-family:var(--Mono);font-size:10px;letter-spacing:4px;color:var(--g4);text-transform:uppercase;margin-top:14px;opacity:.65}
-.fv-desc p{font-size:17px;color:var(--muted);line-height:1.8;margin-bottom:22px}
+.fv-desc p{font-size:17px;color:rgba(245,240,255,0.88);line-height:1.8;margin-bottom:22px}
 .fv-desc p strong{color:var(--text);font-weight:600}
 .fv-ctas{display:flex;gap:12px;margin-top:8px}
-.cta-c{background:var(--g4);color:var(--void);font-family:var(--Mono);font-size:10px;letter-spacing:2px;font-weight:700;text-transform:uppercase;padding:16px 32px;cursor:pointer;transition:all .2s}
+.cta-c{background:var(--g4);color:var(--void);font-family:var(--Mono);font-size:11px;letter-spacing:1.6px;font-weight:700;text-transform:uppercase;padding:0 32px;min-height:52px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
 .cta-c:hover{background:#22d8ff;transform:translateY(-2px)}
 .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
 .svc{border:1px solid rgba(0,200,255,.1);padding:36px 28px;position:relative;overflow:hidden;background:rgba(0,200,255,.02);transition:all .3s}
@@ -352,7 +352,7 @@ canvas#wc{position:absolute;inset:0;opacity:.65;z-index:0}
 .svc:hover .svc-ico{border-color:rgba(0,200,255,.6)}
 .svc-n{font-family:var(--Anton);font-size:64px;color:rgba(0,200,255,.04);position:absolute;top:10px;right:16px;line-height:1}
 .svc h3{font-family:var(--Anton);font-size:28px;letter-spacing:1px;margin-bottom:10px}
-.svc p{font-size:13px;color:var(--muted);line-height:1.7}
+.svc p{font-size:14px;color:rgba(245,240,255,0.86);line-height:1.7}
 .fv-cta-band{background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.15);padding:52px 60px;margin-top:60px;display:flex;align-items:center;justify-content:space-between;gap:40px;position:relative;overflow:hidden}
 .fv-cta-band::before{content:'FREQVAULT';position:absolute;right:-10px;top:50%;transform:translateY(-50%);font-family:var(--Anton);font-size:100px;color:rgba(0,200,255,.04);letter-spacing:4px;pointer-events:none}
 .fvb h3{font-family:var(--Anton);font-size:clamp(32px,4vw,52px);line-height:1;margin-bottom:6px}
@@ -474,7 +474,7 @@ canvas#wc{position:absolute;inset:0;opacity:.65;z-index:0}
 .ct-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:90px}
 .ct-left h3{font-family:var(--Anton);font-size:clamp(52px,7vw,96px);line-height:.9;margin-bottom:28px}
 .ct-left h3 .cr{color:var(--g3)}
-.ct-left p{font-size:16px;color:var(--muted);line-height:1.75;margin-bottom:36px}
+.ct-left p{font-size:16px;color:rgba(245,240,255,0.88);line-height:1.75;margin-bottom:36px}
 .ct-chs{display:flex;flex-direction:column;gap:4px}
 .ct-ch{display:flex;align-items:center;gap:14px;padding:16px 22px;border:1px solid var(--wire);transition:all .25s;cursor:pointer}
 .ct-ch:hover{border-color:rgba(232,255,0,.3);transform:translateX(6px)}
@@ -492,7 +492,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
 .ft-logo{font-family:var(--Anton);font-size:44px;letter-spacing:4px;margin-bottom:6px}
 .ft-logo .x{color:var(--g1)}
 .ft-tag{font-family:var(--Mono);font-size:9px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:18px}
-.ft-copy{font-size:13px;color:var(--muted);line-height:1.7;max-width:270px}
+.ft-copy{font-size:14px;color:rgba(245,240,255,0.82);line-height:1.7;max-width:270px}
 .ft-col h4{font-family:var(--Mono);font-size:9px;letter-spacing:3px;color:var(--muted2);text-transform:uppercase;margin-bottom:18px}
 .ft-col ul{list-style:none;display:flex;flex-direction:column;gap:9px}
 .ft-col a{font-size:14px;color:var(--muted);transition:color .2s;cursor:pointer}
@@ -686,7 +686,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
   #nav{grid-template-columns:1fr;gap:12px;height:auto;padding:14px 18px 12px}
   .nav-logo{text-align:center}
   .nav-right{justify-content:center;flex-wrap:wrap;gap:10px}
-  .n-freq,.n-ar,.n-admin{padding:10px 14px}
+  .n-freq,.n-book,.n-ar,.n-admin{padding:0 14px;min-height:44px}
   #hero{min-height:auto;padding:140px 20px 72px}
   .h-bg-txt{font-size:clamp(120px,28vw,220px)}
   .h-title{font-size:clamp(56px,16vw,110px)}
@@ -730,7 +730,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
   .adm-mobile-menu{width:auto}
   #nav{padding:12px 14px}
   .nav-logo{font-size:20px;letter-spacing:3px}
-  .n-freq,.n-ar,.n-admin{width:100%;text-align:center;justify-content:center}
+  .n-freq,.n-book,.n-ar,.n-admin{width:100%;text-align:center;justify-content:center}
   #hero{padding:152px 16px 64px}
   .h-eye{font-size:10px;letter-spacing:2px}
   .h-eye::before{width:24px}
@@ -788,14 +788,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <a href="#releases">Releases</a>
     <a href="#news">News</a>
     <a href="/dj-pool">DJ Pool</a>
-    <a href="#freqvault">FreqVault</a>
+    <a href="/booking-agency" class="nav-book">Booking</a>
     <a href="#events">Events</a>
     <a href="#portal">Artist Portal</a>
     <a href="#contact">Contact</a>
   </div>
   <div class="nav-right">
-    <a href="/dj-pool" class="n-freq">DJ Pool</a>
-    <a href="#contact" class="n-ar">Demo Submit</a>
+    <a href="/booking-agency" class="n-book">Booking</a>
+    <a href="#contact" class="n-ar" data-inquiry="A&R / Demo Submission">Demo Submit</a>
     <button class="n-admin" onclick="openAdmin()">Admin ⚙</button>
   </div>
   <div class="nav-mobile-panel" id="nav-mobile-panel" aria-label="Mobile navigation">
@@ -805,14 +805,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <a href="#releases">Releases</a>
       <a href="#news">News</a>
       <a href="/dj-pool">DJ Pool</a>
-      <a href="#freqvault">FreqVault</a>
+      <a href="/booking-agency" class="nav-book">Booking</a>
       <a href="#events">Events</a>
       <a href="#portal">Artist Portal</a>
       <a href="#contact">Contact</a>
     </div>
     <div class="nav-mobile-actions">
-      <a href="/dj-pool" class="n-freq">DJ Pool</a>
-      <a href="#contact" class="n-ar">Demo Submit</a>
+      <a href="/booking-agency" class="n-book">Booking</a>
+      <a href="#contact" class="n-ar" data-inquiry="A&R / Demo Submission">Demo Submit</a>
       <button class="n-admin" type="button" onclick="openAdmin()">Admin &#9881;</button>
     </div>
   </div>
@@ -874,7 +874,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="h-bot">
       <p class="h-tag"><strong>Electronic music for every underground.</strong><br>We develop artists, build careers, and release music that moves floors globally. Techno, House, Ambient, Bass — no compromise.</p>
       <div class="h-ctas">
-        <a href="#roster" class="cta-y">Explore Roster ↗</a>
+        <a href="/booking-agency" class="cta-y">Book an Artist →</a>
+        <a href="#roster" class="cta-g">Explore Roster</a>
         <a href="/artist-management" class="cta-g">Artist Management</a>
       </div>
     </div>
@@ -961,15 +962,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
   </div>
   <div class="roster-scroll rv">
-    <div class="roster-track" id="rTrack">
-      <div class="a-tile"><div class="at-bg" style="color:rgba(232,255,0,.07)">KR</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">Techno · Minimal</div><div class="at-name">KRATOS</div><div class="at-meta"><span>DE / Berlin</span><span>·</span><span>12 Releases</span></div><div class="at-btns"><a href="/artists/kratos" class="at-btn at-btn-y">Profile</a><a href="/booking-agency" class="at-btn at-btn-g">Book</a></div></div></div>
-      <div class="a-tile"><div class="at-bg" style="color:rgba(0,200,255,.08)">SV</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">Deep House · Melodic</div><div class="at-name">SOLV</div><div class="at-meta"><span>UK / London</span><span>·</span><span>8 Releases</span></div><div class="at-btns"><a href="/artists/solv" class="at-btn at-btn-y">Profile</a><a href="/booking-agency" class="at-btn at-btn-g">Book</a></div></div></div>
-      <div class="a-tile"><div class="at-bg" style="color:rgba(255,45,107,.07)">AX</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">Ambient · Experimental</div><div class="at-name">AXON</div><div class="at-meta"><span>JP / Tokyo</span><span>·</span><span>6 Releases</span></div><div class="at-btns"><a href="/artists/axon" class="at-btn at-btn-y">Profile</a><a href="/booking-agency" class="at-btn at-btn-g">Book</a></div></div></div>
-      <div class="a-tile"><div class="at-bg" style="color:rgba(255,184,0,.07)">VX</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">Bass · Industrial</div><div class="at-name">VEXR</div><div class="at-meta"><span>US / NYC</span><span>·</span><span>15 Releases</span></div><div class="at-btns"><a href="/artists/vexr" class="at-btn at-btn-y">Profile</a><a href="/booking-agency" class="at-btn at-btn-g">Book</a></div></div></div>
-      <div class="a-tile"><div class="at-bg" style="color:rgba(232,255,0,.06)">LD</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">Techno · Industrial</div><div class="at-name">LYDA</div><div class="at-meta"><span>RO / Bucharest</span><span>·</span><span>9 Releases</span></div><div class="at-btns"><a href="/artists/lyda" class="at-btn at-btn-y">Profile</a><a href="/booking-agency" class="at-btn at-btn-g">Book</a></div></div></div>
-      <div class="a-tile"><div class="at-bg" style="color:rgba(0,200,255,.06)">NX</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">Minimal · Dub</div><div class="at-name">NXUS</div><div class="at-meta"><span>ES / Barcelona</span><span>·</span><span>11 Releases</span></div><div class="at-btns"><a href="#" class="at-btn at-btn-y">Profile</a><a href="#freqvault" class="at-btn at-btn-g">Book</a></div></div></div>
-      <div class="a-tile"><div class="at-bg" style="color:rgba(255,45,107,.07)">ZR</div><div class="at-ov"></div><div class="at-c"><div class="at-genre">IDM · Abstract</div><div class="at-name">ZERA</div><div class="at-meta"><span>FR / Paris</span><span>·</span><span>4 Releases</span></div><div class="at-btns"><a href="#" class="at-btn at-btn-y">Profile</a><a href="#freqvault" class="at-btn at-btn-g">Book</a></div></div></div>
-    </div>
+    <div class="roster-track" id="rTrack"><!--ROSTER_TILES--></div>
   </div>
   <div class="roster-nav">
     <button class="r-arr" id="rPrev">←</button>
@@ -1070,7 +1063,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="fv-desc">
         <p>FreqVault is the agency arm of the Mixxea ecosystem. We handle <strong>bookings, management, and live operations</strong> for a curated roster of electronic artists globally.</p>
         <p>Whether you need a headline act for your festival, a resident for your club series, or full artist management — FreqVault is the bridge between talent and opportunity.</p>
-        <div class="fv-ctas"><a href="#contact" class="cta-c">Book an Artist →</a><a href="#contact" class="cta-g">Join as Artist</a></div>
+        <div class="fv-ctas"><a href="/booking-agency" class="cta-c">Book an Artist →</a><a href="/submit-demo" class="cta-g">Join as Artist</a></div>
       </div>
     </div>
     <div class="svc-grid rv">
@@ -1083,7 +1076,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
     <div class="fv-cta-band rv">
       <div class="fvb"><h3>READY TO BOOK?</h3><p>Our team responds to all booking inquiries within 48 hours.</p></div>
-      <a href="#contact" class="cta-c">Send Booking Request →</a>
+      <a href="/booking-agency#inquiry" class="cta-c">Send Booking Request →</a>
     </div>
   </div>
 </section>
@@ -1288,18 +1281,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="ct-chs">
           <a href="mailto:info@mixxea.com" class="ct-ch"><span class="ch-tag">General</span><span class="ch-val">info@mixxea.com</span></a>
           <a href="mailto:ar@mixxea.com" class="ct-ch"><span class="ch-tag">A&R</span><span class="ch-val">ar@mixxea.com</span></a>
-          <a href="mailto:bookings@freqvault.com" class="ct-ch"><span class="ch-tag">Bookings</span><span class="ch-val">bookings@freqvault.com</span></a>
+          <a href="mailto:booking@mixxea.com" class="ct-ch"><span class="ch-tag">Bookings</span><span class="ch-val">booking@mixxea.com</span></a>
           <a href="mailto:press@mixxea.com" class="ct-ch"><span class="ch-tag">Press</span><span class="ch-val">press@mixxea.com</span></a>
         </div>
       </div>
       <div class="rv">
-        <div class="ar-badge">Now Accepting Demos</div>
-        <div class="ct-h3">A&R SUBMISSION</div>
-        <div class="field"><label>Artist Name</label><input type="text" id="ct-name" placeholder="Your artist name"></div>
+        <div class="ar-badge">Booking &amp; general</div>
+        <div class="ct-h3">SEND AN INQUIRY</div>
+        <div class="field"><label>Name</label><input type="text" id="ct-name" placeholder="Your name"></div>
         <div class="field"><label>Email</label><input type="email" id="ct-email" placeholder="your@email.com"></div>
-        <div class="field"><label>Inquiry Type</label><select id="ct-type"><option>A&R / Demo Submission</option><option>Booking Request</option><option>Artist Management</option><option>Brand / Partnership</option><option>Press / Media</option><option>General</option></select></div>
+        <div class="field"><label>Inquiry Type</label><select id="ct-type"><option selected>Booking Request</option><option>A&R / Demo Submission</option><option>Artist Management</option><option>Brand / Partnership</option><option>Press / Media</option><option>General</option></select></div>
         <div class="field"><label>SoundCloud / Private Link</label><input type="url" id="ct-link" placeholder="https://..."></div>
-        <div class="field"><label>Message</label><textarea id="ct-message" placeholder="Tell us about yourself..."></textarea></div>
+        <div class="field"><label>Message</label><textarea id="ct-message" placeholder="Artist, date, city, venue, and the details of the request."></textarea></div>
         <label class="chk" style="margin-bottom:18px"><input type="checkbox" id="ct-newsletter-opt-in"><span>Subscribe me to Mixxea updates as well.</span></label>
         <button class="sub-full" onclick="doCt()">Send Message →</button>
         <div class="ok-msg" id="ct-ok">✓ Message received. We'll be in touch soon.</div>
@@ -1319,7 +1312,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <p class="ft-copy">Building the future of electronic music — globally, independently, uncompromisingly.</p>
     </div>
     <div class="ft-col"><h4>Label</h4><ul><li><a href="/record-label">Record Label</a></li><li><a href="/electronic-music-artists">Artists</a></li><li><a href="#releases">Releases</a></li><li><a href="/submit-demo">A&R Submit</a></li></ul></div>
-    <div class="ft-col"><h4>Agency</h4><ul><li><a href="/booking-agency">Freq Vault</a></li><li><a href="/booking-agency">Bookings</a></li><li><a href="/artist-management">Management</a></li><li><a href="#events">Events</a></li></ul></div>
+    <div class="ft-col"><h4>Agency</h4><ul><li><a href="/booking-agency">Booking Agency</a></li><li><a href="mailto:booking@mixxea.com">booking@mixxea.com</a></li><li><a href="/artist-management">Management</a></li><li><a href="#events">Events</a></li></ul></div>
     <div class="ft-col"><h4>Connect</h4><ul><li><a href="https://www.instagram.com/mixxea_/" target="_blank" rel="noopener">Instagram (Mixxea)</a></li><li><a href="https://www.instagram.com/freqvault/" target="_blank" rel="noopener">Instagram (FreqVault)</a></li><li><a href="https://soundcloud.com/mixxea" target="_blank" rel="noopener">SoundCloud</a></li><li><a href="https://www.beatport.com/label/mixxea-records/79255" target="_blank" rel="noopener">Beatport</a></li><li><a href="https://open.spotify.com/user/g2uczos6zb7b5hzeyckxk2xwq?si=59fb44d4a4a244ad" target="_blank" rel="noopener">Spotify</a></li><li><a href="https://www.youtube.com/@mixxeamusic6902" target="_blank" rel="noopener">YouTube</a></li></ul></div>
   </div>
   <div class="ft-bot">

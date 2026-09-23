@@ -11,6 +11,8 @@ const cors       = require('cors');
 const path       = require('path');
 const fs         = require('fs');
 const { router: seoRouter, generateSitemap } = require('./src/api/seo');
+const db = require('./src/api/db');
+const pages = require('./src/render/publicPages');
 
 // -- Ensure upload directories exist (silently skip if read-only, e.g. Vercel) --
 const uploadDirs = ['public/uploads/audio','public/uploads/artwork','public/uploads/news','public/uploads/contracts'];
@@ -74,6 +76,94 @@ app.get('/sitemap.xml', async (req, res) => {
 // -- SEO API (schema.json endpoints) --
 app.use('/api/seo', seoRouter);
 
+function sendHtml(res, status, html) {
+  res.status(status);
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.type('html').send(html);
+}
+
+function redirectTo(res, location) {
+  res.redirect(301, location);
+}
+
+app.get(['/booking', '/agency', '/freqvault'], (req, res) => {
+  const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  redirectTo(res, '/booking-agency' + query);
+});
+
+app.get('/roster', (req, res) => {
+  redirectTo(res, '/#roster');
+});
+
+app.get('/artists', (req, res) => {
+  redirectTo(res, '/electronic-music-artists');
+});
+
+app.get('/', async (req, res, next) => {
+  try {
+    const artists = await db.get('artists');
+    const html = pages.injectHome(fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'), artists);
+    sendHtml(res, 200, html);
+  } catch (e) {
+    console.error('[pages] home', e);
+    next();
+  }
+});
+
+app.get('/booking-agency', async (req, res) => {
+  try {
+    const artists = await db.get('artists');
+    const selected = Array.isArray(req.query.artist) ? req.query.artist[0] : req.query.artist;
+    const html = pages.injectBooking(
+      fs.readFileSync(path.join(__dirname, 'public', 'booking-agency.html'), 'utf8'),
+      artists,
+      selected
+    );
+    sendHtml(res, 200, html);
+  } catch (e) {
+    console.error('[pages] booking', e);
+    sendHtml(res, 500, 'Booking page unavailable.');
+  }
+});
+
+app.get('/electronic-music-artists', async (req, res) => {
+  try {
+    const artists = await db.get('artists');
+    const html = pages.injectRoster(
+      fs.readFileSync(path.join(__dirname, 'public', 'electronic-music-artists.html'), 'utf8'),
+      artists
+    );
+    sendHtml(res, 200, html);
+  } catch (e) {
+    console.error('[pages] roster', e);
+    sendHtml(res, 500, 'Roster page unavailable.');
+  }
+});
+
+app.get('/artists/:slug', async (req, res) => {
+  try {
+    const [artists, releases, events] = await Promise.all([
+      db.get('artists'),
+      db.get('releases'),
+      db.get('events'),
+    ]);
+    const artist = pages.findArtist(artists, req.params.slug);
+    if (!artist) {
+      sendHtml(res, 404, pages.renderArtistNotFound());
+      return;
+    }
+    const canonical = pages.artistSlug(artist);
+    if (canonical && canonical !== req.params.slug) {
+      redirectTo(res, '/artists/' + canonical);
+      return;
+    }
+    sendHtml(res, 200, pages.renderArtistPage({ artist, releases, events }));
+  } catch (e) {
+    console.error('[pages] artist', e);
+    sendHtml(res, 500, pages.renderArtistNotFound());
+  }
+});
+
 // JS files: never cache so updates deploy immediately
 app.use('/js', express.static(path.join(__dirname, 'public', 'js'), { maxAge: 0, etag: false }));
 app.use(express.static(path.join(__dirname, 'public'), {
@@ -98,9 +188,6 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24  // 24 hours
   }
 }));
-
-// -- Data store (JSON files -- swap for DB later) --
-const db = require('./src/api/db');
 
 // -- API Routes --
 app.use('/api/auth',         require('./src/api/auth'));
@@ -161,9 +248,7 @@ app.get('/api/db-status', async (req, res) => {
 const seoPageRoutes = new Map([
   ['/record-label',              'record-label.html'],
   ['/artist-management',         'artist-management.html'],
-  ['/booking-agency',            'booking-agency.html'],
-  ['/submit-demo',               'submit-demo.html'],
-  ['/electronic-music-artists',  'electronic-music-artists.html']
+  ['/submit-demo',               'submit-demo.html']
 ]);
 
 seoPageRoutes.forEach((fileName, routePath) => {
@@ -180,7 +265,6 @@ const serveSeoDetail = (folder) => (req, res, next) => {
   return next();
 };
 
-app.get('/artists/:slug',  serveSeoDetail('artists'));
 app.get('/releases/:slug', serveSeoDetail('releases'));
 app.get('/events/:slug',   serveSeoDetail('events'));
 
