@@ -63,7 +63,7 @@ function getSmtpTransporter() {
 
 function getFromAddress(brand) {
   if (brand === 'freqvault') {
-    return process.env.EMAIL_FROM_FREQ_VAULT || process.env.BOOKINGS_EMAIL || 'FreqVault Agency <bookings@freqvault.com>';
+    return process.env.EMAIL_FROM_FREQ_VAULT || process.env.BOOKINGS_EMAIL || 'FreqVault · Mixxea <booking@mixxea.com>';
   }
   if (brand === 'admin') {
     return process.env.EMAIL_FROM_ADMIN || process.env.EMAIL_FROM_MIXXEA || 'Mixxea Control <ops@mixxea.com>';
