@@ -53,10 +53,13 @@ async function generateSitemap() {
       priority: '0.8',
     }));
 
+  // Live www sitemap and the evidence pack (2026-09-25) list exactly two release
+  // URLs, and both return 404: /releases/grind-system-ep and /releases/void-protocol.
+  // Keep them out unless a real public page for that slug exists and returns 200.
   const releaseUrls = publicReleases
     .map(r => {
-      const slug = r.slug || slugify(r.title);
-      if (!publicDetailExists('releases', slug)) return null;
+      const slug = slugify(r.slug || r.title);
+      if (!slug || !publicDetailExists('releases', slug)) return null;
       return {
         loc: `${BASE}/releases/${slug}`,
         lastmod: r.date || (r.createdAt || '').slice(0, 10) || today,
@@ -123,7 +126,10 @@ router.get('/schema.json', async (req, res) => {
     const today = new Date().toISOString().slice(0, 10);
     const BASE = base();
     const liveReleases  = visibleReleases(releases, artists)
-      .filter(r => (r.status === 'out' || r.status === 'pre') && publicDetailExists('releases', r.slug || slugify(r.title)))
+      .filter(r => {
+        const slug = slugify(r.slug || r.title);
+        return (r.status === 'out' || r.status === 'pre') && publicDetailExists('releases', slug);
+      })
       .slice(0, 6);
     const signedArtists = artists.filter(a => a && a.name && a.status === 'signed');
     const upcoming      = visibleEvents(events, artists).filter(e => e.status === 'confirmed' && (e.date || '') >= today).slice(0, 4);
@@ -168,7 +174,7 @@ router.get('/schema.json', async (req, res) => {
           '@type': 'MusicAlbum',
           'name': r.title,
           'byArtist': { '@type': 'MusicGroup', 'name': r.artist },
-          'url': `${BASE}/releases/${r.slug || slugify(r.title)}`,
+          'url': `${BASE}/releases/${slugify(r.slug || r.title)}`,
           ...(r.artwork      ? { 'image': r.artwork }       : {}),
           ...(r.date         ? { 'datePublished': r.date }  : {}),
           ...(r.description  ? { 'description': r.description } : {}),

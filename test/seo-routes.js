@@ -139,8 +139,8 @@ async function main() {
   await check('sitemap omits release 404s and uses www', async () => {
     const res = await request(port, '/sitemap.xml');
     assert(res.status === 200, 'status ' + res.status);
-    assert(!res.body.includes('grind-system-ep'), 'lists grind-system-ep');
-    assert(!res.body.includes('void-protocol'), 'lists void-protocol');
+    assert(!res.body.includes('/releases/grind-system-ep'), 'lists /releases/grind-system-ep');
+    assert(!res.body.includes('/releases/void-protocol'), 'lists /releases/void-protocol');
     assert(res.body.includes('https://www.mixxea.com/news/lyda-joins-the-roster'), 'missing news url');
     assert(res.body.includes('https://www.mixxea.com/artists/lyda'), 'missing artist url');
     assert(res.body.includes('https://www.mixxea.com/booking-agency'), 'missing booking url');
