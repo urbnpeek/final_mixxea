@@ -44,6 +44,12 @@ img { max-width: 100%; height: auto; }
 .kicker { font-family: var(--mono); letter-spacing: 2.6px; font-size: 11px; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; }
 .hero-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 36px; align-items: end; }
 .hero h1 { margin: 0; font-family: var(--anton); font-size: clamp(56px, 10vw, 116px); line-height: 0.9; letter-spacing: -2px; }
+.hero h1.article-title { font-size: clamp(40px, 6vw, 72px); letter-spacing: -1px; line-height: 0.95; }
+.article-meta { margin: 18px 0 0; font-family: var(--mono); font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted-soft); }
+.article-body { margin-top: 28px; max-width: 760px; }
+.article-body p { margin: 0 0 18px; color: var(--muted); line-height: 1.8; font-size: 18px; }
+.article-figure { margin: 28px 0 0; }
+.article-figure img { width: min(100%, 760px); border-radius: 18px; }
 .hero p.lead { max-width: 760px; font-size: 19px; line-height: 1.7; color: var(--muted); margin: 24px 0 0; }
 .hero-card, .panel, .faq-item, .signal, .artist-card, .link-grid a { background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015)); border: 1px solid var(--edge); }
 .hero-card { padding: 26px; border-radius: 24px; }

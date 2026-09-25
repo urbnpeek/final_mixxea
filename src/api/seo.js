@@ -12,9 +12,13 @@ const express = require('express');
 const db      = require('./db');
 const slugify = require('../utils/slugify');
 const { visibleReleases, visibleEvents, visibleNews } = require('../lib/rosterCatalog');
+const { canonicalOrigin } = require('../lib/siteUrl');
+const { publicDetailExists } = require('../lib/publicDetail');
 const router  = express.Router();
 
-const BASE = process.env.CANONICAL_BASE_URL || 'https://mixxea.com';
+function base() {
+  return canonicalOrigin();
+}
 
 /* ── Shared sitemap XML generator (called by server.js for GET /sitemap.xml) ─ */
 async function generateSitemap() {
@@ -26,6 +30,7 @@ async function generateSitemap() {
   ]);
 
   const today = new Date().toISOString().slice(0, 10);
+  const BASE = base();
 
   const staticUrls = [
     { loc: `${BASE}/`,                          lastmod: today, changefreq: 'weekly',  priority: '1.0' },
@@ -49,27 +54,43 @@ async function generateSitemap() {
     }));
 
   const releaseUrls = publicReleases
-    .map(r => ({
-      loc: `${BASE}/releases/${r.slug || slugify(r.title)}`,
-      lastmod: r.date || (r.createdAt || '').slice(0, 10) || today,
-      changefreq: 'monthly',
-      priority: '0.7',
-    }));
+    .map(r => {
+      const slug = r.slug || slugify(r.title);
+      if (!publicDetailExists('releases', slug)) return null;
+      return {
+        loc: `${BASE}/releases/${slug}`,
+        lastmod: r.date || (r.createdAt || '').slice(0, 10) || today,
+        changefreq: 'monthly',
+        priority: '0.7',
+      };
+    })
+    .filter(Boolean);
 
-  const artistUrls = artists.map(a => ({
-    loc: `${BASE}/artists/${a.slug || slugify(a.name)}`,
-    lastmod: today,
-    changefreq: 'monthly',
-    priority: '0.7',
-  }));
+  const artistUrls = (Array.isArray(artists) ? artists : [])
+    .map(a => {
+      const slug = slugify((a && (a.slug || a.name)) || '');
+      if (!slug || !String(a && a.name || '').trim()) return null;
+      return {
+        loc: `${BASE}/artists/${slug}`,
+        lastmod: today,
+        changefreq: 'monthly',
+        priority: '0.7',
+      };
+    })
+    .filter(Boolean);
 
   const eventUrls = publicEvents
-    .map(e => ({
-      loc: `${BASE}/events/${slugify(`${e.artist || ''} ${e.venue} ${e.date || ''}`.trim())}`,
-      lastmod: e.date || today,
-      changefreq: 'weekly',
-      priority: '0.6',
-    }));
+    .map(e => {
+      const slug = slugify(`${e.artist || ''} ${e.venue || ''} ${e.date || ''}`.trim());
+      if (!publicDetailExists('events', slug)) return null;
+      return {
+        loc: `${BASE}/events/${slug}`,
+        lastmod: e.date || today,
+        changefreq: 'weekly',
+        priority: '0.6',
+      };
+    })
+    .filter(Boolean);
 
   const all = [...staticUrls, ...newsUrls, ...releaseUrls, ...artistUrls, ...eventUrls];
 
@@ -100,7 +121,10 @@ router.get('/schema.json', async (req, res) => {
     ]);
 
     const today = new Date().toISOString().slice(0, 10);
-    const liveReleases  = visibleReleases(releases, artists).filter(r => r.status === 'out' || r.status === 'pre').slice(0, 6);
+    const BASE = base();
+    const liveReleases  = visibleReleases(releases, artists)
+      .filter(r => (r.status === 'out' || r.status === 'pre') && publicDetailExists('releases', r.slug || slugify(r.title)))
+      .slice(0, 6);
     const signedArtists = artists.filter(a => a && a.name && a.status === 'signed');
     const upcoming      = visibleEvents(events, artists).filter(e => e.status === 'confirmed' && (e.date || '') >= today).slice(0, 4);
 
@@ -199,6 +223,7 @@ router.get('/schema.json', async (req, res) => {
 /* ── Per-article JSON-LD ─────────────────────────────────────────────────── */
 router.get('/news/:slug/schema.json', async (req, res) => {
   try {
+    const BASE = base();
     const news    = await db.get('news');
     const article = news.find(n =>
       (n.slug || slugify(n.title)) === req.params.slug && n.status === 'published'

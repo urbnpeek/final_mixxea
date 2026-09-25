@@ -6,11 +6,12 @@ const { uploadFile } = require('./upload');
 const { requireAdmin } = require('./middleware');
 const slugify   = require('../utils/slugify');
 const { visibleNews } = require('../lib/rosterCatalog');
+const { canonicalOrigin } = require('../lib/siteUrl');
 const router    = express.Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-const BASE = process.env.CANONICAL_BASE_URL || 'https://mixxea.com';
+const BASE = canonicalOrigin();
 
 /* Ping Google + Bing to re-index the sitemap after content changes */
 async function pingSitemaps() {

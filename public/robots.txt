@@ -19,4 +19,4 @@ Disallow: /
 User-agent: Claude-Web
 Disallow: /
 
-Sitemap: https://mixxea.com/sitemap.xml
+Sitemap: https://www.mixxea.com/sitemap.xml
