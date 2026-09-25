@@ -8,6 +8,7 @@
     "dev": "nodemon --ignore data/** --ignore public/uploads/** server.js",
     "build": "npm run build:css",
     "build:css": "echo 'CSS served as static files'",
+    "test:seo": "node test/seo-routes.js",
     "check-email-dns": "npx ts-node scripts/check-email-dns.ts",
     "generate-dns-fix": "npx ts-node scripts/generate-dns-fix.ts"
   },

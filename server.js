@@ -13,6 +13,7 @@ const fs         = require('fs');
 const { router: seoRouter, generateSitemap } = require('./src/api/seo');
 const db = require('./src/api/db');
 const pages = require('./src/render/publicPages');
+const { publicDetailPath } = require('./src/lib/publicDetail');
 
 // -- Ensure upload directories exist (silently skip if read-only, e.g. Vercel) --
 const uploadDirs = ['public/uploads/audio','public/uploads/artwork','public/uploads/news','public/uploads/contracts'];
@@ -60,6 +61,10 @@ app.use(helmet({
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use('/api', (req, res, next) => {
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  next();
+});
 // -- Dynamic sitemap (must come before static middleware intercepts /sitemap.xml) --
 app.get('/sitemap.xml', async (req, res) => {
   try {
@@ -76,9 +81,12 @@ app.get('/sitemap.xml', async (req, res) => {
 // -- SEO API (schema.json endpoints) --
 app.use('/api/seo', seoRouter);
 
-function sendHtml(res, status, html) {
+function sendHtml(res, status, html, cacheControl) {
   res.status(status);
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.set('Cache-Control', cacheControl || 'no-store, no-cache, must-revalidate');
+  if (status === 404 || status === 410) {
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+  }
   res.type('html').send(html);
 }
 
@@ -251,6 +259,11 @@ app.get('/api/db-status', async (req, res) => {
   }
 });
 
+app.use('/api', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.status(404).json({ error: 'Not found' });
+});
+
 // -- Serve SEO pages --
 const seoPageRoutes = new Map([
   ['/record-label',              'record-label.html'],
@@ -265,13 +278,11 @@ seoPageRoutes.forEach((fileName, routePath) => {
 });
 
 const serveSeoDetail = (folder) => (req, res) => {
-  const filePath = path.join(__dirname, 'public', folder, req.params.slug, 'index.html');
-  if (fs.existsSync(filePath)) {
+  const filePath = publicDetailPath(folder, req.params.slug);
+  if (filePath && fs.existsSync(filePath)) {
     return res.sendFile(filePath);
   }
-  res.status(404).set('Cache-Control', 'no-store').type('html').send(
-    '<!doctype html><meta charset="utf-8"><title>Not found | Mixxea</title><p>This page is not on the current Mixxea catalog. <a href="/">Home</a></p>'
-  );
+  sendHtml(res, 404, pages.renderNotFound());
 };
 
 app.get('/releases/:slug', serveSeoDetail('releases'));
@@ -285,14 +296,15 @@ app.get('/dj-pool*', (req, res) => {
 // -- Google Search Console HTML file verification --
 app.get('/google:token([0-9a-zA-Z_-]+).html', (req, res) => {
   const envToken = process.env.GOOGLE_SITE_VERIFICATION;
-  if (!envToken || req.params.token !== envToken) return res.status(404).end();
+  if (!envToken || req.params.token !== envToken) {
+    sendHtml(res, 404, pages.renderNotFound());
+    return;
+  }
   res.type('text/html').send(`google-site-verification: google${envToken}.html`);
 });
 
 // -- Server-side rendered news article pages (/news/:slug) --
 app.get('/news/:slug', async (req, res) => {
-  const BASE = process.env.CANONICAL_BASE_URL || 'https://mixxea.com';
-  const db   = require('./src/api/db');
   const slugify = require('./src/utils/slugify');
   const slug = req.params.slug;
 
@@ -303,67 +315,31 @@ app.get('/news/:slug', async (req, res) => {
       (n.slug || slugify(n.title)) === slug
     );
 
-    const indexHtml = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
-
     if (!article) {
-      return res.status(404).set('Cache-Control', 'no-store').send(indexHtml);
+      sendHtml(res, 404, pages.renderNotFound());
+      return;
     }
 
     const articleSlug = article.slug || slugify(article.title);
-    const canonicalUrl = `${BASE}/news/${articleSlug}`;
-    const description  = (article.body || article.excerpt || '').slice(0, 160).replace(/\n/g, ' ').replace(/"/g, '&quot;');
-    const ogImage      = article.image || `${BASE}/og/mixxea-og.svg`;
-    const title        = (article.title || 'News').replace(/"/g, '&quot;');
-    const pubDate      = article.date || (article.createdAt || '').slice(0, 10);
-    const modDate      = (article.updatedAt || article.date || article.createdAt || '').slice(0, 10);
+    if (articleSlug && articleSlug !== slug) {
+      redirectTo(res, '/news/' + articleSlug);
+      return;
+    }
 
-    const articleJsonLd = {
-      '@context': 'https://schema.org',
-      '@type': 'Article',
-      'headline': article.title,
-      'description': description,
-      'image': ogImage,
-      'datePublished': pubDate,
-      'dateModified': modDate,
-      'author': { '@type': 'Organization', 'name': article.author || 'Mixxea Records', '@id': `${BASE}/#mixxea` },
-      'publisher': { '@type': 'Organization', 'name': 'Mixxea Records', '@id': `${BASE}/#mixxea` },
-      'mainEntityOfPage': { '@type': 'WebPage', '@id': canonicalUrl },
-      'url': canonicalUrl,
-    };
-
-    const seoHead = [
-      `<title>${title} | Mixxea Records</title>`,
-      `<meta name="description" content="${description}">`,
-      `<link rel="canonical" href="${canonicalUrl}">`,
-      `<meta property="og:type" content="article">`,
-      `<meta property="og:title" content="${title}">`,
-      `<meta property="og:description" content="${description}">`,
-      `<meta property="og:url" content="${canonicalUrl}">`,
-      `<meta property="og:image" content="${ogImage}">`,
-      `<meta name="twitter:card" content="summary_large_image">`,
-      `<meta name="twitter:title" content="${title}">`,
-      `<meta name="twitter:description" content="${description}">`,
-      `<meta name="twitter:image" content="${ogImage}">`,
-      `<script type="application/ld+json">${JSON.stringify(articleJsonLd)}</script>`,
-    ].join('\n  ');
-
-    // Inject before </head> — replace any existing <title> and <meta name="description">
-    let html = indexHtml
-      .replace(/<title>[^<]*<\/title>/, '')
-      .replace(/<meta\s+name="description"[^>]*>/i, '')
-      .replace('</head>', `  ${seoHead}\n</head>`);
-
-    res.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
-    res.type('text/html').send(html);
+    sendHtml(
+      res,
+      200,
+      pages.renderNewsArticle(article),
+      'public, s-maxage=3600, stale-while-revalidate=86400'
+    );
   } catch (e) {
     console.error('[SEO] news SSR error:', e);
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    sendHtml(res, 500, pages.renderNotFound());
   }
 });
 
 app.get('*', (req, res) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  sendHtml(res, 404, pages.renderNotFound());
 });
 
 // -- Error handler --

@@ -4,13 +4,12 @@
  * No awards, bios, or career claims are added here.
  */
 
-const fs = require('fs');
-const path = require('path');
 const slugify = require('../utils/slugify');
 const { visibleReleases, visibleEvents, visibleNews } = require('../lib/rosterCatalog');
+const { canonicalOrigin } = require('../lib/siteUrl');
+const { publicDetailExists } = require('../lib/publicDetail');
 
-const PUBLIC_DIR = path.join(__dirname, '../../public');
-const BASE = String(process.env.CANONICAL_BASE_URL || 'https://mixxea.com').replace(/\/$/, '');
+const BASE = canonicalOrigin();
 const BOOKING_EMAIL = 'booking@mixxea.com';
 
 const TILE_COLORS = [
@@ -115,21 +114,16 @@ function matchesArtist(value, name) {
   return nameTokens(value).includes(wanted) || String(value || '').trim().toLowerCase() === wanted;
 }
 
-function publicFile(parts) {
-  const file = path.join(PUBLIC_DIR, ...parts);
-  return fs.existsSync(file) ? file : '';
-}
-
 function releaseHref(release) {
   const slug = slugify(release.slug || release.title);
-  if (!slug) return '';
-  return publicFile(['releases', slug, 'index.html']) ? `/releases/${slug}` : '';
+  if (!slug || !publicDetailExists('releases', slug)) return '';
+  return `/releases/${slug}`;
 }
 
 function eventHref(event) {
   const slug = slugify(`${event.artist || ''} ${event.venue || ''} ${event.date || ''}`.trim());
-  if (!slug) return '';
-  return publicFile(['events', slug, 'index.html']) ? `/events/${slug}` : '';
+  if (!slug || !publicDetailExists('events', slug)) return '';
+  return `/events/${slug}`;
 }
 
 function renderHomeTiles(artists) {
@@ -254,22 +248,28 @@ function renderReleaseCards(releases) {
   }).join('');
 }
 
+function newsSlug(item) {
+  return slugify(item && (item.slug || item.title));
+}
+
 function renderNewsCards(news) {
   const list = Array.isArray(news) ? news : [];
   if (!list.length) return '<p class="catalog-empty">No news on file yet.</p>';
 
   return list.map((item, index) => {
     const image = safeUrl(item.image);
+    const slug = newsSlug(item);
+    const href = slug ? `/news/${esc(slug)}` : '/#news';
     const visual = image
       ? `<img src="${esc(image)}" alt="${esc(item.title || '')}" style="width:100%;height:100%;object-fit:cover">`
       : `<span style="font-family:var(--Anton);font-size:80px;color:rgba(232,255,0,.08)">${esc(String(item.title || '').slice(0, 2).toUpperCase())}</span>`;
-    return `<div class="n-card${index === 0 ? ' n-card-featured' : ''}">
+    return `<a class="n-card${index === 0 ? ' n-card-featured' : ''}" href="${href}">
         <div class="nc-img">${visual}</div>
         <div class="nc-cat">${esc(item.category || 'News')}</div>
         <div class="nc-title">${esc(item.title || '')}</div>
         <div class="nc-date">${esc(formatNewsDate(item.date || item.createdAt))}</div>
         <div class="nc-arr">↗</div>
-      </div>`;
+      </a>`;
   }).join('');
 }
 
@@ -387,12 +387,19 @@ function seoNav(currentPath) {
 }
 
 function seoFooter() {
-  return `<footer class="footer"><div class="footer-inner"><div><div>Jack / FreqVault · Mixxea Records</div><div><a href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a> · <a href="https://mixxea.com">mixxea.com</a></div></div><div><a href="/">Home</a> · <a href="/record-label">Label</a> · <a href="/booking-agency">Booking</a> · <a href="/electronic-music-artists">Roster</a></div></div></footer>`;
+  return `<footer class="footer"><div class="footer-inner"><div><div>Jack / FreqVault · Mixxea Records</div><div><a href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a> · <a href="${BASE}">mixxea.com</a></div></div><div><a href="/">Home</a> · <a href="/record-label">Label</a> · <a href="/booking-agency">Booking</a> · <a href="/electronic-music-artists">Roster</a></div></div></footer>`;
 }
 
-function pageShell({ title, description, canonicalPath, robots, jsonLd, body }) {
-  const canonical = `${BASE}${canonicalPath}`;
+function pageShell({ title, description, canonicalPath, robots, jsonLd, body, omitCanonical, ogType, ogImage }) {
+  const canonical = canonicalPath ? `${BASE}${canonicalPath}` : '';
+  const image = ogImage || `${BASE}/og/mixxea-og.svg`;
   const graph = jsonLd ? jsonScript(jsonLd) : '';
+  const canonicalTag = !omitCanonical && canonical
+    ? `<link rel="canonical" href="${esc(canonical)}">`
+    : '';
+  const ogUrl = !omitCanonical && canonical
+    ? `<meta property="og:url" content="${esc(canonical)}">`
+    : '';
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -402,16 +409,17 @@ ${trackingHead()}
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <meta name="robots" content="${robots || 'index,follow'}">
-<link rel="canonical" href="${esc(canonical)}">
-<meta property="og:type" content="website">
+${canonicalTag}
+<meta property="og:type" content="${esc(ogType || 'website')}">
+<meta property="og:site_name" content="Mixxea">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
-<meta property="og:url" content="${esc(canonical)}">
-<meta property="og:image" content="${BASE}/og/mixxea-og.svg">
+${ogUrl}
+<meta property="og:image" content="${esc(image)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">
-<meta name="twitter:image" content="${BASE}/og/mixxea-og.svg">
+<meta name="twitter:image" content="${esc(image)}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -491,7 +499,7 @@ function renderArtistPage({ artist, artists, releases, events }) {
     : '';
 
   const bookHtml = bookable
-    ? `<section class="section" id="book"><div class="wrap"><h2>Book ${esc(name)}</h2><p class="section-intro">Send the date, city, venue, and offer details. The inquiry opens with this artist selected.</p><div class="actions"><a class="btn btn-primary" href="/booking-agency?artist=${esc(slug)}#inquiry">Book this artist</a><a class="btn btn-secondary" href="mailto:${BOOKING_EMAIL}?subject=${encodeURIComponent('Booking ' + name)}">Email ${BOOKING_EMAIL}</a></div><p class="signature">Jack / FreqVault · Mixxea Records / <a href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a> / <a href="https://mixxea.com">mixxea.com</a></p></div></section>`
+    ? `<section class="section" id="book"><div class="wrap"><h2>Book ${esc(name)}</h2><p class="section-intro">Send the date, city, venue, and offer details. The inquiry opens with this artist selected.</p><div class="actions"><a class="btn btn-primary" href="/booking-agency?artist=${esc(slug)}#inquiry">Book this artist</a><a class="btn btn-secondary" href="mailto:${BOOKING_EMAIL}?subject=${encodeURIComponent('Booking ' + name)}">Email ${BOOKING_EMAIL}</a></div><p class="signature">Jack / FreqVault · Mixxea Records / <a href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a> / <a href="${BASE}">mixxea.com</a></p></div></section>`
     : `<section class="section"><div class="wrap"><h2>Booking</h2><p class="section-intro">${esc(name)} is on the label roster. Booking requests for agency artists go through Freq Vault.</p><div class="actions"><a class="btn btn-primary" href="/booking-agency">Freq Vault booking agency</a></div></div></section>`;
 
   const jsonLd = {
@@ -553,6 +561,93 @@ ${seoFooter()}`;
   });
 }
 
+function renderPlainText(value) {
+  const text = String(value || '').replace(/\r\n/g, '\n').trim();
+  if (!text) return '';
+  return text.split(/\n{2,}/).map((para) => `<p>${esc(para).replace(/\n/g, '<br>')}</p>`).join('');
+}
+
+function absoluteAsset(value) {
+  const url = safeUrl(value);
+  if (!url) return '';
+  if (url.startsWith('/')) return `${BASE}${url}`;
+  return url;
+}
+
+function renderNotFound() {
+  return pageShell({
+    title: 'Page not found | Mixxea',
+    description: 'This page is not available on Mixxea.',
+    robots: 'noindex, nofollow',
+    omitCanonical: true,
+    body: `${seoNav()}
+<main>
+<section class="hero"><div class="wrap">
+  <div class="kicker">404</div>
+  <h1>Page not found</h1>
+  <p class="lead">This URL is not a page on Mixxea. The homepage, roster, booking agency, and published news are linked below.</p>
+  <div class="actions"><a class="btn btn-primary" href="/">Home</a><a class="btn btn-secondary" href="/booking-agency">Booking agency</a><a class="btn btn-secondary" href="/electronic-music-artists">Artists</a></div>
+</div></section>
+</main>
+${seoFooter()}`,
+  });
+}
+
+function renderNewsArticle(article) {
+  const slug = newsSlug(article);
+  const title = String(article.title || 'News').trim() || 'News';
+  const bodyText = String(article.body || article.excerpt || '').trim();
+  const description = bodyText.replace(/\s+/g, ' ').slice(0, 160) || `${title} — Mixxea Records.`;
+  const image = absoluteAsset(article.image) || `${BASE}/og/mixxea-og.svg`;
+  const when = formatNewsDate(article.date || article.createdAt);
+  const category = String(article.category || 'News').trim() || 'News';
+  const author = String(article.author || 'Mixxea Records').trim() || 'Mixxea Records';
+  const canonicalPath = `/news/${slug}`;
+  const canonical = `${BASE}${canonicalPath}`;
+  const published = article.date || String(article.createdAt || '').slice(0, 10);
+  const modified = String(article.updatedAt || article.date || article.createdAt || '').slice(0, 10);
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: title,
+    description,
+    image,
+    datePublished: published,
+    dateModified: modified,
+    author: { '@type': 'Organization', name: author, '@id': `${BASE}/#mixxea` },
+    publisher: { '@type': 'Organization', name: 'Mixxea Records', '@id': `${BASE}/#mixxea` },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+    url: canonical,
+  };
+  const figure = absoluteAsset(article.image)
+    ? `<figure class="article-figure"><img src="${esc(absoluteAsset(article.image))}" alt="${esc(title)}"></figure>`
+    : '';
+  const meta = [when, author].filter(Boolean).map(esc).join(' · ');
+  const body = `${seoNav()}
+<main>
+<section class="hero"><div class="wrap">
+  <div class="breadcrumbs"><a href="/">Home</a><span>/</span><a href="/#news">News</a><span>/</span><span>${esc(title)}</span></div>
+  <div class="kicker">${esc(category)}</div>
+  <h1 class="article-title">${esc(title)}</h1>
+  ${meta ? `<p class="article-meta">${meta}</p>` : ''}
+  ${figure}
+  <div class="article-body">${renderPlainText(bodyText)}</div>
+  <div class="actions"><a class="btn btn-secondary" href="/#news">All news</a><a class="btn btn-primary" href="/booking-agency">Booking agency</a></div>
+</div></section>
+</main>
+${seoFooter()}`;
+
+  return pageShell({
+    title: `${title} | Mixxea Records`,
+    description,
+    canonicalPath,
+    ogType: 'article',
+    ogImage: image,
+    jsonLd,
+    body,
+  });
+}
+
 module.exports = {
   BOOKING_EMAIL,
   artistSlug,
@@ -564,6 +659,8 @@ module.exports = {
   injectRoster,
   renderArtistPage,
   renderArtistNotFound,
+  renderNewsArticle,
+  renderNotFound,
   renderHomeTiles,
   renderDirectoryCards,
 };

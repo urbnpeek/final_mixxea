@@ -318,18 +318,20 @@ async function loadNews() {
 
     grid.innerHTML = visible.map((n, i) => {
       const image = safeHref(n.image);
+      const slug = slugify(n.slug || n.title);
+      const href = slug ? `/news/${escHtml(slug)}` : '/#news';
       const when = new Date(n.date || n.createdAt);
       const dateLabel = Number.isNaN(when.getTime())
         ? ''
         : when.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
       return `
-      <div class="n-card${i === 0 ? ' n-card-featured' : ''}">
+      <a class="n-card${i === 0 ? ' n-card-featured' : ''}" href="${href}">
         <div class="nc-img">${image ? `<img src="${escHtml(image)}" alt="${escHtml(n.title || '')}" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-family:var(--Anton);font-size:80px;color:rgba(232,255,0,.08)">${escHtml(String(n.title || '').slice(0, 2).toUpperCase())}</span>`}</div>
         <div class="nc-cat">${escHtml(n.category || 'News')}</div>
         <div class="nc-title">${escHtml(n.title || '')}</div>
         <div class="nc-date">${escHtml(dateLabel)}</div>
         <div class="nc-arr">↗</div>
-      </div>`;
+      </a>`;
     }).join('');
   } catch (e) {
     console.warn('Could not load news from API');
