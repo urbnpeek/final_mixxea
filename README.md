@@ -72,11 +72,12 @@ mixxea-vscode/
 
 ## 🔑 Admin Access
 
-Default credentials (set in `.env`):
-- **Email:** `admin@mixxea.com`
-- **Password:** `MixxeaAdmin2025!`
+Credentials are set in `.env` (no defaults are built in):
+- **Login username:** `ADMIN_LOGIN_EMAIL`
+- **Password:** `ADMIN_PASSWORD`
+- **Notification recipient:** `ADMIN_NOTIFY_EMAIL` (a real, monitored mailbox)
 
-Change these in your `.env` before going live.
+`ADMIN_LOGIN_EMAIL` and `ADMIN_NOTIFY_EMAIL` each fall back to the legacy `ADMIN_EMAIL` when unset.
 
 ---
 

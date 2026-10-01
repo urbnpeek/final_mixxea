@@ -6,6 +6,7 @@ const bcrypt   = require('bcryptjs');
 const { v4: uuid } = require('uuid');
 const db       = require('./db');
 const { buildAdminToken, getCookie, verifySignedCookie } = require('./middleware');
+const { getAdminLoginEmail } = require('./adminEnv');
 const router   = express.Router();
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -26,8 +27,11 @@ function clearAdminCookie(res) {
 
 // ── Admin Login ───────────────────────────────────────────────────
 router.post('/admin/login', (req, res) => {
-  const { email, password } = req.body;
-  if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+  const { email, password } = req.body || {};
+  const adminEmail = getAdminLoginEmail();
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  // Refuse login when the credentials are not configured (undefined === undefined).
+  if (adminEmail && adminPassword && email === adminEmail && password === adminPassword) {
     req.session.admin = true;
     req.session.adminEmail = email;
     setAdminCookie(res);

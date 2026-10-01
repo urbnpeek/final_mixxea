@@ -4,6 +4,7 @@
  */
 const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
+const { getAdminNotifyEmail } = require('./adminEnv');
 
 let smtpTransporter;
 let resendClient;
@@ -80,13 +81,13 @@ function getAdminRecipients(type) {
     : type === 'demo'
       ? splitEmails(process.env.DEMO_NOTIFY_EMAILS || process.env.AR_EMAIL)
       : type === 'contact'
-        ? splitEmails(process.env.CONTACT_NOTIFY_EMAILS || process.env.ADMIN_NOTIFY_EMAILS || process.env.ADMIN_EMAIL)
+        ? splitEmails(process.env.CONTACT_NOTIFY_EMAILS || process.env.ADMIN_NOTIFY_EMAILS || getAdminNotifyEmail())
       : [];
 
   return uniqueEmails([
     ...specific,
     ...splitEmails(process.env.ADMIN_NOTIFY_EMAILS),
-    ...splitEmails(process.env.ADMIN_EMAIL),
+    ...splitEmails(getAdminNotifyEmail()),
   ]);
 }
 
@@ -386,6 +387,7 @@ function previewNewsletter(content) {
 }
 
 module.exports = {
+  getAdminRecipients,
   sendEmail,
   sendNewsletter,
   sendBookingConfirmation,
