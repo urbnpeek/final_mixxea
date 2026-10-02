@@ -50,6 +50,7 @@ async function generateSitemap() {
     { loc: `${BASE}/submit-demo`,               lastmod: today, changefreq: 'monthly', priority: '0.7' },
     { loc: `${BASE}/releases`,                  lastmod: today, changefreq: 'weekly',  priority: '0.8' },
     { loc: `${BASE}/news`,                      lastmod: today, changefreq: 'weekly',  priority: '0.8' },
+    { loc: `${BASE}/privacy`,                   lastmod: today, changefreq: 'yearly',  priority: '0.3' },
   ];
 
   const publicNews = visibleNews(news, artists);

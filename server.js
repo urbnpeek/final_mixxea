@@ -153,6 +153,12 @@ function redirectTo(res, location) {
   res.redirect(301, location);
 }
 
+app.get(['/cookies', '/cookie-policy'], (req, res) => {
+  res.status(301);
+  res.set('Location', '/privacy#cookies');
+  res.end();
+});
+
 app.get(['/booking', '/agency', '/freqvault'], (req, res) => {
   const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
   redirectTo(res, '/booking-agency' + query);
@@ -429,6 +435,13 @@ seoPageRoutes.forEach((fileName, routePath) => {
 
 app.get('/portal', (req, res) => {
   sendHtml(res, 200, require('./src/render/catalogPages').renderPortal());
+});
+
+app.get('/privacy', (req, res) => {
+  const preview = process.env.VERCEL_ENV === 'preview';
+  if (preview) res.set('X-Robots-Tag', 'noindex, nofollow');
+  const cache = preview ? 'no-store' : PUBLIC_PAGE_CACHE;
+  sendHtml(res, 200, require('./src/render/privacyPage').renderPrivacyPage({ preview }), cache);
 });
 
 const serveSeoDetail = (folder) => (req, res) => {

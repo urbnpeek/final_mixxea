@@ -569,7 +569,7 @@ function siteFooter(options = {}) {
   </div>
   <div class="wrap ft-base">
     <span>&copy; ${year} Mixxea Records · FreqVault Agency · Since 2013</span>
-    <span><button type="button" class="linkish" data-cookie-settings>Cookie settings</button> · <a href="/portal">Artist login</a></span>
+    <span><a href="/privacy">Privacy</a> · <button type="button" class="linkish" data-cookie-settings>Cookie settings</button> · <a href="/portal">Artist login</a></span>
   </div>
 </footer>`;
 }

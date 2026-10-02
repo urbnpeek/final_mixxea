@@ -226,6 +226,40 @@ async function main() {
     assert(home.body.includes('href="/news"'), 'all news link missing');
   });
 
+  await check('privacy page, cookie redirects, and sitemap', async () => {
+    const page = await request(port, '/privacy');
+    assert(page.status === 200, 'status ' + page.status);
+    assert(page.body.includes('Freq Grup SRL'), 'controller missing');
+    assert(page.body.includes('id="cookies"'), 'cookies anchor missing');
+    assert(page.body.includes('data-cookie-settings'), 'cookie settings control missing');
+    assert(page.body.includes('Change cookie settings'), 'change settings label missing');
+    assert(page.body.includes('href="/privacy"'), 'footer privacy link missing');
+    assert(page.body.includes('[CONFIRM]'), 'open items missing');
+    assert(page.body.includes('Last updated 2 October 2026'), 'date missing');
+    assert(/name="robots" content="index,follow"/.test(page.body), 'production robots');
+    assert(!page.body.includes('Draft for approval'), 'draft banner leaked outside preview');
+    assert(!/noindex/i.test(page.headers['x-robots-tag'] || ''), 'preview robots header leaked');
+
+    process.env.VERCEL_ENV = 'preview';
+    try {
+      const draft = await request(port, '/privacy');
+      assert(draft.body.includes('Draft for approval'), 'draft banner missing on preview');
+      assert(/name="robots" content="noindex, nofollow"/.test(draft.body), 'preview noindex meta');
+      assert(/noindex/i.test(draft.headers['x-robots-tag'] || ''), 'preview X-Robots-Tag');
+    } finally {
+      delete process.env.VERCEL_ENV;
+    }
+
+    for (const urlPath of ['/cookies', '/cookie-policy']) {
+      const res = await request(port, urlPath);
+      assert(res.status === 301, urlPath + ' status ' + res.status);
+      assert(res.headers.location === '/privacy#cookies', urlPath + ' location ' + res.headers.location);
+    }
+
+    const sitemap = await request(port, '/sitemap.xml');
+    assert(sitemap.body.includes('https://www.mixxea.com/privacy</loc>'), 'sitemap privacy url');
+  });
+
   await check('api collection still responds', async () => {
     const res = await request(port, '/api/artists');
     assert(res.status === 200, 'status ' + res.status);
