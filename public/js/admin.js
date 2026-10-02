@@ -31,6 +31,14 @@ function setVal(id,v) { const e=document.getElementById(id); if(e)e.value=v||'';
 function setText(id,v) { const e=document.getElementById(id); if(e)e.textContent=(v===null||v===undefined)?'—':v; }
 function setHTML(id,v) { const e=document.getElementById(id); if(e)e.innerHTML=v; }
 function badge(text,cls) { return `<span class="adm-badge ${cls}">${text}</span>`; }
+function esc(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 function relBadge(s) {
   const m={out:['Out Now','ab-live'],pre:['Pre-Order','ab-pre'],soon:['Coming Soon','ab-pre'],draft:['Draft','ab-draft']};
   const [t,c]=m[s]||[s,'ab-draft']; return badge(t,c);
@@ -114,6 +122,7 @@ function switchAdminSection(id) {
     'a-bk':   () => ADMIN.loadBookings('all'),
     'a-promo':() => ADMIN.loadPromoters(),
     'a-djpool': () => ADMIN.loadDjPool(),
+    'a-inbox': () => ADMIN.loadInbox(),
     'a-nl':   () => ADMIN.loadNLStats(),
     'a-subs': () => ADMIN.loadSubscribers(),
     'a-analytics': () => { ADMIN.loadAnalytics(); buildChart(); },
@@ -808,6 +817,139 @@ const ADMIN = {
     const subCount = sub ? (sub?.count??sub?.subscribers?.length??0) : null;
     setText('analytics-subs', subCount === null ? 'Unavailable' : subCount.toLocaleString());
   },
+
+  /* ══ CONTACT INBOX ══════════════════════════════════════ */
+  _inboxItems: [],
+  _inboxBounces: [],
+  _inboxFilter: 'all',
+  _inboxQuery: '',
+  _inboxBound: false,
+
+  bindInbox() {
+    if (this._inboxBound) return;
+    this._inboxBound = true;
+    document.querySelectorAll('[data-inbox-filter]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-inbox-filter]').forEach((item) => item.classList.remove('on'));
+        btn.classList.add('on');
+        this._inboxFilter = btn.getAttribute('data-inbox-filter') || 'all';
+        this.renderInbox();
+      });
+    });
+    const search = document.getElementById('inbox-search');
+    if (search) {
+      search.addEventListener('input', () => {
+        this._inboxQuery = search.value || '';
+        this.renderInbox();
+      });
+    }
+  },
+
+  async loadInbox() {
+    this.bindInbox();
+    const data = await api('GET', '/inbox');
+    this._inboxItems = (data && data.items) || [];
+    this._inboxBounces = (data && data.bounces) || [];
+    this.renderInbox();
+  },
+
+  visibleInbox() {
+    const query = this._inboxQuery.trim().toLowerCase();
+    return this._inboxItems.filter((item) => {
+      if (this._inboxFilter !== 'all' && item.type !== this._inboxFilter) return false;
+      if (!query) return true;
+      return [item.name, item.email, item.subject, item.preview, item.type, item.status]
+        .join(' ')
+        .toLowerCase()
+        .includes(query);
+    });
+  },
+
+  renderInbox() {
+    const rows = this.visibleInbox();
+    const statusClass = {
+      new: 'ab-new', read: 'ab-review', archived: 'ab-draft',
+      pending: 'ab-new', discussing: 'ab-hold', confirmed: 'ab-conf', declined: 'ab-draft',
+      reviewing: 'ab-review', approved: 'ab-live',
+    };
+    setText('adm-inbox-count', this._inboxItems.length + ' ITEMS');
+    setHTML('adm-inbox-tbody', rows.length ? rows.map((item, index) => `
+      <tr>
+        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${esc(fmtDate(item.submittedAt))}</td>
+        <td style="font-family:var(--Mono);font-size:10px;text-transform:uppercase">${esc(item.type)}</td>
+        <td class="tbl-name">${esc(item.name)}</td>
+        <td style="font-family:var(--Mono);font-size:10px">${esc(item.email)}</td>
+        <td><div class="tbl-name">${esc(item.subject)}</div><div class="tbl-sub">${esc(item.preview)}</div></td>
+        <td>${badge(esc(item.status), statusClass[item.status] || 'ab-draft')}</td>
+        <td><button class="tbl-btn" type="button" data-inbox-open="${index}">View</button></td>
+      </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No messages</td></tr>');
+    document.querySelectorAll('#adm-inbox-tbody [data-inbox-open]').forEach((btn) => {
+      btn.addEventListener('click', () => this.openInbox(Number(btn.getAttribute('data-inbox-open'))));
+    });
+
+    setHTML('adm-bounce-tbody', this._inboxBounces.length ? this._inboxBounces.map((bounce) => {
+      const when = bounce.bucharestTime || fmtDate(bounce.occurredAt || bounce.recordedAt);
+      const recipients = Array.isArray(bounce.recipients) ? bounce.recipients.join(', ') : '';
+      const reason = [bounce.bounceType, bounce.bounceSubType, bounce.reason].filter(Boolean).join(' · ');
+      const alert = bounce.alertSent ? 'Sent' : (bounce.alertSkipped === 'loop' ? 'Skipped (loop)' : 'Not sent');
+      return `<tr>
+        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${esc(when)}</td>
+        <td style="font-family:var(--Mono);font-size:10px">${esc(bounce.type)}</td>
+        <td style="font-family:var(--Mono);font-size:10px">${esc(recipients)}</td>
+        <td>${esc(bounce.subject)}</td>
+        <td>${esc(reason)}</td>
+        <td style="font-family:var(--Mono);font-size:10px">${esc(alert)}</td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No delivery problems recorded</td></tr>');
+  },
+
+  openInbox(index) {
+    const item = this.visibleInbox()[index];
+    const panel = document.getElementById('inbox-detail');
+    if (!item || !panel) return;
+    const detail = item.detail || {};
+    const lines = Object.keys(detail).filter((key) => key !== 'password' && key !== 'passwordHash').map((key) => {
+      const value = detail[key];
+      const shown = value && typeof value === 'object' ? JSON.stringify(value) : (value == null ? '' : String(value));
+      return `<div style="margin-bottom:10px"><div style="font-family:var(--Mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">${esc(key)}</div><div style="white-space:pre-wrap">${esc(shown)}</div></div>`;
+    }).join('');
+    panel.style.display = 'block';
+    panel.innerHTML = `<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px">
+      <div>
+        <div style="font-family:var(--Mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase">${esc(item.type)} · ${esc(item.status)}</div>
+        <div style="font-family:var(--Anton);font-size:28px">${esc(item.subject || item.name || 'Message')}</div>
+      </div>
+      <button class="adm-cancel" type="button" id="inbox-detail-close">Close</button>
+    </div>
+    ${lines}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${this.inboxActions(item)}</div>`;
+    const close = panel.querySelector('#inbox-detail-close');
+    if (close) close.addEventListener('click', () => { panel.style.display = 'none'; panel.innerHTML = ''; });
+    panel.querySelectorAll('[data-inbox-status]').forEach((btn) => {
+      btn.addEventListener('click', () => this.setInboxStatus(item, btn.getAttribute('data-inbox-status')));
+    });
+  },
+
+  inboxActions(item) {
+    const statuses = item.type === 'contact'
+      ? ['new', 'read', 'archived']
+      : item.type === 'booking'
+        ? ['pending', 'discussing', 'confirmed', 'declined']
+        : ['new', 'reviewing', 'approved', 'declined'];
+    return statuses.map((status) => `<button class="tbl-btn" type="button" data-inbox-status="${esc(status)}">${esc(status)}</button>`).join('');
+  },
+
+  async setInboxStatus(item, status) {
+    let result = null;
+    if (item.type === 'contact') result = await api('PUT', '/inbox/contact/' + encodeURIComponent(item.id) + '/status', { status });
+    else if (item.type === 'booking') result = await api('PUT', '/bookings/' + encodeURIComponent(item.id), { status });
+    else if (item.type === 'demo') result = await api('PUT', '/demos/' + encodeURIComponent(item.id) + '/status', { status, notify: false });
+    if (!result) return;
+    toast('Marked ' + status);
+    const panel = document.getElementById('inbox-detail');
+    if (panel) { panel.style.display = 'none'; panel.innerHTML = ''; }
+    this.loadInbox();
+  },
 };
 
 /* ─────────────────────────────────────────────────────────
@@ -932,4 +1074,4 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-console.log('✓ Mixxea Admin — 13 modules loaded, all wired to real API');
+console.log('✓ Mixxea Admin — 14 modules loaded, all wired to real API');
