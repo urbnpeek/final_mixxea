@@ -1,48 +1,58 @@
 ﻿const express = require('express');
 const { getSupabaseStatus, getSupabaseConfig } = require('../lib/supabase');
+const { requireAdmin } = require('./middleware');
 
 const router = express.Router();
 
-router.get('/status', async (req, res) => {
-  const status = await getSupabaseStatus();
-  res.json(status);
-});
-
-router.get('/config', (req, res) => {
-  const config = getSupabaseConfig();
-  res.json({
+function presence(config) {
+  return {
     configured: Boolean(config.url && config.anonKey),
     urlPresent: Boolean(config.url),
     anonKeyPresent: Boolean(config.anonKey),
     serviceRolePresent: Boolean(config.serviceRoleKey),
-    schema: config.schema,
-    buckets: config.buckets
-  });
+  };
+}
+
+router.get('/status', requireAdmin, async (req, res) => {
+  const status = await getSupabaseStatus();
+  const body = {
+    configured: Boolean(status.configured),
+    urlPresent: Boolean(status.urlPresent),
+    anonKeyPresent: Boolean(status.anonKeyPresent),
+    serviceRolePresent: Boolean(status.serviceRolePresent),
+    reachable: Boolean(status.reachable),
+  };
+  if (typeof status.statusCode === 'number') body.statusCode = status.statusCode;
+  res.json(body);
 });
 
-// Diagnostic endpoint — returns the raw Supabase response so we can see exact errors
-router.get('/ping', async (req, res) => {
+router.get('/config', requireAdmin, (req, res) => {
+  res.json(presence(getSupabaseConfig()));
+});
+
+// Read-only reachability check. No keys, URLs, or response bodies.
+router.get('/ping', requireAdmin, async (req, res) => {
   const config = getSupabaseConfig();
-  const url = config.url + '/rest/v1/mixxea_data?key=eq.releases&select=value&limit=1';
+  if (!config.url || !config.anonKey) {
+    return res.json({ configured: false, reachable: false });
+  }
   try {
-    const r = await fetch(url, {
+    const response = await fetch(config.url.replace(/\/+$/, '') + '/rest/v1/', {
       headers: {
         apikey: config.anonKey,
         Authorization: 'Bearer ' + config.anonKey,
         Accept: 'application/json',
-        Prefer: 'count=exact'
-      }
+      },
+      signal: AbortSignal.timeout(4000),
     });
-    const body = await r.text();
+    await response.arrayBuffer().catch(() => {});
     res.json({
-      ok: r.ok,
-      status: r.status,
-      url,
-      anonKeyStart: config.anonKey.slice(0, 30) + '...',
-      body: body.slice(0, 600)
+      configured: true,
+      reachable: response.ok || response.status === 404,
+      statusCode: response.status,
     });
   } catch (e) {
-    res.json({ error: e.message, type: e.constructor.name, url });
+    res.json({ configured: true, reachable: false });
   }
 });
 

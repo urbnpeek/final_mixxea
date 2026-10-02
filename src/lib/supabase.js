@@ -92,7 +92,8 @@ async function getSupabaseStatus() {
       headers: {
         apikey: config.anonKey,
         Authorization: 'Bearer ' + config.anonKey
-      }
+      },
+      signal: AbortSignal.timeout(4000),
     });
     return { ...base, reachable: response.ok || response.status === 404, statusCode: response.status };
   } catch (error) {

@@ -15,7 +15,7 @@ Run the SQL in supabase/migrations/0001_init.sql inside the Supabase SQL editor,
 or use the Supabase CLI later.
 
 ## 3. Verify local wiring
-Start the app and open:
+With an admin session, these routes return only booleans and status codes:
 - /api/supabase/config
 - /api/supabase/status
 
