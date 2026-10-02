@@ -153,7 +153,8 @@ async function main() {
     assert(res.body.includes('<lastmod>2026-09-01</lastmod>'), 'release lastmod should use updatedAt');
     assert(res.body.includes('https://www.mixxea.com/releases</loc>'), 'missing releases index');
     assert(res.body.includes('https://www.mixxea.com/news</loc>'), 'missing news index');
-    assert(res.body.includes('https://www.mixxea.com/news/category/release-news'), 'missing category');
+    assert(res.body.includes('https://www.mixxea.com/news/category/label'), 'missing category');
+    assert(!res.body.includes('/news/category/release-news'), 'empty legacy category');
     assert(res.body.includes('https://www.mixxea.com/news/nera-joins-the-roster'), 'missing news url');
     assert(res.body.includes('<lastmod>2026-08-02</lastmod>'), 'news lastmod should use updatedAt');
     assert(res.body.includes('https://www.mixxea.com/artists/nera'), 'missing artist url');

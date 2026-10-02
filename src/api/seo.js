@@ -14,7 +14,7 @@ const slugify = require('../utils/slugify');
 const { visibleReleases, visibleEvents, visibleNews } = require('../lib/rosterCatalog');
 const { canonicalOrigin } = require('../lib/siteUrl');
 const { publicDetailExists } = require('../lib/publicDetail');
-const { NEWS_CATEGORIES } = require('../lib/categories');
+const { publicCategory } = require('../lib/categories');
 const { CATEGORIES } = require('../lib/redesignData');
 const { releaseSlug, newsSlug } = require('../render/publicPages');
 const router  = express.Router();
@@ -50,21 +50,19 @@ async function generateSitemap() {
     { loc: `${BASE}/submit-demo`,               lastmod: today, changefreq: 'monthly', priority: '0.7' },
     { loc: `${BASE}/releases`,                  lastmod: today, changefreq: 'weekly',  priority: '0.8' },
     { loc: `${BASE}/news`,                      lastmod: today, changefreq: 'weekly',  priority: '0.8' },
-    ...NEWS_CATEGORIES.map((cat) => ({
-      loc: `${BASE}/news/category/${cat.slug}`,
-      lastmod: today,
-      changefreq: 'weekly',
-      priority: '0.6',
-    })),
-    ...CATEGORIES.filter((cat) => !NEWS_CATEGORIES.some((item) => item.slug === cat.slug)).map((cat) => ({
-      loc: `${BASE}/news/category/${cat.slug}`,
-      lastmod: today,
-      changefreq: 'weekly',
-      priority: '0.6',
-    })),
   ];
 
   const publicNews = visibleNews(news, artists);
+  const usedCategories = new Set(publicNews.map((item) => {
+    const cat = publicCategory(item.category);
+    return cat ? cat.slug : '';
+  }).filter(Boolean));
+  staticUrls.push(...CATEGORIES.filter((cat) => usedCategories.has(cat.slug)).map((cat) => ({
+    loc: `${BASE}/news/category/${cat.slug}`,
+    lastmod: today,
+    changefreq: 'weekly',
+    priority: '0.6',
+  })));
   const publicReleases = visibleReleases(releases, artists);
   const publicEvents = visibleEvents(events, artists);
 
@@ -74,7 +72,7 @@ async function generateSitemap() {
       lastmod: lastmodOf(n, today),
       changefreq: 'weekly',
       priority: '0.8',
-      image: n.image || (n.cover && n.cover.url) || '',
+      image: [n.image, n.cover && n.cover.url].find((url) => url && !/\/uploads\//i.test(url)) || '',
     }));
 
   const releaseUrls = publicReleases
@@ -86,7 +84,7 @@ async function generateSitemap() {
         lastmod: lastmodOf(r, today),
         changefreq: 'monthly',
         priority: '0.7',
-        image: r.artwork || (r.cover && r.cover.url) || '',
+        image: [r.artwork, r.cover && r.cover.url].find((url) => url && !/\/uploads\//i.test(url)) || '',
       };
     })
     .filter(Boolean);

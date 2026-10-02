@@ -9,7 +9,7 @@ const { visibleReleases, visibleEvents, visibleNews } = require('../lib/rosterCa
 const { canonicalOrigin } = require('../lib/siteUrl');
 const { publicDetailExists } = require('../lib/publicDetail');
 const { renderMarkdown, markdownToText } = require('../lib/markdown');
-const { categoryLabel, categoryByInput } = require('../lib/categories');
+const { categoryLabel, publicCategory, categoryAccent } = require('../lib/categories');
 
 const BASE = canonicalOrigin();
 const BOOKING_EMAIL = 'booking@mixxea.com';
@@ -57,6 +57,13 @@ function safeUrl(value) {
   if (/^https?:\/\//i.test(url)) return url;
   if (url.startsWith('/') && !url.startsWith('//')) return url;
   return '';
+}
+
+function publicImage(value) {
+  const url = safeUrl(value);
+  if (!url || /\/uploads\//i.test(url)) return '';
+  const local = url.replace(/^https?:\/\/(?:www\.)?mixxea\.com(?=\/)/i, '');
+  return local || '';
 }
 
 function place(artist) {
@@ -241,11 +248,11 @@ function sortReleases(releases) {
 function coverUrl(record, thumb) {
   const cover = record && record.cover;
   if (thumb) {
-    if (cover && cover.thumbUrl) return safeUrl(cover.thumbUrl);
-    if (record && record.artworkThumb) return safeUrl(record.artworkThumb);
+    if (cover && cover.thumbUrl) return publicImage(cover.thumbUrl);
+    if (record && record.artworkThumb) return publicImage(record.artworkThumb);
   }
-  if (cover && cover.url) return safeUrl(cover.url);
-  return safeUrl(record && (record.artwork || record.image));
+  if (cover && cover.url) return publicImage(cover.url);
+  return publicImage(record && (record.artwork || record.image));
 }
 
 function renderReleaseCards(releases) {
@@ -507,9 +514,12 @@ function siteFooter(options = {}) {
     <div>
       <h2>Listen &amp; follow</h2>
       <ul>${listen}</ul>
+    </div>
+    <div>
+      <h2>Newsletter</h2>
       <form class="nl" data-newsletter action="/api/newsletter/subscribe" method="post">
-        <label class="meta" for="nl-email">Newsletter</label>
-        <input id="nl-email" name="email" type="email" required autocomplete="email" aria-label="Email">
+        <label class="meta" for="nl-email">Email</label>
+        <input id="nl-email" name="email" type="email" required autocomplete="email" placeholder="Email" aria-label="Email">
         <button class="btn acid" type="submit">Subscribe</button>
       </form>
       <p class="small" data-nl-status></p>
@@ -732,7 +742,7 @@ function renderPlainText(value) {
 }
 
 function absoluteAsset(value) {
-  const url = safeUrl(value);
+  const url = publicImage(value);
   if (!url) return '';
   if (url.startsWith('/')) return `${BASE}${url}`;
   return url;
@@ -771,7 +781,7 @@ function renderNewsArticle(article, options = {}) {
   const image = absoluteAsset((seo.ogImage) || article.ogImage || coverUrl(article, false) || article.image) || `${BASE}/og/mixxea-og.jpg`;
   const when = formatNewsDate(article.date || article.publishedAt || article.createdAt);
   const category = categoryLabel(article.category || 'News') || 'News';
-  const categorySlug = (categoryByInput(article.category) || {}).slug || '';
+  const categorySlug = (publicCategory(article.category) || {}).slug || '';
   const author = String(article.author || 'Mixxea Records').trim() || 'Mixxea Records';
   const canonicalPath = `/news/${slug}`;
   const canonical = `${BASE}${canonicalPath}`;
@@ -806,21 +816,22 @@ function renderNewsArticle(article, options = {}) {
       },
     ],
   };
-  const heroSrc = absoluteAsset(coverUrl(article, false) || article.image);
+  const heroSrc = publicImage(coverUrl(article, false) || article.image);
+  const accentClass = categoryAccent(article.category);
   const figure = heroSrc
-    ? `<figure><img class="article-hero" src="${esc(heroSrc)}" alt="${esc(article.imageAlt || cover.alt || title)}"${dims} fetchpriority="high" decoding="async">${article.imageCaption ? `<figcaption class="small">${esc(article.imageCaption)}</figcaption>` : ''}</figure>`
-    : '<hr>';
+    ? `<figure><img class="article-hero" src="${esc(heroSrc)}" alt="${esc(article.imageAlt || cover.alt || title)}"${dims} fetchpriority="high">${article.imageCaption ? `<figcaption class="small">${esc(article.imageCaption)}</figcaption>` : ''}</figure>`
+    : `<figure><div class="ph article-hero" role="img" aria-label="${esc(title)}"><span class="meta ${accentClass}">${esc(category)}</span><b>NEWS</b></div></figure>`;
   const words = plain.split(/\s+/).filter(Boolean).length;
   const read = words ? `${Math.max(1, Math.round(words / 230))} min read` : '';
   const meta = [when, author, read].filter(Boolean).map(esc).join(' · ');
   const categoryHref = categorySlug ? `/news/category/${categorySlug}` : '/news';
-  const accent = /agency|freqvault/i.test(String(article.category || '')) ? 'sig' : 'acid';
+  const accent = categoryAccent(article.category);
   const share = `<div class="share"><a data-copy href="${esc(canonical)}">Copy link</a><a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(canonical)}" target="_blank" rel="noopener">X</a><a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical)}" target="_blank" rel="noopener">Facebook</a><a href="https://wa.me/?text=${encodeURIComponent(canonical)}" target="_blank" rel="noopener">WhatsApp</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}" target="_blank" rel="noopener">LinkedIn</a></div>`;
   const stand = article.excerpt ? `<p class="a-standfirst">${esc(article.excerpt)}</p>` : '';
   const related = options.relatedRelease
     ? `<aside><span class="meta">Related release</span><h3><a href="${esc(releaseHref(options.relatedRelease))}">${esc(options.relatedRelease.title || 'Release')}</a></h3><p>${esc(options.relatedRelease.artist || '')}</p></aside>`
     : '';
-  const agency = /agency|freqvault/i.test(String(article.category || ''))
+  const agency = categoryAccent(article.category) === 'sig'
     ? `<section class="book"><div class="wrap"><h2 class="d-m">Book an artist.</h2><a class="mail" href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a></div></section>`
     : '';
   const body = `${seoNav('/news')}
@@ -882,6 +893,7 @@ module.exports = {
   listArtists,
   esc,
   safeUrl,
+  publicImage,
   formatNewsDate,
   formatCatalogueDate,
   newsSlug,

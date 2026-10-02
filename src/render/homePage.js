@@ -2,9 +2,17 @@
  * Homepage for Direction A. Copy is the approved deck.
  */
 
+const fs = require('fs');
+const path = require('path');
 const { visibleReleases, visibleNews, visibleEvents } = require('../lib/rosterCatalog');
 const pages = require('./publicPages');
 const blocks = require('./blocks');
+
+const ROSTER_WIDTH = {
+  'david-hopperman': 800,
+  'wally-lopez': 400,
+  'eddie-bitar': 480,
+};
 
 const SOCIALS = [
   ['Spotify', 'https://open.spotify.com/user/g2uczos6zb7b5hzeyckxk2xwq?si=59fb44d4a4a244ad'],
@@ -50,6 +58,17 @@ function roleTag(artist) {
   return `<div class="${cls}">${pages.esc(label)}</div>`;
 }
 
+function rosterSrcset(slug, photo) {
+  const width = ROSTER_WIDTH[slug] || 800;
+  const parts = [`${photo} ${width}w`];
+  for (const extra of [600, 800]) {
+    if (extra === width) continue;
+    const file = path.join(__dirname, '../../public/img/roster', `${slug}-${extra}.webp`);
+    if (fs.existsSync(file)) parts.push(`/img/roster/${slug}-${extra}.webp ${extra}w`);
+  }
+  return parts.join(', ');
+}
+
 function rosterCard(artist) {
   const slug = pages.artistSlug(artist);
   const photo = pages.safeUrl(artist.photo);
@@ -58,8 +77,9 @@ function rosterCard(artist) {
   const book = pages.isBookable(artist)
     ? `<a href="/booking-agency?artist=${pages.esc(slug)}#inquiry">Book →</a>`
     : '';
+  const width = ROSTER_WIDTH[slug] || 800;
   return `<article class="roster-card">
-    <a href="/artists/${pages.esc(slug)}"><img src="${pages.esc(photo)}" alt="${pages.esc(artist.photoAlt || artist.name + ', portrait')}" width="800" height="1000" loading="lazy" decoding="async"></a>
+    <a href="/artists/${pages.esc(slug)}"><img src="${pages.esc(photo)}" srcset="${pages.esc(rosterSrcset(slug, photo))}" sizes="(min-width:1024px) 33vw, 264px" alt="${pages.esc(artist.photoAlt || artist.name + ', portrait')}" width="${width}" height="${Math.round(width * 1.25)}" loading="lazy" decoding="async"></a>
     ${roleTag(artist)}
     <h3>${pages.esc(artist.name)}</h3>
     <div class="meta" style="margin-top:8px">${pages.esc(meta)}</div>
@@ -116,9 +136,9 @@ function renderHome(bundle) {
         </div>
         <figure class="hero-portrait">
           <img src="/img/hero/hopperman_4x5_840.webp"
-            srcset="/img/hero/hopperman_4x5_560.webp 560w, /img/hero/hopperman_4x5_840.webp 840w, /img/hero/hopperman_4x5_1120.webp 1120w"
+            srcset="/img/hero/hopperman_4x5_560.webp 560w, /img/hero/hopperman_4x5_640.webp 640w, /img/hero/hopperman_4x5_840.webp 840w, /img/hero/hopperman_4x5_1120.webp 1120w"
             sizes="(min-width:1024px) 533px, 100vw" width="1120" height="1400"
-            alt="David Hopperman, black-and-white portrait" fetchpriority="high" decoding="async">
+            alt="David Hopperman, black-and-white portrait" fetchpriority="high">
           <figcaption class="hero-cap"><span class="meta">On the roster — David Hopperman</span><span class="meta">Marseille</span></figcaption>
         </figure>
       </div>
@@ -162,7 +182,7 @@ function renderHome(bundle) {
 
   <section class="band" id="roster">
     <div class="wrap">
-      <div class="band-head"><h2 class="d-m">The roster.</h2><a href="/electronic-music-artists">All artists →</a></div>
+      <div class="band-head"><div><p class="meta">02 — Artists</p><h2 class="d-l">The roster.</h2></div><a href="/electronic-music-artists">All artists →</a></div>
       <div class="roster-grid">${cards.map(rosterCard).join('')}</div>
       ${textOnly.length ? `<p class="also body">Also on the roster: ${pages.esc(textOnly.join(', '))}</p>` : ''}
       ${bookableCount ? `<p class="meta" style="margin-top:var(--s-5)">${pages.esc(rosterNote(bookableCount))}</p>` : ''}
@@ -171,7 +191,7 @@ function renderHome(bundle) {
 
   <section class="band" id="releases">
     <div class="wrap">
-      <div class="band-head"><h2 class="d-m">Latest releases.</h2><a href="/releases">View all releases →</a></div>
+      <div class="band-head"><div><p class="meta">03 — Catalogue</p><h2 class="d-l">Latest releases.</h2></div><a href="/releases">View all releases →</a></div>
       <div class="rel-grid">${shown.map((release) => blocks.releaseCard(release)).join('') || '<p class="body">No releases on file yet.</p>'}</div>
     </div>
   </section>
@@ -180,7 +200,7 @@ function renderHome(bundle) {
     <div class="wrap book-grid">
       <div>
         <p class="meta sig">04 — Booking · FreqVault Agency</p>
-        <h2 class="d-m">Book an artist.</h2>
+        <h2 class="d-l">Book an artist.</h2>
         <a class="mail" href="mailto:booking@mixxea.com">booking@mixxea.com</a>
       </div>
       <div>
@@ -192,7 +212,7 @@ function renderHome(bundle) {
 
   <section class="band" id="news">
     <div class="wrap">
-      <div class="band-head"><h2 class="d-m">From the label.</h2><a href="/news">All news →</a></div>
+      <div class="band-head"><div><p class="meta">05 — News</p><h2 class="d-l">From the label.</h2></div><a href="/news">All news →</a></div>
       <div class="news-grid">${news.slice(0, 3).map((post, index) => blocks.newsCard(post, { featured: index === 0 })).join('')}</div>
     </div>
   </section>
@@ -234,7 +254,7 @@ ${pages.siteFooter({ year, socials: SOCIALS })}`;
     description: 'Independent electronic music label Mixxea Records and booking agency FreqVault. Releases, artist management and bookings — booking@mixxea.com.',
     canonicalPath: '/',
     jsonLd,
-    extraHead: `<link rel="preload" as="image" type="image/webp" imagesrcset="/img/hero/hopperman_4x5_560.webp 560w, /img/hero/hopperman_4x5_840.webp 840w, /img/hero/hopperman_4x5_1120.webp 1120w" imagesizes="(min-width:1024px) 533px, 100vw" fetchpriority="high">`,
+    extraHead: `<link rel="preload" as="image" type="image/webp" imagesrcset="/img/hero/hopperman_4x5_560.webp 560w, /img/hero/hopperman_4x5_640.webp 640w, /img/hero/hopperman_4x5_840.webp 840w, /img/hero/hopperman_4x5_1120.webp 1120w" imagesizes="(min-width:1024px) 533px, 100vw" fetchpriority="high">`,
     body,
   });
 }

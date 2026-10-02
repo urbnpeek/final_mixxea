@@ -6,8 +6,7 @@ const pages = require('./publicPages');
 const blocks = require('./blocks');
 const { canonicalOrigin } = require('../lib/siteUrl');
 const { renderMarkdown, markdownToText } = require('../lib/markdown');
-const { NEWS_CATEGORIES, categoryLabel, categoryByInput } = require('../lib/categories');
-const { CATEGORIES } = require('../lib/redesignData');
+const { categoryLabel, publicCategory, categoryAccent } = require('../lib/categories');
 
 const BASE = canonicalOrigin();
 const RELEASE_PAGE_SIZE = 24;
@@ -88,6 +87,12 @@ function sortCatalogue(releases, sort) {
   return list.sort((a, b) => String(b.catNo || '').localeCompare(String(a.catNo || ''), undefined, { numeric: true }));
 }
 
+function formatLabel(value) {
+  const key = String(value || '').trim().toLowerCase();
+  const labels = { single: 'Single', ep: 'EP', album: 'Album', remixes: 'Remixes', remix: 'Remix' };
+  return labels[key] || value;
+}
+
 function renderReleasePage(release, artists, options = {}) {
   const slug = pages.releaseSlug(release);
   const title = release.title || 'Release';
@@ -102,7 +107,7 @@ function renderReleasePage(release, artists, options = {}) {
     ['Genre', release.genre],
     ['Label', release.label || 'Mixxea Records'],
     ['Cat. no.', release.catNo],
-    release.format ? ['Format', release.format] : null,
+    (release.format || release.type) ? ['Format', formatLabel(release.format || release.type)] : null,
   ].filter((row) => row && row[1]);
   const related = pages.sortReleases((options.relatedReleases || [])).slice(0, 4);
   const jsonLd = {
@@ -146,7 +151,7 @@ ${pages.siteFooter()}`;
     robots: options.preview ? 'noindex, nofollow' : 'index,follow',
     ogType: 'music.album',
     ogImage: image,
-    extraHead: `<link rel="preload" as="image" href="${pages.esc(pages.absoluteAsset(pages.coverUrl(release, false) || release.artwork || ''))}">`,
+    extraHead: blocks.coverPreload(release),
     jsonLd,
     body,
   });
@@ -212,10 +217,10 @@ function renderReleaseIndex(releases, query) {
 <section class="band"><div class="wrap">
   <p class="meta">Mixxea Records — Catalogue</p>
   <div class="band-head"><h1 class="d-l">Releases.</h1>
-    <span><a href="${pages.esc(withQuery('/releases', { genre, sort, view: 'table' }))}">Table</a> · <a href="${pages.esc(withQuery('/releases', { genre, sort, view: 'grid' }))}">Grid</a></span>
+    <span class="view-switch"><a href="${pages.esc(withQuery('/releases', { genre, sort, view: 'table' }))}">Table</a> · <a href="${pages.esc(withQuery('/releases', { genre, sort, view: 'grid' }))}">Grid</a></span>
   </div>
-  <div class="chips">${chips}<a class="chip" href="${pages.esc(withQuery('/releases', { genre, sort: 'date', view }))}">Date</a><a class="chip" href="${pages.esc(withQuery('/releases', { genre, sort: 'cat', view }))}">Cat no.</a></div>
-  <div class="view-table"><table class="rel-table"><thead><tr><th></th><th>Cat no.</th><th>Title</th><th>Artist</th><th>Genre</th><th>Release date</th><th>Listen</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div class="chips">${chips}</div>
+  <div class="view-table"><table class="rel-table"><thead><tr><th></th><th><a href="${pages.esc(withQuery('/releases', { genre, sort: 'cat', view }))}"${sort === 'cat' ? ' aria-current="true"' : ''}>Cat no.</a></th><th>Title</th><th>Artist</th><th>Genre</th><th><a href="${pages.esc(withQuery('/releases', { genre, sort: 'date', view }))}"${sort === 'date' ? ' aria-current="true"' : ''}>Release date</a></th><th>Listen</th></tr></thead><tbody>${rows}</tbody></table></div>
   <div class="view-grid"><div class="rel-grid">${grid}</div></div>
   ${links.html}
 </div></section>
@@ -231,24 +236,36 @@ ${pages.siteFooter()}`;
   });
 }
 
-function categoryChips(activeSlug) {
-  const known = [];
+function clipWords(text, max) {
+  const clean = String(text || '').replace(/\s+/g, ' ').trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max + 1).replace(/\s+\S*$/, '').trim();
+  return `${cut || clean.slice(0, max).trim()}…`;
+}
+
+function categoryChips(activeSlug, posts) {
   const seen = new Set();
-  for (const cat of CATEGORIES.concat(NEWS_CATEGORIES.map((cat) => ({ slug: cat.slug, name: cat.label })))) {
-    if (seen.has(cat.slug)) continue;
+  const used = [];
+  for (const post of posts || []) {
+    const cat = publicCategory(post.category);
+    if (!cat || seen.has(cat.slug)) continue;
     seen.add(cat.slug);
-    known.push(cat);
+    used.push(cat);
   }
+  used.sort((a, b) => String(a.label).localeCompare(String(b.label)));
   return [`<a class="chip${!activeSlug ? ' on' : ''}" href="/news">All</a>`]
-    .concat(known.map((cat) => `<a class="chip${cat.slug === activeSlug ? ' on' : ''}" href="/news/category/${pages.esc(cat.slug)}">${pages.esc(cat.name)}</a>`))
+    .concat(used.map((cat) => `<a class="chip${cat.slug === activeSlug ? ' on' : ''}" href="/news/category/${pages.esc(cat.slug)}">${pages.esc(cat.label)}</a>`))
     .join('');
 }
 
 function renderNewsIndex(posts, query) {
   const paged = slicePage(pages.sortNews(posts), query.page, NEWS_PAGE_SIZE);
   const [featured, ...rest] = paged.items;
+  const featureAccent = featured ? categoryAccent(featured.category) : 'acid';
+  const featureWhen = featured ? pages.formatCatalogueDate(featured.date || featured.publishedAt || featured.createdAt) : '';
+  const featureImage = featured ? pages.publicImage(pages.coverUrl(featured, false) || featured.image) : '';
   const feature = featured
-    ? `<a class="feature" href="/news/${pages.esc(pages.newsSlug(featured))}"><span class="pic">${pages.coverUrl(featured, false) ? `<img src="${pages.esc(pages.coverUrl(featured, false))}" alt="${pages.esc(featured.imageAlt || featured.title || '')}" width="1200" height="675">` : '<span class="ph" style="aspect-ratio:16/9"><span class="meta acid">News</span><b>NEWS</b></span>'}</span><span class="txt"><span class="meta acid">${pages.esc(categoryLabel(featured.category))}</span><span class="title" style="font-size:30px;display:block;margin-top:12px">${pages.esc(featured.title || '')}</span><span class="body">${pages.esc(featured.excerpt || markdownToText(featured.body).slice(0, 160))}</span></span></a>`
+    ? `<a class="feature" href="/news/${pages.esc(pages.newsSlug(featured))}"><span class="pic">${featureImage ? `<img src="${pages.esc(featureImage)}" alt="${pages.esc(featured.imageAlt || featured.title || '')}" width="1200" height="675">` : `<span class="ph" style="aspect-ratio:16/9"><span class="meta ${featureAccent}">${pages.esc(categoryLabel(featured.category) || 'News')}</span><b>NEWS</b></span>`}</span><span class="txt"><span class="meta ${featureAccent}">${pages.esc([categoryLabel(featured.category), featureWhen].filter(Boolean).join(' · '))}</span><span class="title" style="font-size:30px;display:block;margin-top:12px">${pages.esc(featured.title || '')}</span><span class="body">${pages.esc(clipWords(featured.excerpt || markdownToText(featured.body), 160))}</span></span></a>`
     : '<p class="body">No news is published yet.</p>';
   const cards = rest.map((post) => blocks.newsCard(post, { excerpt: true })).join('');
   const links = pager('/news', {}, paged.current, paged.pages);
@@ -279,7 +296,7 @@ function renderNewsIndex(posts, query) {
 <main id="content">
 <section class="band"><div class="wrap">
   <h1 class="d-l">News.</h1>
-  <div class="chips">${categoryChips('')}</div>
+  <div class="chips">${categoryChips('', posts)}</div>
   ${feature}
   <div class="news-grid" style="margin-top:var(--s-7)">${cards}</div>
   ${links.html}
@@ -296,7 +313,7 @@ ${pages.siteFooter()}`;
   });
 }
 
-function renderNewsCategory(category, posts, query) {
+function renderNewsCategory(category, posts, query, allPosts) {
   const paged = slicePage(pages.sortNews(posts), query.page, NEWS_PAGE_SIZE);
   const name = category.name || category.label;
   const description = String(category.description || '').slice(0, 160) || `${name} from Mixxea Records.`;
@@ -304,7 +321,7 @@ function renderNewsCategory(category, posts, query) {
     ? paged.items.map((post) => {
       const href = '/news/' + pages.newsSlug(post);
       const image = pages.coverUrl(post, true);
-      const plain = post.excerpt || markdownToText(post.body).slice(0, 160);
+      const plain = clipWords(post.excerpt || markdownToText(post.body), 160);
       return `<article class="list-row"><a href="${pages.esc(href)}">${image ? `<img src="${pages.esc(image)}" alt="${pages.esc(post.imageAlt || post.title || '')}" width="240" height="135" loading="lazy">` : '<span class="ph pic"><b>NEWS</b></span>'}</a><div><h2 class="title"><a href="${pages.esc(href)}">${pages.esc(post.title || 'News')}</a></h2><p class="body">${pages.esc(plain)}</p><p class="meta">${pages.esc([pages.formatCatalogueDate(post.date || post.publishedAt), post.author].filter(Boolean).join(' · '))}</p></div></article>`;
     }).join('')
     : `<p class="body">Nothing in ${pages.esc(name)} yet. <a href="/news">All news</a></p>`;
@@ -339,9 +356,9 @@ function renderNewsCategory(category, posts, query) {
 <main id="content">
 <section class="band"><div class="wrap">
   <p class="crumbs"><a href="/news">News</a> / <span>${pages.esc(name)}</span></p>
-  <h1 class="d-l">${pages.esc(name)}<span style="color:var(--mx-acid)">.</span></h1>
+  <h1 class="d-l">${pages.esc(name)}<span style="color:${category.accent === 'agency' ? 'var(--fv-signal-text)' : 'var(--mx-acid)'}">.</span></h1>
   ${category.description ? `<p class="body-l">${pages.esc(description)}</p>` : ''}
-  <div class="chips">${categoryChips(category.slug)}</div>
+  <div class="chips">${categoryChips(category.slug, allPosts || posts)}</div>
   ${rows}
   ${links.html}
 </div></section>

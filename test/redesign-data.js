@@ -61,7 +61,8 @@ function main() {
   const naka = once.releases.find((release) => release.catNo === 'MXX-092');
   const corazon = once.releases.find((release) => release.catNo === 'MXX-087');
   assert(naka && naka.status === 'out' && naka.spotify.includes('4ltsIrgI1ohN3NPDQ4O4ZH'), 'naka launch');
-  assert(corazon && corazon.status === 'out' && !corazon.spotify, 'corazon launch without an invented spotify url');
+  assert(corazon && corazon.status === 'out' && corazon.spotify === 'https://open.spotify.com/track/0McK0zrgqBM0xx8scNhegq', 'corazon spotify');
+  assert(corazon.embed && corazon.embed.provider === 'spotify' && corazon.embed.id === '0McK0zrgqBM0xx8scNhegq', 'corazon embed');
   assert(!once.news.some((item) => /vexr/i.test(item.title)), 'fake news remains');
   assert(once.news.length === 1, 'real news dropped');
   assert(once.events.length === 0, 'fake event remains');
@@ -71,6 +72,22 @@ function main() {
   assert(hidden === 'draft', 'draft love release is public: ' + hidden);
   const nakaHidden = releaseHiddenReason(naka, once.artists);
   assert(!nakaHidden, 'naka hidden: ' + nakaHidden);
+
+  const mapped = transform({
+    artists: [],
+    releases: [],
+    news: [
+      { id: 'a', title: 'Agency note', category: 'FreqVault', status: 'published', image: '/uploads/artwork/a.png' },
+      { id: 'b', title: 'Artist note', category: 'artist-news', status: 'published' },
+      { id: 'c', title: 'Release note', category: 'Release News', status: 'published' },
+      { id: 'd', title: 'Label note', category: 'label-news', status: 'published' },
+      { id: 'e', title: 'Show note', category: 'events', status: 'published' },
+    ],
+    events: [],
+    categories: [],
+  });
+  assert(mapped.news.map((item) => item.category).join(',') === 'agency,artists,releases,label,agency', mapped.news.map((item) => item.category).join(','));
+  assert(mapped.news[0].image === '', 'upload image kept');
 
   const twice = transform(once);
   assert(JSON.stringify(twice) === JSON.stringify(once), 'second pass is not stable');

@@ -72,16 +72,26 @@ Saved at `/opt/cursor/artifacts/redesign-v02/`. Widths are 1440, 1024, 768, and 
 - Fonts are self-hosted under `public/fonts/` (latin only). The spec lists that as a later step. It removes the render-blocking Google Fonts stylesheet, which was the main CLS source (the H1 reflowed when Barlow arrived).
 - GTM, GA4, and the Meta pixel still load and still send `page_view`, but only after `window` `load`, so they do not compete with the hero image. GA4 DebugView, GTM Preview, and the Meta Pixel Helper were not checked against the Vercel preview.
 - CSP is the §7 block plus the hosts those tags call today: `https://analytics.google.com` (the `*.analytics.google.com` wildcard does not cover the apex), `https://www.google.com`, `https://stats.g.doubleclick.net`, `frame-src https://www.facebook.com`, and `form-action https://www.facebook.com`. Nothing else was widened.
-- Corazon is public with an empty Spotify field. The deck marks Spotify as confirmed and does not include a URL. No URL was invented. Apple Music and Beatport on Naka and Corazon stay empty.
+- Corazon (MXX-087) Spotify is the URL Kira verified: `https://open.spotify.com/track/0McK0zrgqBM0xx8scNhegq`, with embed id `0McK0zrgqBM0xx8scNhegq`. Apple Music and Beatport on Naka and Corazon stay empty.
 - S1NCE and FL3X are added as label artists with `onRoster: false` and `bookable: false`, so their releases pass the credit check and they do not get roster cards.
-- Roster photos are the single WebP each artist shipped in the asset pack (Hopperman 800w, Lopez 400w, Bitar 480w), not a 400/600/800 srcset. The pack does not include all three widths.
+- Roster photos ship as the single WebP in the asset pack (Hopperman 800w, Lopez 400w, Bitar 480w). The `srcset` includes that file today and adds `/img/roster/<slug>-600.webp` and `<slug>-800.webp` only when those files are on disk.
 - Unpublished covers (MXX-052, 007, 054, 055, 057) are not in `public/`. Those releases stay `draft`.
 - `/admin` serves the existing admin document with `noindex`. It is not linked from the public nav, and `admin.js` is not on the public homepage.
 - Desktop Lighthouse picks the H1 as LCP because the 136 px headline box is larger than the portrait. Mobile, which is the acceptance run, picks the portrait.
+
+## QA fix pass
+
+Kira's fix-first notes are in the same preview branch. Checked locally with `VERCEL_ENV=preview` at 390, 768, 1024, and 1440. No page in that set was wider than the viewport.
+
+Five mobile Lighthouse runs on the homepage (Lighthouse 12.8.2, simulated mobile throttling). LCP values: 2.180 s, 2.178 s, 2.181 s, 2.180 s, 2.181 s. Median LCP 2.18 s. The LCP element is the Hopperman portrait. CLS stayed 0.0002.
+
+Headless Chrome after load: GA4 `page_view` to `https://analytics.google.com/g/collect` with `tid=G-MEVRRCQQ5T` and `en=page_view`. GTM `GTM-KCNCSXM7` also sent a second `page_view` for `G-BQW5PQ4Y99`. The Meta pixel `1331927570650344` loaded `fbevents.js` and `connect.facebook.net/signals/config/1331927570650344`, and the pixel's event count was 1. This headless session did not show a `facebook.com/tr` request. The console had no CSP violations; this server does not send a CSP header.
+
+Signed-out admin API checks are in the PR report. Writes return 403. Catalogue reads `GET /api/releases`, `/api/artists`, `/api/news`, `/api/events`, and `/api/news/categories` stay public.
 
 ## Still blocked on confirmation
 
 Unconfirmed dates stay `draft`. Unconfirmed links stay empty.
 
 - Dates: MXX-052 (01 Jul 2019 on file), MXX-007 (07 Aug 2017 on file), MXX-054, MXX-055, MXX-057 (no date on file).
-- Links: Apple Music and Beatport for MXX-092 and MXX-087. Spotify for MXX-052 and MXX-007. Every platform link for MXX-054, MXX-055, and MXX-057. The Corazon Spotify URL, if one exists, was not in the spec.
+- Links: Apple Music and Beatport for MXX-092 and MXX-087. Spotify for MXX-052 and MXX-007. Every platform link for MXX-054, MXX-055, and MXX-057. Corazon Spotify is confirmed and is no longer on this list.

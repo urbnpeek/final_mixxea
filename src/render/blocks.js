@@ -3,6 +3,7 @@
  */
 
 const pages = require('./publicPages');
+const { categoryLabel, categoryAccent } = require('../lib/categories');
 
 const PLATFORMS = [
   ['spotify', 'Spotify'],
@@ -44,16 +45,24 @@ function coverPicture(release, { eager = false, sizes = '(min-width:1024px) 310p
   return `<img src="${src}" ${srcset ? `srcset="${srcset}" sizes="${sizes}"` : ''} width="1600" height="1600" alt="${alt}" ${load} decoding="async">`;
 }
 
+function coverPreload(release, sizes = '(min-width:1024px) 640px, 100vw') {
+  const full = pages.coverUrl(release, false);
+  const thumb = pages.coverUrl(release, true) || full;
+  if (!full && !thumb) return '';
+  const srcset = [thumb && thumb !== full ? `${pages.esc(thumb)} 600w` : '', full ? `${pages.esc(full)} 1600w` : ''].filter(Boolean).join(', ');
+  return `<link rel="preload" as="image" type="image/webp" imagesrcset="${srcset}" imagesizes="${sizes}" fetchpriority="high">`;
+}
+
 function releaseCard(release) {
   const href = pages.releaseHref(release);
   const when = pages.formatCatalogueDate(release.date || release.releaseDate);
   const platforms = filledPlatforms(release);
   const links = platforms.map((item) => `<a href="${pages.esc(item.href)}" target="_blank" rel="noopener">${pages.esc(item.label)}</a>`).join('');
   const quick = platforms[0]
-    ? `<span class="quick"><a href="${pages.esc(platforms[0].href)}" target="_blank" rel="noopener">▶ ${pages.esc(platforms[0].label)}</a><a href="${pages.esc(href)}">Release page →</a></span>`
+    ? `<div class="quick"><a href="${pages.esc(platforms[0].href)}" target="_blank" rel="noopener">▶ ${pages.esc(platforms[0].label)}</a><a href="${pages.esc(href)}">Release page →</a></div>`
     : '';
   return `<article class="rc">
-    <a class="cov" href="${pages.esc(href)}">${coverPicture(release)}${quick}</a>
+    <div class="cov"><a class="cov-link" href="${pages.esc(href)}">${coverPicture(release)}</a>${quick}</div>
     <div class="row"><span class="meta acid">${pages.esc(release.catNo || '')}</span><time class="meta" datetime="${pages.esc(String(release.date || release.releaseDate || '').slice(0, 10))}">${pages.esc(when)}</time></div>
     <h3><a href="${pages.esc(href)}">${pages.esc(release.title || 'Release')}</a></h3>
     <div class="who">${pages.esc(release.artist || '')}</div>
@@ -64,10 +73,10 @@ function releaseCard(release) {
 
 function newsCard(post, { featured = false, excerpt = false } = {}) {
   const href = '/news/' + pages.newsSlug(post);
-  const image = pages.coverUrl(post, true) || pages.safeUrl(post.image);
+  const image = pages.publicImage(pages.coverUrl(post, true) || post.image);
   const alt = pages.esc(post.imageAlt || (post.cover && post.cover.alt) || post.title || '');
-  const category = pages.esc(post.category || 'News');
-  const accent = /agency|freqvault/i.test(String(post.category || '')) ? 'sig' : 'acid';
+  const category = pages.esc(categoryLabel(post.category) || 'News');
+  const accent = categoryAccent(post.category);
   const when = pages.formatCatalogueDate(post.date || post.publishedAt || post.createdAt);
   const visual = image
     ? `<img src="${pages.esc(image)}" alt="${alt}" width="800" height="533" loading="lazy" decoding="async">`
@@ -88,10 +97,9 @@ function embedBlock(release) {
   const thumb = pages.coverUrl(release, true) || pages.coverUrl(release, false) || '';
   const title = `${release.artist || ''} — ${release.title || ''}`.replace(/^ — | — $/g, '');
   return `<div class="embed" data-embed="spotify" data-src="https://open.spotify.com/embed/track/${pages.esc(id)}" data-h="152">
-    ${thumb ? `<img src="${pages.esc(thumb)}" width="96" height="96" alt="">` : ''}
-    <div><p class="meta">Spotify</p><p class="t">${pages.esc(title)}</p><p class="small">Press play to load the Spotify player</p></div>
+    ${thumb ? `<img src="${pages.esc(thumb)}" width="96" height="96" alt="">` : '<span class="thumb" aria-hidden="true"></span>'}
+    <div class="embed-copy"><p class="meta">Spotify</p><p class="t">${pages.esc(title)}</p><p class="small">Press play to load the Spotify player</p><a class="fallback" href="${pages.esc(spotify || 'https://open.spotify.com/track/' + id)}" target="_blank" rel="noopener">Open in Spotify ↗</a></div>
     <button class="play" type="button" aria-label="Load Spotify player for ${pages.esc(title)}">▶</button>
-    <a class="fallback" href="${pages.esc(spotify || 'https://open.spotify.com/track/' + id)}" target="_blank" rel="noopener">Open in Spotify ↗</a>
   </div>`;
 }
 
@@ -99,6 +107,7 @@ module.exports = {
   PLATFORMS,
   filledPlatforms,
   coverPicture,
+  coverPreload,
   coverFallback,
   releaseCard,
   newsCard,

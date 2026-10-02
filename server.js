@@ -401,7 +401,7 @@ const catalog = require('./src/render/catalogPages');
 const contentStore = require('./src/lib/contentStore');
 const { releaseHiddenReason, newsHiddenReason, visibleReleases, visibleNews } = require('./src/lib/rosterCatalog');
 const { verifyPreviewToken } = require('./src/api/middleware');
-const { categoryByInput } = require('./src/lib/categories');
+const { publicCategory } = require('./src/lib/categories');
 
 async function locateRecord(kind, slug, list) {
   const indexed = await contentStore.getBySlug(kind, slug);
@@ -474,14 +474,22 @@ app.get('/news', async (req, res) => {
 
 app.get('/news/category/:cat', async (req, res) => {
   try {
-    const category = categoryByInput(req.params.cat);
-    if (!category || category.slug !== req.params.cat) {
+    const category = publicCategory(req.params.cat);
+    if (!category) {
       sendHtml(res, 404, pages.renderNotFound());
       return;
     }
+    if (category.slug !== String(req.params.cat).toLowerCase()) {
+      res.redirect(301, `/news/category/${category.slug}`);
+      return;
+    }
     const [news, artists] = await Promise.all([db.get('news'), db.get('artists')]);
-    const posts = visibleNews(news, artists).filter((item) => categoryByInput(item.category) && categoryByInput(item.category).slug === category.slug);
-    sendHtml(res, 200, catalog.renderNewsCategory(category, posts, req.query), PUBLIC_PAGE_CACHE);
+    const published = visibleNews(news, artists);
+    const posts = published.filter((item) => {
+      const cat = publicCategory(item.category);
+      return cat && cat.slug === category.slug;
+    });
+    sendHtml(res, 200, catalog.renderNewsCategory(category, posts, req.query, published), PUBLIC_PAGE_CACHE);
   } catch (e) {
     console.error('[pages] news category', e);
     sendHtml(res, 500, pages.renderNotFound());

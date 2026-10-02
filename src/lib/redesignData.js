@@ -8,6 +8,23 @@ const slugify = require('../utils/slugify');
 
 const BOOKING_EMAIL = 'booking@mixxea.com';
 const NAKA_SPOTIFY = 'https://open.spotify.com/track/4ltsIrgI1ohN3NPDQ4O4ZH';
+const CORAZON_SPOTIFY = 'https://open.spotify.com/track/0McK0zrgqBM0xx8scNhegq';
+const CORAZON_EMBED = '0McK0zrgqBM0xx8scNhegq';
+
+const CATEGORY_ALIASES = {
+  agency: 'agency',
+  freqvault: 'agency',
+  events: 'agency',
+  artists: 'artists',
+  'artist-news': 'artists',
+  'artist news': 'artists',
+  releases: 'releases',
+  'release-news': 'releases',
+  'release news': 'releases',
+  label: 'label',
+  'label-news': 'label',
+  'label news': 'label',
+};
 
 const ROSTER_PROFILES = [
   {
@@ -214,9 +231,19 @@ const LAUNCH = [
     artist: 'FL3X',
     catNo: 'MXX-087',
     date: '2025-03-07',
-    spotify: '',
+    spotify: CORAZON_SPOTIFY,
   }),
 ];
+
+function canonicalCategorySlug(value) {
+  return CATEGORY_ALIASES[String(value || '').trim().toLowerCase()] || '';
+}
+
+function stripUploadUrl(value) {
+  const url = String(value || '').trim();
+  if (!url || /\/uploads\//i.test(url)) return '';
+  return url;
+}
 
 function artworkMissing(release) {
   const url = String(release.artwork || (release.cover && release.cover.url) || '');
@@ -252,6 +279,11 @@ function applyReleaseFixes(release) {
     if (cat === 'MXX-092' && !next.spotify && !((next.links || {}).spotify)) {
       next.spotify = NAKA_SPOTIFY;
       next.links = { ...(next.links || {}), spotify: NAKA_SPOTIFY };
+    }
+    if (cat === 'MXX-087') {
+      next.spotify = CORAZON_SPOTIFY;
+      next.links = { ...(next.links || {}), spotify: CORAZON_SPOTIFY };
+      next.embed = { provider: 'spotify', id: CORAZON_EMBED };
     }
     if (cat === 'MXX-092' && !next.ogImage) next.ogImage = '/og/og-release-mxx-092.jpg';
     if (!next.genre) next.genre = 'Afro House';
@@ -326,7 +358,21 @@ function transformReleases(releases) {
 }
 
 function transformNews(news) {
-  return asList(news).filter((item) => item && !mentionsFake(item)).map((item) => ({ ...item }));
+  return asList(news).filter((item) => item && !mentionsFake(item)).map((item) => {
+    const next = { ...item };
+    const category = canonicalCategorySlug(next.category);
+    if (category) next.category = category;
+    next.image = stripUploadUrl(next.image);
+    if (next.ogImage) next.ogImage = stripUploadUrl(next.ogImage);
+    if (next.cover) {
+      next.cover = {
+        ...next.cover,
+        url: stripUploadUrl(next.cover.url),
+        thumbUrl: stripUploadUrl(next.cover.thumbUrl),
+      };
+    }
+    return next;
+  });
 }
 
 function transformEvents(events) {
@@ -428,7 +474,9 @@ function touchedRecords(before, after, plan) {
 module.exports = {
   BOOKING_EMAIL,
   CATEGORIES,
+  CATEGORY_ALIASES,
   LAUNCH,
+  canonicalCategorySlug,
   transform,
   transformCollection,
   diffPlan,

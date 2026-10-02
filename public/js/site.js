@@ -4,6 +4,12 @@
   const main = document.querySelector('main');
   const nav = document.querySelector('.site-nav');
 
+  function focusables() {
+    return [button].concat(Array.from(drawer.querySelectorAll('a, button'))).filter(function (el) {
+      return !el.hasAttribute('disabled');
+    });
+  }
+
   function trap(event) {
     if (!drawer || drawer.hidden) return;
     if (event.key === 'Escape') {
@@ -11,14 +17,20 @@
       return;
     }
     if (event.key !== 'Tab') return;
-    const items = drawer.querySelectorAll('a, button');
+    const items = focusables();
     if (!items.length) return;
     const first = items[0];
     const last = items[items.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
+    const active = document.activeElement;
+    if (items.indexOf(active) === -1) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+      return;
+    }
+    if (event.shiftKey && active === first) {
       event.preventDefault();
       last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
+    } else if (!event.shiftKey && active === last) {
       event.preventDefault();
       first.focus();
     }
@@ -26,12 +38,13 @@
 
   if (button && drawer) {
     button.addEventListener('click', function () {
-      const open = button.getAttribute('aria-expanded') === 'true';
-      button.setAttribute('aria-expanded', open ? 'false' : 'true');
-      drawer.hidden = open;
-      document.body.style.overflow = open ? '' : 'hidden';
-      if (main) main.inert = !open;
-      if (!open) {
+      const open = button.getAttribute('aria-expanded') !== 'true';
+      button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      button.textContent = open ? 'Close' : 'Menu';
+      drawer.hidden = !open;
+      document.body.style.overflow = open ? 'hidden' : '';
+      if (main) main.inert = open;
+      if (open) {
         const link = drawer.querySelector('a');
         if (link) link.focus();
       }
@@ -66,7 +79,10 @@
     const title = wrap.querySelector('.t');
     frame.title = title ? title.textContent : 'Embedded player';
     frame.style.border = '0';
+    frame.style.width = '100%';
+    frame.style.height = '152px';
     frame.onload = function () { wrap.removeAttribute('aria-busy'); };
+    wrap.classList.add('is-loaded');
     wrap.replaceChildren(frame);
   });
 
