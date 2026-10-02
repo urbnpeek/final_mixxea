@@ -49,8 +49,7 @@ function findArtist(artists, slug) {
 }
 
 function isBookable(artist) {
-  const type = String(artist.type || '').trim().toLowerCase();
-  return type !== 'label';
+  return Boolean(artist && artist.bookable === true);
 }
 
 function safeUrl(value) {
@@ -168,7 +167,7 @@ function renderHomeTiles(artists) {
 }
 
 function renderDirectoryCards(artists) {
-  const list = listArtists(artists);
+  const list = listArtists(artists).filter((artist) => artist.onRoster !== false);
   if (!list.length) {
     return `<p class="section-intro">No artists are published on the roster yet. For a booking inquiry, email <a href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a>.</p>`;
   }
@@ -190,6 +189,7 @@ function renderDirectoryCards(artists) {
 }
 
 function renderArtistOptions(artists, selectedSlug) {
+  artists = listArtists(artists).filter((artist) => isBookable(artist));
   const wanted = slugify(selectedSlug || '');
   return listArtists(artists).map((artist) => {
     const slug = artistSlug(artist);
@@ -199,9 +199,14 @@ function renderArtistOptions(artists, selectedSlug) {
 }
 
 function formatNewsDate(value) {
+  return formatCatalogueDate(value);
+}
+
+function formatCatalogueDate(value) {
+  if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
 
 function formatEventDate(value) {
@@ -235,7 +240,10 @@ function sortReleases(releases) {
 
 function coverUrl(record, thumb) {
   const cover = record && record.cover;
-  if (thumb && cover && cover.thumbUrl) return safeUrl(cover.thumbUrl);
+  if (thumb) {
+    if (cover && cover.thumbUrl) return safeUrl(cover.thumbUrl);
+    if (record && record.artworkThumb) return safeUrl(record.artworkThumb);
+  }
   if (cover && cover.url) return safeUrl(cover.url);
   return safeUrl(record && (record.artwork || record.image));
 }
@@ -404,42 +412,144 @@ function injectRoster(html, artists) {
 }
 
 function trackingHead() {
-  return `<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-KCNCSXM7');</script>
-<!-- End Google Tag Manager -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-MEVRRCQQ5T"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-MEVRRCQQ5T');</script>
-<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','1331927570650344');fbq('track','PageView');</script>`;
+  return `<script>
+window.addEventListener('load', function () {
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-KCNCSXM7');
+  var g=document.createElement('script'); g.async=true; g.src='https://www.googletagmanager.com/gtag/js?id=G-MEVRRCQQ5T'; document.head.appendChild(g);
+  window.dataLayer=window.dataLayer||[]; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-MEVRRCQQ5T');
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init','1331927570650344'); fbq('track','PageView');
+});
+</script>`;
+}
+
+const NAV_ITEMS = [
+  ['/record-label', 'Label'],
+  ['/electronic-music-artists', 'Artists'],
+  ['/releases', 'Releases'],
+  ['/booking-agency', 'Agency'],
+  ['/news', 'News'],
+  ['/submit-demo', 'Demos'],
+];
+
+function navCurrent(href, currentPath) {
+  const path = String(currentPath || '');
+  if (href === '/electronic-music-artists') return path === href || path.startsWith('/artists/');
+  if (href === '/news') return path === href || path.startsWith('/news/');
+  if (href === '/releases') return path === href || path.startsWith('/releases/');
+  return path === href;
+}
+
+function siteNav(currentPath) {
+  const items = NAV_ITEMS.map(([href, label]) => {
+    const current = navCurrent(href, currentPath) ? ' aria-current="page"' : '';
+    return `<li><a href="${href}"${current}>${label}</a></li>`;
+  }).join('');
+  const drawer = NAV_ITEMS.map(([href, label]) => `<a class="item" href="${href}">${label}</a>`).join('');
+  return `<a class="skip" href="#content">Skip to content</a>
+<header class="site-nav">
+  <div class="wrap">
+    <a class="wm" href="/" aria-label="Mixxea home">MI<i>X</i>XEA</a>
+    <nav aria-label="Primary"><ul class="nav-links">${items}</ul></nav>
+    <div class="nav-right">
+      <a class="mail small" href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a>
+      <a class="btn acid" href="/booking-agency#inquiry"><span class="wide">Book an artist</span><span class="short">Book</span></a>
+      <button class="nav-toggle" type="button" data-menu aria-expanded="false" aria-controls="drawer">Menu</button>
+    </div>
+  </div>
+</header>
+<div id="drawer" class="drawer" hidden>
+  ${drawer}
+  <div class="book-block">
+    <div class="meta sig">Booking — FreqVault</div>
+    <a href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a>
+    <div class="socials"><a href="https://www.instagram.com/mixxea_/" target="_blank" rel="noopener">Instagram</a><a href="https://open.spotify.com/user/g2uczos6zb7b5hzeyckxk2xwq?si=59fb44d4a4a244ad" target="_blank" rel="noopener">Spotify</a><a href="https://www.beatport.com/label/mixxea-records/79255" target="_blank" rel="noopener">Beatport</a><a href="https://soundcloud.com/mixxea" target="_blank" rel="noopener">SoundCloud</a></div>
+  </div>
+</div>`;
+}
+
+function siteFooter(options = {}) {
+  const year = options.year || new Date().getFullYear();
+  const socials = options.socials || [
+    ['Spotify', 'https://open.spotify.com/user/g2uczos6zb7b5hzeyckxk2xwq?si=59fb44d4a4a244ad'],
+    ['Beatport', 'https://www.beatport.com/label/mixxea-records/79255'],
+    ['SoundCloud', 'https://soundcloud.com/mixxea'],
+    ['YouTube', 'https://www.youtube.com/@mixxeamusic6902'],
+    ['Instagram — Mixxea', 'https://www.instagram.com/mixxea_/'],
+    ['Instagram — FreqVault', 'https://www.instagram.com/freqvault/'],
+  ];
+  const listen = socials.map(([label, href]) => `<li><a href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}</a></li>`).join('');
+  return `<footer class="site-footer">
+  <div class="wrap ft-grid">
+    <div>
+      <a class="wm" href="/">MI<i>X</i>XEA</a>
+      <p class="body" style="margin-top:12px">Mixxea Records — electronic music label. FreqVault — booking &amp; artist management.</p>
+    </div>
+    <div>
+      <h2>Label</h2>
+      <ul>
+        <li><a href="/record-label">Label</a></li>
+        <li><a href="/releases">Releases</a></li>
+        <li><a href="/electronic-music-artists">Artists</a></li>
+        <li><a href="/submit-demo">Demos</a></li>
+        <li><a href="/news">News</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Agency</h2>
+      <ul>
+        <li><a href="/booking-agency">Booking agency</a></li>
+        <li><a href="/artist-management">Artist management</a></li>
+        <li><a href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a></li>
+        <li><a href="mailto:press@mixxea.com">press@mixxea.com</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2>Listen &amp; follow</h2>
+      <ul>${listen}</ul>
+      <form class="nl" data-newsletter action="/api/newsletter/subscribe" method="post">
+        <label class="meta" for="nl-email">Newsletter</label>
+        <input id="nl-email" name="email" type="email" required autocomplete="email" aria-label="Email">
+        <button class="btn acid" type="submit">Subscribe</button>
+      </form>
+      <p class="small" data-nl-status></p>
+    </div>
+  </div>
+  <div class="wrap ft-base">
+    <span>&copy; ${year} Mixxea Records · FreqVault Agency · Since 2013</span>
+    <span><a href="/portal">Artist login</a></span>
+  </div>
+</footer>`;
 }
 
 function seoNav(currentPath) {
-  const items = [
-    ['/record-label', 'Record Label'],
-    ['/releases', 'Releases'],
-    ['/news', 'News'],
-    ['/artist-management', 'Artist Management'],
-    ['/booking-agency', 'Booking'],
-    ['/submit-demo', 'Submit Demo'],
-    ['/electronic-music-artists', 'Artists'],
-  ];
-  const links = items.map(([href, label]) => {
-    const current = href === currentPath ? ' aria-current="page"' : '';
-    return `<a href="${href}"${current}>${label}</a>`;
-  }).join('');
-  return `<header class="topbar"><div class="topbar-inner"><a class="brand" href="/">MIX<span>X</span>EA</a><nav class="nav-links" aria-label="Primary">${links}</nav></div></header>`;
+  return siteNav(currentPath);
 }
 
 function seoFooter() {
-  return `<footer class="footer"><div class="footer-inner"><div><div>Jack / FreqVault · Mixxea Records</div><div><a href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a> · <a href="${BASE}">mixxea.com</a></div></div><div><a href="/">Home</a> · <a href="/record-label">Label</a> · <a href="/booking-agency">Booking</a> · <a href="/electronic-music-artists">Roster</a></div></div></footer>`;
+  return siteFooter();
 }
 
-function pageShell({ title, description, canonicalPath, robots, jsonLd, body, omitCanonical, ogType, ogImage }) {
+function applyChrome(html, currentPath) {
+  let out = String(html);
+  out = out.replace(/<link[^>]+fonts\.googleapis\.com\/css2\?[^>]*>/gi, '');
+  if (!out.includes('/css/site.css')) {
+    out = out.replace(/<\/head>/i, '<link rel="stylesheet" href="/css/site.css">\n<script>document.documentElement.classList.add("js")</script>\n</head>');
+  }
+  out = out.replace(/<header\b[^>]*>[\s\S]*?<\/header>/i, siteNav(currentPath));
+  out = out.replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/i, siteFooter());
+  if (!out.includes('id="content"')) out = out.replace(/<main\b/i, '<main id="content"');
+  if (!out.includes('/js/site.js')) out = out.replace(/<\/body>/i, '<script src="/js/site.js" defer></script>\n</body>');
+  out = out.replace(/Freq Vault/g, 'FreqVault');
+  out = out.replace(/Jack \/ FreqVault · Mixxea Records/g, 'FreqVault Agency · Mixxea Records');
+  out = out.replace(/Est\. 2024(?:\s*·\s*Global)?/g, 'Since 2013 · Label & management since 2017');
+  out = out.replace(/\/og\/mixxea-og\.svg/g, '/og/mixxea-og.jpg');
+  return out;
+}
+
+function pageShell({ title, description, canonicalPath, robots, jsonLd, body, omitCanonical, ogType, ogImage, extraHead, articleFonts, published, modified, section }) {
   const canonical = canonicalPath ? `${BASE}${canonicalPath}` : '';
-  const image = ogImage || `${BASE}/og/mixxea-og.svg`;
+  const image = ogImage || `${BASE}/og/mixxea-og.jpg`;
   const graph = jsonLd ? jsonScript(jsonLd) : '';
   const canonicalTag = !omitCanonical && canonical
     ? `<link rel="canonical" href="${esc(canonical)}">`
@@ -447,18 +557,24 @@ function pageShell({ title, description, canonicalPath, robots, jsonLd, body, om
   const ogUrl = !omitCanonical && canonical
     ? `<meta property="og:url" content="${esc(canonical)}">`
     : '';
+  const articleMeta = [
+    published ? `<meta property="article:published_time" content="${esc(published)}">` : '',
+    modified ? `<meta property="article:modified_time" content="${esc(modified)}">` : '',
+    section ? `<meta property="article:section" content="${esc(section)}">` : '',
+  ].filter(Boolean).join('\n');
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
-${trackingHead()}
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preload" as="font" type="font/woff2" href="/fonts/barlow-condensed-normal-900.woff2" crossorigin>
+${extraHead || ''}
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <meta name="robots" content="${robots || 'index,follow'}">
 ${canonicalTag}
 <meta property="og:type" content="${esc(ogType || 'website')}">
-<meta property="og:site_name" content="Mixxea">
+<meta property="og:site_name" content="Mixxea Records">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 ${ogUrl}
@@ -467,16 +583,17 @@ ${ogUrl}
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">
 <meta name="twitter:image" content="${esc(image)}">
+${articleMeta}
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Syne:wght@400;500;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/seo-pages.css">
+<link rel="stylesheet" href="/css/site.css">
+<script>document.documentElement.classList.add('js')</script>
+${trackingHead()}
 ${graph}
 </head>
 <body>
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KCNCSXM7" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 ${body}
+<script src="/js/site.js" defer></script>
 </body>
 </html>`;
 }
@@ -488,7 +605,7 @@ function renderArtistNotFound() {
     canonicalPath: '/electronic-music-artists',
     robots: 'noindex,follow',
     body: `${seoNav('/electronic-music-artists')}
-<main>
+<main id="content">
 <section class="hero"><div class="wrap">
   <div class="breadcrumbs"><a href="/">Home</a><span>/</span><a href="/electronic-music-artists">Artists</a><span>/</span><span>Not found</span></div>
   <div class="kicker">Artist profile</div>
@@ -546,8 +663,8 @@ function renderArtistPage({ artist, artists, releases, events }) {
     : '';
 
   const bookHtml = bookable
-    ? `<section class="section" id="book"><div class="wrap"><h2>Book ${esc(name)}</h2><p class="section-intro">Send the date, city, venue, and offer details. The inquiry opens with this artist selected.</p><div class="actions"><a class="btn btn-primary" href="/booking-agency?artist=${esc(slug)}#inquiry">Book this artist</a><a class="btn btn-secondary" href="mailto:${BOOKING_EMAIL}?subject=${encodeURIComponent('Booking ' + name)}">Email ${BOOKING_EMAIL}</a></div><p class="signature">Jack / FreqVault · Mixxea Records / <a href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a> / <a href="${BASE}">mixxea.com</a></p></div></section>`
-    : `<section class="section"><div class="wrap"><h2>Booking</h2><p class="section-intro">${esc(name)} is on the label roster. Booking requests for agency artists go through Freq Vault.</p><div class="actions"><a class="btn btn-primary" href="/booking-agency">Freq Vault booking agency</a></div></div></section>`;
+    ? `<section class="band" id="book"><div class="wrap"><h2 class="d-m">Book ${esc(name)}</h2><p class="body">Send the date, city, venue, and offer details. The inquiry opens with this artist selected.</p><div class="hero-ctas" style="margin-top:24px"><a class="btn acid" href="/booking-agency?artist=${esc(slug)}#inquiry">Book this artist</a><a class="btn" href="mailto:${BOOKING_EMAIL}?subject=${encodeURIComponent('Booking ' + name)}">Email ${BOOKING_EMAIL}</a></div><p class="small">FreqVault Agency · Mixxea Records · <a href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a></p></div></section>`
+    : '';
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -573,7 +690,7 @@ function renderArtistPage({ artist, artists, releases, events }) {
   };
 
   const body = `${seoNav('/electronic-music-artists')}
-<main>
+<main id="content">
 <section class="hero"><div class="wrap">
   <div class="breadcrumbs"><a href="/">Home</a><span>/</span><a href="/electronic-music-artists">Artists</a><span>/</span><span>${esc(name)}</span></div>
   <div class="hero-grid">
@@ -585,7 +702,7 @@ function renderArtistPage({ artist, artists, releases, events }) {
     </div>
     <aside class="hero-card">
       ${photo ? `<img src="${esc(photo)}" alt="${esc(name)}" style="width:100%;aspect-ratio:1;object-fit:cover;margin-bottom:16px">` : `<strong>${esc(String(name).slice(0, 2))}</strong>`}
-      <p>${bookable ? `Booking inquiries for ${esc(name)} go to Freq Vault.` : `${esc(name)} is listed on the label roster.`}</p>
+      <p>${bookable ? `Booking inquiries for ${esc(name)} go to FreqVault.` : `${esc(name)} is listed on the label roster.`}</p>
       <p class="signature"><a href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a></p>
     </aside>
   </div>
@@ -628,7 +745,7 @@ function renderNotFound() {
     robots: 'noindex, nofollow',
     omitCanonical: true,
     body: `${seoNav()}
-<main>
+<main id="content">
 <section class="hero"><div class="wrap">
   <div class="kicker">404</div>
   <h1>Page not found</h1>
@@ -646,8 +763,12 @@ function renderNewsArticle(article, options = {}) {
   const plain = markdownToText(article.excerpt || article.body || '');
   const seo = article.seo || {};
   const description = String(seo.description || plain).replace(/\s+/g, ' ').slice(0, 160) || `${title} — Mixxea Records.`;
-  const pageTitle = seo.title ? `${seo.title}` : `${title} | Mixxea Records`;
-  const image = absoluteAsset((seo.ogImage) || coverUrl(article, false) || article.image) || `${BASE}/og/mixxea-og.svg`;
+  const suffix = ' | Mixxea Records';
+  const fullTitle = `${title}${suffix}`;
+  const pageTitle = seo.title
+    ? String(seo.title)
+    : (fullTitle.length <= 60 ? fullTitle : `${title.slice(0, Math.max(1, 60 - suffix.length - 1)).trim()}…${suffix}`);
+  const image = absoluteAsset((seo.ogImage) || article.ogImage || coverUrl(article, false) || article.image) || `${BASE}/og/mixxea-og.jpg`;
   const when = formatNewsDate(article.date || article.publishedAt || article.createdAt);
   const category = categoryLabel(article.category || 'News') || 'News';
   const categorySlug = (categoryByInput(article.category) || {}).slug || '';
@@ -669,6 +790,7 @@ function renderNewsArticle(article, options = {}) {
         datePublished: published,
         dateModified: modified,
         articleSection: category,
+        keywords: Array.isArray(article.tags) ? article.tags.join(', ') : '',
         author: { '@type': 'Organization', name: author, '@id': `${BASE}/#mixxea` },
         publisher: { '@type': 'Organization', name: 'Mixxea Records', '@id': `${BASE}/#mixxea` },
         mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
@@ -684,26 +806,39 @@ function renderNewsArticle(article, options = {}) {
       },
     ],
   };
-  const figure = absoluteAsset(coverUrl(article, false) || article.image)
-    ? `<figure class="article-figure"><img src="${esc(absoluteAsset(coverUrl(article, false) || article.image))}" alt="${esc(cover.alt || title)}"${dims} decoding="async"></figure>`
-    : '';
-  const meta = [when, author].filter(Boolean).map(esc).join(' · ');
+  const heroSrc = absoluteAsset(coverUrl(article, false) || article.image);
+  const figure = heroSrc
+    ? `<figure><img class="article-hero" src="${esc(heroSrc)}" alt="${esc(article.imageAlt || cover.alt || title)}"${dims} fetchpriority="high" decoding="async">${article.imageCaption ? `<figcaption class="small">${esc(article.imageCaption)}</figcaption>` : ''}</figure>`
+    : '<hr>';
+  const words = plain.split(/\s+/).filter(Boolean).length;
+  const read = words ? `${Math.max(1, Math.round(words / 230))} min read` : '';
+  const meta = [when, author, read].filter(Boolean).map(esc).join(' · ');
   const categoryHref = categorySlug ? `/news/category/${categorySlug}` : '/news';
+  const accent = /agency|freqvault/i.test(String(article.category || '')) ? 'sig' : 'acid';
+  const share = `<div class="share"><a data-copy href="${esc(canonical)}">Copy link</a><a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(canonical)}" target="_blank" rel="noopener">X</a><a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(canonical)}" target="_blank" rel="noopener">Facebook</a><a href="https://wa.me/?text=${encodeURIComponent(canonical)}" target="_blank" rel="noopener">WhatsApp</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(canonical)}" target="_blank" rel="noopener">LinkedIn</a></div>`;
+  const stand = article.excerpt ? `<p class="a-standfirst">${esc(article.excerpt)}</p>` : '';
   const related = options.relatedRelease
-    ? `<aside class="panel related-release"><span class="artist-meta">Related release</span><h3><a href="${esc(releaseHref(options.relatedRelease))}">${esc(options.relatedRelease.title || 'Release')}</a></h3><p>${esc(options.relatedRelease.artist || '')}</p></aside>`
+    ? `<aside><span class="meta">Related release</span><h3><a href="${esc(releaseHref(options.relatedRelease))}">${esc(options.relatedRelease.title || 'Release')}</a></h3><p>${esc(options.relatedRelease.artist || '')}</p></aside>`
+    : '';
+  const agency = /agency|freqvault/i.test(String(article.category || ''))
+    ? `<section class="book"><div class="wrap"><h2 class="d-m">Book an artist.</h2><a class="mail" href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a></div></section>`
     : '';
   const body = `${seoNav('/news')}
-<main>
-<section class="hero"><div class="wrap">
-  <div class="breadcrumbs"><a href="/">Home</a><span>/</span><a href="/news">News</a><span>/</span><span>${esc(title)}</span></div>
-  <div class="kicker"><a href="${esc(categoryHref)}">${esc(category)}</a></div>
-  <h1 class="article-title">${esc(title)}</h1>
+<main id="content">
+<article class="band"><div class="wrap">
+  <p class="crumbs"><a href="/news">News</a> / <a href="${esc(categoryHref)}">${esc(category)}</a></p>
+  <p class="meta ${accent}">${esc(category)}</p>
+  <h1 class="a-h1 article-title">${esc(title)}</h1>
+  ${stand}
   ${meta ? `<p class="article-meta">${meta}</p>` : ''}
+  ${share}
   ${figure}
-  <div class="article-body">${renderMarkdown(article.body || article.excerpt || '')}</div>
+  <div class="a-body article-body">${renderMarkdown(article.body || article.excerpt || '')}</div>
+  ${share}
   ${related}
-  <div class="actions"><a class="btn btn-secondary" href="/news">All news</a><a class="btn btn-primary" href="/booking-agency">Booking agency</a></div>
-</div></section>
+  <p><a class="btn" href="/news">All news →</a></p>
+</div></article>
+${agency}
 </main>
 ${seoFooter()}`;
 
@@ -714,6 +849,10 @@ ${seoFooter()}`;
     robots: options.preview ? 'noindex, nofollow' : 'index,follow',
     ogType: 'article',
     ogImage: image,
+    articleFonts: true,
+    published,
+    modified,
+    section: category,
     jsonLd,
     body,
   });
@@ -737,9 +876,14 @@ module.exports = {
   pageShell,
   seoNav,
   seoFooter,
+  siteNav,
+  siteFooter,
+  applyChrome,
+  listArtists,
   esc,
   safeUrl,
   formatNewsDate,
+  formatCatalogueDate,
   newsSlug,
   releaseSlug,
   releaseHref,

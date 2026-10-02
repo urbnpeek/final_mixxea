@@ -10,6 +10,8 @@ const helmet     = require('helmet');
 const cors       = require('cors');
 const path       = require('path');
 const fs         = require('fs');
+const crypto     = require('crypto');
+const { requireAdmin } = require('./src/api/middleware');
 const { router: seoRouter, generateSitemap } = require('./src/api/seo');
 const db = require('./src/api/db');
 const pages = require('./src/render/publicPages');
@@ -35,16 +37,20 @@ if (isProduction) {
 
 const cspDirectives = {
   defaultSrc: ["'self'"],
-  scriptSrc: ["'self'", "'unsafe-inline'"],
+  scriptSrc: ["'self'", "'unsafe-inline'", 'https://www.googletagmanager.com', 'https://connect.facebook.net'],
   scriptSrcAttr: ["'unsafe-inline'"],
   styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
   fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
   imgSrc: ["'self'", 'data:', 'https:', 'https://*.public.blob.vercel-storage.com'],
   mediaSrc: ["'self'", 'blob:', 'data:', 'https:'],
-  connectSrc: ["'self'"],
+  connectSrc: ["'self'", 'https://www.googletagmanager.com', 'https://www.google-analytics.com',
+    'https://*.google-analytics.com', 'https://analytics.google.com', 'https://*.analytics.google.com',
+    'https://www.google.com', 'https://stats.g.doubleclick.net',
+    'https://www.facebook.com', 'https://connect.facebook.net'],
+  frameSrc: ['https://www.googletagmanager.com', 'https://open.spotify.com', 'https://w.soundcloud.com', 'https://www.youtube-nocookie.com', 'https://www.facebook.com'],
   objectSrc: ["'none'"],
   baseUri: ["'self'"],
-  formAction: ["'self'"],
+  formAction: ["'self'", 'https://www.facebook.com'],
   frameAncestors: ["'self'"],
 };
 
@@ -122,9 +128,7 @@ app.get('/', async (req, res, next) => {
       db.get('events'),
       db.get('news'),
     ]);
-    const html = pages.injectHome(fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'), {
-      artists, releases, events, news,
-    });
+    const html = require('./src/render/homePage').renderHome({ artists, releases, events, news });
     sendHtml(res, 200, html, 'public, s-maxage=300, stale-while-revalidate=86400');
   } catch (e) {
     console.error('[pages] home', e);
@@ -136,11 +140,11 @@ app.get('/booking-agency', async (req, res) => {
   try {
     const artists = await db.get('artists');
     const selected = Array.isArray(req.query.artist) ? req.query.artist[0] : req.query.artist;
-    const html = pages.injectBooking(
+    const html = pages.applyChrome(pages.injectBooking(
       fs.readFileSync(path.join(__dirname, 'public', 'booking-agency.html'), 'utf8'),
       artists,
       selected
-    );
+    ), '/booking-agency');
     sendHtml(res, 200, html);
   } catch (e) {
     console.error('[pages] booking', e);
@@ -151,10 +155,10 @@ app.get('/booking-agency', async (req, res) => {
 app.get('/electronic-music-artists', async (req, res) => {
   try {
     const artists = await db.get('artists');
-    const html = pages.injectRoster(
+    const html = pages.applyChrome(pages.injectRoster(
       fs.readFileSync(path.join(__dirname, 'public', 'electronic-music-artists.html'), 'utf8'),
       artists
-    );
+    ), '/electronic-music-artists');
     sendHtml(res, 200, html);
   } catch (e) {
     console.error('[pages] roster', e);
@@ -184,6 +188,19 @@ app.get('/artists/:slug', async (req, res) => {
     console.error('[pages] artist', e);
     sendHtml(res, 500, pages.renderArtistNotFound());
   }
+});
+
+app.get('/index.html', (req, res) => {
+  res.redirect(301, '/');
+});
+
+app.get('/admin', (req, res) => {
+  const file = path.join(__dirname, 'public', 'index.html');
+  const html = fs.readFileSync(file, 'utf8')
+    .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="noindex, nofollow">');
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  res.set('Cache-Control', 'no-store');
+  res.type('html').send(html);
 });
 
 // JS files: never cache so updates deploy immediately
@@ -229,43 +246,121 @@ app.use('/api/staff',        require('./src/api/staff'));
 app.use('/api/supabase',     require('./src/api/supabase'));
 app.use('/api/dj-pool',      require('./src/api/djPool'));
 
-// Diagnostic: check Blob storage connectivity
-app.get('/api/blob-status', async (req, res) => {
-  const token = process.env.BLOB_READ_WRITE_TOKEN || '';
-  if (!token) return res.json({ configured: false, reason: 'BLOB_READ_WRITE_TOKEN not set' });
+function blobToken() {
+  return process.env.BLOB_READ_WRITE_TOKEN || '';
+}
+
+// Diagnostic: Blob storage. GET only lists. POST is the write probe and stays admin-only.
+app.get('/api/blob-status', requireAdmin, async (req, res) => {
+  const token = blobToken();
+  if (!token) return res.json({ configured: false });
   try {
-    const { put, del } = require('@vercel/blob');
-    const { url } = await put('__ping__/test.txt', 'ok', { access: 'public', token });
-    await del(url, { token });
-    res.json({ configured: true, tokenStart: token.slice(0, 20) + '...', uploadOk: true });
+    const { list } = require('@vercel/blob');
+    await list({ token, limit: 1, abortSignal: AbortSignal.timeout(4000) });
+    res.json({ configured: true, reachable: true });
   } catch (e) {
-    res.json({ configured: true, tokenStart: token.slice(0, 20) + '...', uploadOk: false, error: e.message });
+    res.json({ configured: true, reachable: false });
   }
 });
 
-// Diagnostic: check Redis/KV connectivity
-app.get('/api/db-status', async (req, res) => {
+app.post('/api/blob-status', requireAdmin, async (req, res) => {
+  const token = blobToken();
+  if (!token) return res.json({ configured: false, writeOk: false });
+  const { put, del } = require('@vercel/blob');
+  const pathname = '__ping__/' + Date.now().toString(36) + '-' + crypto.randomBytes(8).toString('hex') + '.txt';
+  let url = '';
+  let writeOk = false;
+  try {
+    const created = await put(pathname, 'ok', {
+      access: 'public',
+      token,
+      addRandomSuffix: true,
+      abortSignal: AbortSignal.timeout(8000),
+    });
+    url = created && created.url ? created.url : '';
+    writeOk = Boolean(url);
+  } catch (e) {
+    writeOk = false;
+  }
+  if (url) {
+    let removed = false;
+    for (let attempt = 0; attempt < 2 && !removed; attempt++) {
+      try {
+        await del(url, { token, abortSignal: AbortSignal.timeout(8000) });
+        removed = true;
+      } catch (e) { /* retry cleanup once */ }
+    }
+    if (!removed) writeOk = false;
+  }
+  res.json({ configured: true, writeOk });
+});
+
+app.get('/api/db-status', requireAdmin, async (req, res) => {
   const { isRedisConfigured, getRedisConfig } = require('./src/api/db');
   const cfg = getRedisConfig();
-  const configured = isRedisConfigured();
-  if (!configured) {
+  if (!isRedisConfigured()) {
     return res.json({ configured: false, urlPresent: Boolean(cfg.url), tokenPresent: Boolean(cfg.token) });
   }
   try {
-    const testKey = 'db:__ping__';
+    const pingRes = await fetch(cfg.url, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + cfg.token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(['PING']),
+      signal: AbortSignal.timeout(4000),
+    });
+    let pong = false;
+    try {
+      const json = await pingRes.json();
+      pong = Boolean(json && json.result === 'PONG');
+    } catch (e) {
+      pong = false;
+    }
+    res.json({ configured: true, reachable: Boolean(pingRes.ok && pong) });
+  } catch (e) {
+    res.json({ configured: true, reachable: false });
+  }
+});
+
+app.post('/api/db-status', requireAdmin, async (req, res) => {
+  const { isRedisConfigured, getRedisConfig } = require('./src/api/db');
+  const cfg = getRedisConfig();
+  if (!isRedisConfigured()) return res.json({ configured: false, writeOk: false });
+  const testKey = 'db:__ping__:' + Date.now().toString(36) + ':' + crypto.randomBytes(8).toString('hex');
+  let writeOk = false;
+  try {
     const setRes = await fetch(cfg.url, {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + cfg.token, 'Content-Type': 'application/json' },
-      body: JSON.stringify(['SET', testKey, 'ok'])
+      body: JSON.stringify(['SET', testKey, 'ok', 'EX', '30']),
+      signal: AbortSignal.timeout(4000),
     });
-    const getRes = await fetch(`${cfg.url}/get/${encodeURIComponent(testKey)}`, {
-      headers: { Authorization: 'Bearer ' + cfg.token }
+    const getRes = await fetch(cfg.url + '/get/' + encodeURIComponent(testKey), {
+      headers: { Authorization: 'Bearer ' + cfg.token },
+      signal: AbortSignal.timeout(4000),
     });
-    const getJson = await getRes.json();
-    res.json({ configured: true, setStatus: setRes.status, getStatus: getRes.status, pingResult: getJson.result });
+    let value = null;
+    try {
+      const json = await getRes.json();
+      value = json && json.result;
+    } catch (e) {
+      value = null;
+    }
+    writeOk = Boolean(setRes.ok && getRes.ok && value === 'ok');
   } catch (e) {
-    res.json({ configured: true, error: e.message });
+    writeOk = false;
+  } finally {
+    try {
+      await fetch(cfg.url, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + cfg.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(['DEL', testKey]),
+        signal: AbortSignal.timeout(4000),
+      });
+    } catch (e) {
+      writeOk = false;
+    }
   }
+  res.json({ configured: true, writeOk });
 });
 
 app.use('/api', (req, res) => {
@@ -282,8 +377,13 @@ const seoPageRoutes = new Map([
 
 seoPageRoutes.forEach((fileName, routePath) => {
   app.get(routePath, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', fileName));
+    const html = pages.applyChrome(fs.readFileSync(path.join(__dirname, 'public', fileName), 'utf8'), routePath);
+    sendHtml(res, 200, html);
   });
+});
+
+app.get('/portal', (req, res) => {
+  sendHtml(res, 200, require('./src/render/catalogPages').renderPortal());
 });
 
 const serveSeoDetail = (folder) => (req, res) => {
@@ -347,10 +447,13 @@ app.get('/releases/:slug', async (req, res) => {
     const relatedNews = visibleNews(news, artists).filter((post) =>
       Array.isArray(post.relatedReleaseIds) && post.relatedReleaseIds.includes(found.doc.id)
     ).slice(0, 3);
+    const catalogue = visibleReleases(releases, artists).filter((item) => pages.releaseSlug(item) !== pages.releaseSlug(found.doc));
+    const sameArtist = catalogue.filter((item) => String(item.artist || '').toLowerCase() === String(found.doc.artist || '').toLowerCase());
+    const relatedReleases = sameArtist.concat(catalogue.filter((item) => !sameArtist.includes(item))).slice(0, 4);
     sendHtml(
       res,
       200,
-      catalog.renderReleasePage(found.doc, artists, { preview: Boolean(preview), relatedNews }),
+      catalog.renderReleasePage(found.doc, artists, { preview: Boolean(preview), relatedNews, relatedReleases }),
       preview || hidden ? 'no-store' : PUBLIC_PAGE_CACHE
     );
   } catch (e) {

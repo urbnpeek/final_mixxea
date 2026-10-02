@@ -1,0 +1,48 @@
+[
+  {
+    "id": "david-hopperman",
+    "name": "David Hopperman",
+    "slug": "david-hopperman",
+    "status": "signed",
+    "type": "booking",
+    "genre": "House",
+    "city": "Marseille",
+    "country": "SP",
+    "bookingEmail": "booking@mixxea,com",
+    "photo": "https://example.public.blob.vercel-storage.com/hopperman.png"
+  },
+  {
+    "id": "wally-lopez",
+    "name": "Wally Lopez",
+    "slug": "wally-lopez",
+    "status": "signed",
+    "type": "both",
+    "genre": "House",
+    "city": "Madrid",
+    "country": "SP"
+  },
+  {
+    "id": "eddie-bitar",
+    "name": "Eddie Bitar",
+    "slug": "eddie-bitar",
+    "status": "signed",
+    "type": "booking",
+    "genre": "Techno",
+    "city": "Berlin",
+    "country": "DE"
+  },
+  {
+    "id": "vexr",
+    "name": "VEXR",
+    "slug": "vexr",
+    "status": "signed",
+    "type": "label"
+  },
+  {
+    "id": "lyda",
+    "name": "LYDA",
+    "slug": "lyda",
+    "status": "signed",
+    "type": "label"
+  }
+]

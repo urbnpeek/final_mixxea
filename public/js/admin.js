@@ -136,6 +136,7 @@ function admClearRel() {
 function admClearArt() {
   ['art-edit-id','art-name','art-realname','art-country','art-city','art-bio','art-instagram','art-soundcloud','art-bookingemail'].forEach(id=>setVal(id,''));
   setVal('art-genre','Techno'); setVal('art-type','both'); setVal('art-status','signed');
+  const bookable=document.getElementById('art-bookable'); if(bookable) bookable.checked=false;
   setText('art-form-title','NEW ARTIST');
 }
 function admClearNews() {
@@ -426,7 +427,7 @@ const ADMIN = {
   async saveArtist() {
     const name=val('art-name'); if(!name){toast('Artist name is required','error');return;}
     const id=val('art-edit-id');
-    const payload={name,realName:val('art-realname'),country:val('art-country'),city:val('art-city'),genre:val('art-genre'),type:val('art-type'),status:val('art-status'),bio:val('art-bio'),instagram:val('art-instagram'),soundcloud:val('art-soundcloud'),bookingEmail:val('art-bookingemail')};
+    const payload={name,realName:val('art-realname'),country:val('art-country'),city:val('art-city'),genre:val('art-genre'),type:val('art-type'),status:val('art-status'),bio:val('art-bio'),instagram:val('art-instagram'),soundcloud:val('art-soundcloud'),bookingEmail:val('art-bookingemail'),bookable:document.getElementById('art-bookable')?.checked===true};
     const fd=new FormData(); Object.entries(payload).forEach(([k,v])=>fd.append(k,v));
     const ph=document.getElementById('art-photo'); if(ph?.files[0]) fd.append('photo',ph.files[0]);
     if(id){
@@ -448,6 +449,7 @@ const ADMIN = {
     setVal('art-country',a.country); setVal('art-city',a.city); setVal('art-genre',a.genre);
     setVal('art-type',a.type); setVal('art-status',a.status); setVal('art-bio',a.bio||'');
     setVal('art-instagram',a.instagram||''); setVal('art-soundcloud',a.soundcloud||''); setVal('art-bookingemail',a.bookingEmail||'');
+    const bookable=document.getElementById('art-bookable'); if(bookable) bookable.checked=a.bookable===true;
     setText('art-form-title','EDIT ARTIST');
     const f=document.getElementById('art-form'); f.style.display='block'; f.scrollIntoView({behavior:'smooth'});
   },

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "post-vexr",
+    "title": "VEXR in the studio",
+    "slug": "vexr-in-the-studio",
+    "status": "published",
+    "category": "label",
+    "body": "A note about VEXR."
+  },
+  {
+    "id": "post-hopperman",
+    "title": "David Hopperman Joins the Mixxea Artist Roster",
+    "slug": "david-hopperman-joins-the-mixxea-artist-roster",
+    "status": "published",
+    "category": "artists",
+    "date": "2026-06-17",
+    "author": "Mixxea Records",
+    "body": "David Hopperman is now on the Mixxea roster."
+  }
+]

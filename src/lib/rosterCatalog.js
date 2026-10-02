@@ -61,13 +61,20 @@ function rosterIds(artists) {
   return ids;
 }
 
+function primaryCredit(value) {
+  return String(value || '').split(/\b(?:feat\.?|ft\.?|featuring)\b/i)[0];
+}
+
 function creditsOk(record, artists) {
+  const names = rosterNames(artists);
+  const listed = Array.isArray(record && record.artists) ? record.artists.map((name) => String(name).trim().toLowerCase()).filter(Boolean) : [];
+  if (listed.length) return listed.some((name) => names.has(name));
   const ids = Array.isArray(record && record.artistIds) ? record.artistIds.filter(Boolean) : [];
   if (ids.length) {
     const known = rosterIds(artists);
     return ids.every((id) => known.has(id));
   }
-  return creditedToRoster(record && record.artist, rosterNames(artists));
+  return creditedToRoster(primaryCredit(record && record.artist), names);
 }
 
 function releaseHiddenReason(release, artists) {

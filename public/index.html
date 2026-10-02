@@ -801,7 +801,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="nav-right">
     <a href="/booking-agency" class="n-book">Booking</a>
     <a href="#contact" class="n-ar" data-inquiry="A&R / Demo Submission">Demo Submit</a>
-    <button class="n-admin" onclick="openAdmin()">Admin ⚙</button>
   </div>
   <div class="nav-mobile-panel" id="nav-mobile-panel" aria-label="Mobile navigation">
     <div class="nav-mobile-links">
@@ -816,7 +815,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="nav-mobile-actions">
       <a href="/booking-agency" class="n-book">Booking</a>
       <a href="#contact" class="n-ar" data-inquiry="A&R / Demo Submission">Demo Submit</a>
-      <button class="n-admin" type="button" onclick="openAdmin()">Admin &#9881;</button>
     </div>
   </div>
 </nav>
@@ -867,7 +865,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="h-eye">
       <span>Electronic Music Label</span>
       <div class="eye-dot"></div>
-      <span>Est. 2024 · Global</span>
+      <span>Since 2013 · Label &amp; management since 2017</span>
     </div>
     <h1 class="h-title">
       <span class="fill">MIXX</span>
@@ -1341,7 +1339,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 </div>
               </div>
               <div class="adm-row">
-                <div class="adm-field"><label>Catalogue No.</label><input type="text" id="rel-catno" placeholder="MXA006"></div>
+                <div class="adm-field"><label>Catalogue No.</label><input type="text" id="rel-catno" placeholder="MXX-093"></div>
                 <div class="adm-field"><label>BPM</label><input type="number" id="rel-bpm" placeholder="128"></div>
               </div>
               <div class="adm-row">
@@ -1406,7 +1404,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <div class="adm-field"><label>City</label><input type="text" id="art-city" placeholder="Berlin"></div>
               </div>
               <div class="adm-field"><label>Genre</label>
-                <select id="art-genre"><option>Techno</option><option>Deep House</option><option>Minimal</option><option>Ambient</option><option>Bass Music</option><option>Experimental</option><option>Industrial</option><option>Melodic House</option></select>
+                  <select id="art-genre"><option>Techno</option><option>Afro / Melodic House</option><option>House / Tech House</option><option>Afro House</option><option>Deep House</option><option>Minimal</option><option>Ambient</option><option>Bass Music</option><option>Experimental</option><option>Industrial</option><option>Melodic House</option></select>
               </div>
               <div class="adm-field"><label>Type</label>
                 <select id="art-type"><option value="both">Label + Agency</option><option value="label">Label Only</option><option value="agency">Agency Only</option></select>
@@ -1420,7 +1418,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <div class="adm-field"><label>Bio</label><textarea id="art-bio" style="min-height:100px" placeholder="Artist bio..."></textarea></div>
               <div class="adm-field"><label>Instagram URL</label><input type="url" id="art-instagram" placeholder="https://instagram.com/..."></div>
               <div class="adm-field"><label>SoundCloud URL</label><input type="url" id="art-soundcloud" placeholder="https://soundcloud.com/..."></div>
-              <div class="adm-field"><label>Booking Email</label><input type="email" id="art-bookingemail" placeholder="booking@artist.com"></div>
+              <div class="adm-field"><label>Booking Email</label><input type="email" id="art-bookingemail" placeholder="booking@mixxea.com"></div>
+              <label class="chk"><input type="checkbox" id="art-bookable"><span>Bookable through FreqVault</span></label>
             </div>
           </div>
           <div class="adm-btn-row">
@@ -2417,5 +2416,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closeAdmin();});
 <script src="/js/image-resize.js?v=11"></script>
 <script src="/js/app.js?v=11"></script>
 <script src="/js/admin.js?v=11"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){if(location.pathname==='/admin'&&typeof openAdmin==='function')openAdmin();});</script>
 </body>
 </html>

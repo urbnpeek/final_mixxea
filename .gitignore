@@ -3,6 +3,7 @@ node_modules/
 public/uploads/
 data/*.db
 data/kv/
+data/backups/
 *.log
 .DS_Store
 Thumbs.db
