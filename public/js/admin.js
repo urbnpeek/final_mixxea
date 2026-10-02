@@ -40,8 +40,52 @@ function esc(value) {
     .replace(/'/g, '&#39;');
 }
 function relBadge(s) {
-  const m={out:['Out Now','ab-live'],pre:['Pre-Order','ab-pre'],soon:['Coming Soon','ab-pre'],draft:['Draft','ab-draft']};
+  const m={out:['Out Now','ab-live'],published:['Published','ab-live'],pre:['Pre-Order','ab-pre'],soon:['Coming Soon','ab-pre'],draft:['Draft','ab-draft'],unpublished:['Unpublished','ab-draft']};
   const [t,c]=m[s]||[s,'ab-draft']; return badge(t,c);
+}
+function hiddenNote(reason) {
+  if (!reason) return '';
+  return `<div class="tbl-sub" style="color:var(--g3)">Hidden from public because ${esc(reason)}</div>`;
+}
+function staffIsEditor() { return window.STAFF_ROLE === 'editor'; }
+function applyStaffRole(role) {
+  window.STAFF_ROLE = role || 'admin';
+  const overlay = document.getElementById('admin-overlay');
+  if (overlay) overlay.classList.toggle('role-editor', window.STAFF_ROLE === 'editor');
+}
+function slugifyInput(value) {
+  return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+function selectedIds(containerId) {
+  return [...document.querySelectorAll('#' + containerId + ' input:checked')].map((input) => input.value);
+}
+function renderArtistChecks(containerId, selected) {
+  const box = document.getElementById(containerId);
+  if (!box) return;
+  const chosen = new Set(selected || []);
+  const artists = STORE.artists || [];
+  box.innerHTML = artists.length ? artists.map((artist) => `<label style="font-family:var(--Mono);font-size:10px;letter-spacing:1px"><input type="checkbox" value="${esc(artist.id)}"${chosen.has(artist.id) ? ' checked' : ''}> ${esc(artist.name)}</label>`).join('') : '<span style="color:var(--muted);font-family:var(--Mono);font-size:10px">No roster artists yet</span>';
+}
+function bindCounter(inputId, countId, max) {
+  const input = document.getElementById(inputId);
+  const count = document.getElementById(countId);
+  if (!input || !count) return;
+  const update = () => { count.textContent = String(input.value || '').length + '/' + max; };
+  if (!input.dataset.countBound) {
+    input.addEventListener('input', update);
+    input.dataset.countBound = '1';
+  }
+  update();
+}
+let previewTimer = 0;
+function queueMarkdownPreview(sourceId, targetId) {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(async () => {
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    const result = await api('POST', '/news/render', { body: val(sourceId) });
+    if (result && typeof result.html === 'string') target.innerHTML = result.html;
+  }, 250);
 }
 
 function toast(msg, type) {
@@ -81,9 +125,13 @@ function admToggle(id) {
 }
 
 function admClearRel() {
-  ['rel-edit-id','rel-title','rel-artist','rel-catno','rel-bpm','rel-desc','rel-spotify','rel-beatport','rel-apple','rel-soundcloud','rel-bandcamp'].forEach(id=>setVal(id,''));
-  setVal('rel-genre','Techno'); setVal('rel-status','draft');
+  ['rel-edit-id','rel-rev','rel-title','rel-artist','rel-slug','rel-catno','rel-bpm','rel-key','rel-desc','rel-tracks','rel-spotify','rel-beatport','rel-apple','rel-soundcloud','rel-bandcamp','rel-youtube','rel-seo-title','rel-seo-desc','rel-cover-alt','rel-slug-touched'].forEach(id=>setVal(id,''));
+  setVal('rel-genre','Techno'); setVal('rel-type','single'); setVal('rel-featured','');
   setText('rel-form-title','NEW RELEASE');
+  const link = document.getElementById('rel-preview-wrap'); if (link) link.style.display = 'none';
+  renderArtistChecks('rel-artists', []);
+  bindCounter('rel-seo-title','rel-seo-title-count',60);
+  bindCounter('rel-seo-desc','rel-seo-desc-count',160);
 }
 function admClearArt() {
   ['art-edit-id','art-name','art-realname','art-country','art-city','art-bio','art-instagram','art-soundcloud','art-bookingemail'].forEach(id=>setVal(id,''));
@@ -91,11 +139,16 @@ function admClearArt() {
   setText('art-form-title','NEW ARTIST');
 }
 function admClearNews() {
-  ['news-edit-id','news-title','news-body'].forEach(id=>setVal(id,''));
-  setVal('news-author','Mixxea Team'); setVal('news-cat','Release News'); setVal('news-status','draft');
+  ['news-edit-id','news-rev','news-title','news-slug','news-body','news-excerpt','news-seo-title','news-seo-desc','news-cover-alt'].forEach(id=>setVal(id,''));
+  setVal('news-author','Mixxea Team'); setVal('news-cat','release-news');
   setText('news-form-title','NEW POST');
   const prev=document.getElementById('news-img-preview'); if(prev){prev.src='';prev.style.display='none';}
   const fi=document.getElementById('news-image'); if(fi)fi.value='';
+  const link = document.getElementById('news-preview-wrap'); if (link) link.style.display = 'none';
+  renderArtistChecks('news-artists', []);
+  bindCounter('news-excerpt','news-excerpt-count',200);
+  bindCounter('news-seo-title','news-seo-title-count',60);
+  bindCounter('news-seo-desc','news-seo-desc-count',160);
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -118,6 +171,7 @@ function switchAdminSection(id) {
     'a-demo': () => ADMIN.loadDemos('all'),
     'a-con':  () => ADMIN.loadContracts(),
     'a-news': () => ADMIN.loadNews(),
+    'a-staff': () => ADMIN.loadStaff(),
     'a-ev':   () => ADMIN.loadEvents(),
     'a-bk':   () => ADMIN.loadBookings('all'),
     'a-promo':() => ADMIN.loadPromoters(),
@@ -149,6 +203,7 @@ const ADMIN_AUTH = {
     const res = await api('GET', '/auth/admin/check');
     const loggedIn = !!res?.loggedIn;
     this.setMode(loggedIn);
+    if (loggedIn) applyStaffRole(res.role || 'admin');
     if (!loggedIn) this.setMessage('');
     return loggedIn;
   },
@@ -170,9 +225,10 @@ const ADMIN_AUTH = {
     }
 
     this.setMode(true);
+    applyStaffRole(result.role || 'admin');
     this.setMessage('');
     setVal('adm-login-password', '');
-    toast('Admin signed in');
+    toast(result.role === 'editor' ? 'Editor signed in' : 'Admin signed in');
     ADMIN.loadDashboard();
     return true;
   },
@@ -181,6 +237,9 @@ const ADMIN_AUTH = {
     const result = await api('POST', '/auth/admin/logout', {});
     if (!result?.success) return;
     this.setMode(false);
+    applyStaffRole('admin');
+    const overlay = document.getElementById('admin-overlay');
+    if (overlay) overlay.classList.remove('role-editor');
     this.setMessage('Signed out.');
     setVal('adm-login-password', '');
     toast('Admin signed out');
@@ -198,6 +257,15 @@ const ADMIN = {
       const dateEl=document.getElementById('adm-date');
       if(dateEl) dateEl.textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
+      if (staffIsEditor()) {
+        const [rel, nws] = await Promise.all([api('GET','/releases'), api('GET','/news')]);
+        const releases = rel || [], news = nws || [];
+        setText('dash-release-count', releases.length);
+        setText('dash-news-count', news.filter(n => n.status === 'published').length);
+        ['dash-artist-count','dash-demo-count','dash-booking-count','dash-subs-count','dash-event-count'].forEach(id => setText(id, '—'));
+        setHTML('adm-activity-tbody', '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;font-family:var(--Mono);font-size:11px">Releases and news are ready to edit</td></tr>');
+        return;
+      }
       const [rel,art,dem,bk,sub,ev,nws]=await Promise.all([
         api('GET','/releases'),api('GET','/artists'),api('GET','/demos'),api('GET','/bookings'),
         api('GET','/newsletter/subscribers'),api('GET','/events'),api('GET','/news'),
@@ -232,54 +300,95 @@ const ADMIN = {
 
   /* ══ RELEASES ═══════════════════════════════════════════ */
   async loadReleases() {
+    if (!STORE.artists.length) STORE.artists = await api('GET','/artists') || [];
     const data=await api('GET','/releases')||[];
     STORE.releases=data;
+    const canDelete = !staffIsEditor();
     setHTML('adm-rel-tbody', data.length ? data.map(r=>`
       <tr>
         <td><div class="tbl-art">
-          <div class="tbl-thumb">${r.artwork?`<img src="${r.artwork}" style="width:36px;height:36px;object-fit:cover">`:(r.catNo||'???').slice(-3)}</div>
-          <div><div class="tbl-name">${r.title}</div><div class="tbl-sub">${r.catNo||''}</div></div>
+          <div class="tbl-thumb">${(r.cover&&r.cover.thumbUrl)||r.artwork?`<img src="${esc((r.cover&&r.cover.thumbUrl)||r.artwork)}" alt="" style="width:36px;height:36px;object-fit:cover">`:(r.catNo||'???').slice(-3)}</div>
+          <div><div class="tbl-name">${esc(r.title)}</div><div class="tbl-sub">${esc(r.slug||r.catNo||'')}</div>${hiddenNote(r.hiddenReason)}</div>
         </div></td>
-        <td style="font-family:var(--Mono);font-size:11px">${r.artist}</td>
-        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${r.genre}</td>
-        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(r.date)}</td>
+        <td style="font-family:var(--Mono);font-size:11px">${esc(r.artist)}</td>
+        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${esc(r.genre)}</td>
+        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(r.date||r.releaseDate)}</td>
         <td>${relBadge(r.status)}</td>
         <td><div class="tbl-actions">
-          <button class="tbl-btn" onclick="ADMIN.editRelease('${r.id}')">Edit</button>
-          <button class="tbl-btn del" onclick="ADMIN.deleteRelease('${r.id}','${(r.title||'').replace(/'/g,'')}')">Delete</button>
+          <button class="tbl-btn" onclick="ADMIN.editRelease('${esc(r.id)}')">Edit</button>
+          ${r.previewUrl?`<a class="tbl-btn" href="${esc(r.previewUrl)}" target="_blank" rel="noopener">Preview</a>`:''}
+          ${canDelete?`<button class="tbl-btn del" onclick="ADMIN.deleteRelease('${esc(r.id)}','${esc(r.title||'')}')">Delete</button>`:''}
         </div></td>
       </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No releases yet — add your first one above</td></tr>');
   },
 
-  async saveRelease() {
+  async saveRelease(action) {
     const title=val('rel-title'), artist=val('rel-artist');
     if(!title||!artist){toast('Title and artist are required','error');return;}
     const id=val('rel-edit-id');
-    const payload={title,artist,genre:val('rel-genre'),bpm:parseInt(val('rel-bpm'))||0,catNo:val('rel-catno'),date:val('rel-date'),status:val('rel-status'),description:val('rel-desc'),spotify:val('rel-spotify'),beatport:val('rel-beatport'),apple:val('rel-apple'),soundcloud:val('rel-soundcloud'),bandcamp:val('rel-bandcamp')};
-    const fd=new FormData(); Object.entries(payload).forEach(([k,v])=>fd.append(k,v));
-    const aw=document.getElementById('rel-artwork'), au=document.getElementById('rel-audio');
-    if(aw?.files[0]) fd.append('artwork',aw.files[0]);
-    if(au?.files[0]) fd.append('audio',au.files[0]);
-    if(id){
-      const result=await api('PUT',`/releases/${id}`,fd);
-      if(!result)return;
-      const i=STORE.releases.findIndex(r=>r.id===id);
-      if(i>-1)STORE.releases[i]={...STORE.releases[i],...result};
-    } else {
-      const result=await api('POST','/releases',fd);
-      if(!result)return;
-      STORE.releases.unshift(result);
+    const artwork=document.getElementById('rel-artwork');
+    if (artwork?.files[0] && !val('rel-cover-alt')) { toast('Alt text is required for the cover','error'); return; }
+    const fd=new FormData();
+    const payload={
+      action: action || 'draft',
+      title, artist,
+      slug: val('rel-slug'),
+      type: val('rel-type') || 'single',
+      genre: val('rel-genre'),
+      bpm: val('rel-bpm'),
+      key: val('rel-key'),
+      catNo: val('rel-catno'),
+      date: val('rel-date'),
+      description: val('rel-desc'),
+      tracks: val('rel-tracks'),
+      featured: val('rel-featured') === 'true' ? 'true' : '',
+      spotify: val('rel-spotify'), beatport: val('rel-beatport'), apple: val('rel-apple'),
+      soundcloud: val('rel-soundcloud'), bandcamp: val('rel-bandcamp'), youtube: val('rel-youtube'),
+      seoTitle: val('rel-seo-title'), seoDescription: val('rel-seo-desc'),
+      coverAlt: val('rel-cover-alt'),
+      artistIds: JSON.stringify(selectedIds('rel-artists')),
+      rev: val('rel-rev')
+    };
+    Object.entries(payload).forEach(([k,v]) => fd.append(k, v == null ? '' : v));
+    if (artwork?.files[0]) {
+      if (typeof prepareReleaseImages !== 'function') { toast('Image resize is unavailable','error'); return; }
+      const prepared = await prepareReleaseImages(artwork.files[0]);
+      fd.append('artwork', prepared.cover, 'cover.webp');
+      fd.append('artworkThumb', prepared.thumb, 'thumb.webp');
+      fd.append('ogImage', prepared.og, 'og.jpg');
+      fd.append('coverW', String(prepared.w || ''));
+      fd.append('coverH', String(prepared.h || ''));
     }
-    toast(id?'Release updated':'Release created'); admToggle('rel-form'); admClearRel(); this.loadReleases();
+    const audio = document.getElementById('rel-audio');
+    if (audio?.files[0]) fd.append('audio', audio.files[0]);
+    const result = id ? await api('PUT', `/releases/${id}`, fd) : await api('POST', '/releases', fd);
+    if (!result) return;
+    toast(action === 'publish' ? 'Release published' : action === 'unpublish' ? 'Release unpublished' : 'Draft saved');
+    admToggle('rel-form'); admClearRel(); this.loadReleases();
   },
 
   async editRelease(id) {
+    if (!STORE.artists.length) STORE.artists = await api('GET','/artists') || [];
     const r=await api('GET',`/releases/${id}`)||STORE.releases.find(x=>x.id===id); if(!r)return;
-    setVal('rel-edit-id',r.id); setVal('rel-title',r.title); setVal('rel-artist',r.artist);
-    setVal('rel-catno',r.catNo); setVal('rel-bpm',r.bpm); setVal('rel-genre',r.genre);
-    setVal('rel-date',r.date); setVal('rel-status',r.status); setVal('rel-desc',r.description||r.desc||'');
+    setVal('rel-edit-id',r.id); setVal('rel-rev', r.rev || 1); setVal('rel-title',r.title); setVal('rel-artist',r.artist);
+    setVal('rel-slug', r.slug || ''); setVal('rel-slug-touched','1');
+    setVal('rel-type', r.type || 'single');
+    setVal('rel-catno',r.catNo); setVal('rel-bpm',r.bpm); setVal('rel-key', r.key || ''); setVal('rel-genre',r.genre);
+    setVal('rel-date',r.date || r.releaseDate); setVal('rel-featured', r.featured ? 'true' : '');
+    setVal('rel-desc',r.description||'');
+    setVal('rel-tracks', (r.tracks || []).map(t => [t.title, t.artist, t.duration, t.isrc].filter(Boolean).join(' | ')).join('\n'));
     setVal('rel-spotify',r.spotify||''); setVal('rel-beatport',r.beatport||'');
     setVal('rel-apple',r.apple||''); setVal('rel-soundcloud',r.soundcloud||''); setVal('rel-bandcamp',r.bandcamp||'');
+    setVal('rel-youtube', r.youtube || '');
+    setVal('rel-seo-title', r.seo && r.seo.title || '');
+    setVal('rel-seo-desc', r.seo && r.seo.description || '');
+    setVal('rel-cover-alt', r.cover && r.cover.alt || '');
+    renderArtistChecks('rel-artists', r.artistIds || []);
+    bindCounter('rel-seo-title','rel-seo-title-count',60);
+    bindCounter('rel-seo-desc','rel-seo-desc-count',160);
+    const wrap = document.getElementById('rel-preview-wrap');
+    const link = document.getElementById('rel-preview-link');
+    if (wrap && link && r.previewUrl) { link.href = r.previewUrl; wrap.style.display = 'block'; }
     setText('rel-form-title','EDIT RELEASE');
     const f=document.getElementById('rel-form'); f.style.display='block'; f.scrollIntoView({behavior:'smooth'});
   },
@@ -530,55 +639,136 @@ const ADMIN = {
 
   /* ══ NEWS / BLOG ════════════════════════════════════════ */
   async loadNews() {
+    if (!STORE.artists.length) STORE.artists = await api('GET','/artists') || [];
     const data=await api('GET','/news');
     const newsData = Array.isArray(data) ? data : [];
     STORE.news = newsData;
+    const canDelete = !staffIsEditor();
     setHTML('adm-news-tbody', newsData.length ? newsData.map(n=>`
       <tr>
         <td><div class="tbl-art">
-          <div class="tbl-thumb">${n.image?`<img src="${n.image}" style="width:36px;height:36px;object-fit:cover">`:''}</div>
-          <span class="tbl-name">${n.title}</span>
+          <div class="tbl-thumb">${(n.cover&&n.cover.thumbUrl)||n.image?`<img src="${esc((n.cover&&n.cover.thumbUrl)||n.image)}" alt="" style="width:36px;height:36px;object-fit:cover">`:''}</div>
+          <div><span class="tbl-name">${esc(n.title)}</span><div class="tbl-sub">${esc(n.slug||'')}</div>${hiddenNote(n.hiddenReason)}</div>
         </div></td>
         <td>${badge(n.category,'ab-review')}</td>
-        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${n.author||'—'}</td>
-        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(n.date||n.createdAt)}</td>
+        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${esc(n.author||'—')}</td>
+        <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(n.date||n.publishedAt||n.createdAt)}</td>
         <td>${badge(n.status,n.status==='published'?'ab-live':'ab-draft')}</td>
         <td><div class="tbl-actions">
-          <button class="tbl-btn" onclick="ADMIN.editNews('${n.id}')">Edit</button>
-          <button class="tbl-btn del" onclick="ADMIN.deleteNews('${n.id}','${(n.title||'').slice(0,25).replace(/'/g,'')}')">Delete</button>
+          <button class="tbl-btn" onclick="ADMIN.editNews('${esc(n.id)}')">Edit</button>
+          ${n.previewUrl?`<a class="tbl-btn" href="${esc(n.previewUrl)}" target="_blank" rel="noopener">Preview</a>`:''}
+          ${canDelete?`<button class="tbl-btn del" onclick="ADMIN.deleteNews('${esc(n.id)}','${esc((n.title||'').slice(0,40))}')">Delete</button>`:''}
         </div></td>
       </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No posts yet</td></tr>');
   },
 
-  async saveNews() {
+  async saveNews(action) {
     const title=val('news-title'), body=val('news-body');
     if(!title||!body){toast('Title and body are required','error');return;}
+    const img=document.getElementById('news-image');
+    if (img?.files[0] && !val('news-cover-alt')) { toast('Alt text is required for the cover','error'); return; }
     const id=val('news-edit-id');
-    const payload={title,category:val('news-cat'),author:val('news-author')||'Mixxea Team',date:val('news-date')||new Date().toISOString().slice(0,10),status:val('news-status'),body};
-    const fd=new FormData(); Object.entries(payload).forEach(([k,v])=>fd.append(k,v));
-    const img=document.getElementById('news-image'); if(img?.files[0]) fd.append('image',img.files[0]);
-    if(id){
-      const result=await api('PUT',`/news/${id}`,fd);
-      if(!result)return;
-      const i=STORE.news.findIndex(n=>n.id===id);
-      if(i>-1)STORE.news[i]={...STORE.news[i],...result};
-    } else {
-      const result=await api('POST','/news',fd);
-      if(!result)return;
-      STORE.news.unshift(result);
+    const fd=new FormData();
+    const payload={
+      action: action || 'draft',
+      title,
+      slug: val('news-slug'),
+      category: val('news-cat'),
+      author: val('news-author') || 'Mixxea Team',
+      excerpt: val('news-excerpt'),
+      body,
+      seoTitle: val('news-seo-title'),
+      seoDescription: val('news-seo-desc'),
+      coverAlt: val('news-cover-alt'),
+      artistIds: JSON.stringify(selectedIds('news-artists')),
+      rev: val('news-rev')
+    };
+    Object.entries(payload).forEach(([k,v]) => fd.append(k, v == null ? '' : v));
+    if (img?.files[0]) {
+      if (typeof prepareReleaseImages !== 'function') { toast('Image resize is unavailable','error'); return; }
+      const prepared = await prepareReleaseImages(img.files[0]);
+      fd.append('image', prepared.cover, 'cover.webp');
+      fd.append('imageThumb', prepared.thumb, 'thumb.webp');
+      fd.append('ogImage', prepared.og, 'og.jpg');
+      fd.append('coverW', String(prepared.w || ''));
+      fd.append('coverH', String(prepared.h || ''));
     }
-    toast(id?'Post updated':'Post published'); admToggle('news-form'); admClearNews(); this.loadNews();
+    const result = id ? await api('PUT', `/news/${id}`, fd) : await api('POST', '/news', fd);
+    if (!result) return;
+    toast(action === 'publish' ? 'Post published' : action === 'unpublish' ? 'Post unpublished' : 'Draft saved');
+    admToggle('news-form'); admClearNews(); this.loadNews();
   },
 
   async editNews(id) {
+    if (!STORE.artists.length) STORE.artists = await api('GET','/artists') || [];
     const n=await api('GET',`/news/${id}`)||STORE.news.find(x=>x.id===id);
     if(!n){toast('Post not found — try refreshing the page.','error');return;}
-    setVal('news-edit-id',n.id); setVal('news-title',n.title); setVal('news-cat',n.category);
-    setVal('news-author',n.author); setVal('news-date',n.date); setVal('news-status',n.status); setVal('news-body',n.body||'');
+    const categoryMap = { 'Release News':'release-news', 'Artist News':'artist-news', 'Label News':'label-news', Events:'events', FreqVault:'freqvault' };
+    setVal('news-edit-id',n.id); setVal('news-rev', n.rev || 1); setVal('news-title',n.title); setVal('news-slug', n.slug || '');
+    setVal('news-cat', categoryMap[n.category] || n.category || 'release-news'); setVal('news-author',n.author); setVal('news-excerpt', n.excerpt || '');
+    setVal('news-body',n.body||'');
+    setVal('news-seo-title', n.seo && n.seo.title || '');
+    setVal('news-seo-desc', n.seo && n.seo.description || '');
+    setVal('news-cover-alt', n.cover && n.cover.alt || '');
+    renderArtistChecks('news-artists', n.artistIds || []);
+    bindCounter('news-excerpt','news-excerpt-count',200);
+    bindCounter('news-seo-title','news-seo-title-count',60);
+    bindCounter('news-seo-desc','news-seo-desc-count',160);
     const prev=document.getElementById('news-img-preview');
-    if(prev){prev.src=n.image||'';prev.style.display=n.image?'block':'none';}
+    const image = (n.cover && n.cover.url) || n.image;
+    if(prev){prev.src=image||'';prev.style.display=image?'block':'none';}
+    const wrap = document.getElementById('news-preview-wrap');
+    const link = document.getElementById('news-preview-link');
+    if (wrap && link && n.previewUrl) { link.href = n.previewUrl; wrap.style.display = 'block'; }
     setText('news-form-title','EDIT POST');
     const f=document.getElementById('news-form'); f.style.display='block'; f.scrollIntoView({behavior:'smooth'});
+    queueMarkdownPreview('news-body', 'news-body-preview');
+  },
+
+  async loadStaff() {
+    const data = await api('GET','/staff') || [];
+    setHTML('adm-staff-tbody', data.length ? data.map((person) => `
+      <tr>
+        <td class="tbl-name">${esc(person.name)}</td>
+        <td style="font-family:var(--Mono);font-size:11px">${esc(person.email)}</td>
+        <td>${badge(person.role, person.role === 'admin' ? 'ab-live' : 'ab-review')}</td>
+        <td>${badge(person.active ? 'active' : 'disabled', person.active ? 'ab-live' : 'ab-draft')}</td>
+        <td><div class="tbl-actions">
+          <button class="tbl-btn" onclick="ADMIN.toggleStaff('${esc(person.id)}', ${person.rev || 1}, ${person.active ? 'false' : 'true'})">${person.active ? 'Disable' : 'Enable'}</button>
+          <button class="tbl-btn" onclick="ADMIN.createToken('${esc(person.id)}')">API token</button>
+        </div></td>
+      </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No staff logins yet</td></tr>');
+  },
+
+  async saveStaff() {
+    const result = await api('POST','/staff', {
+      name: val('staff-name'),
+      email: val('staff-email'),
+      password: val('staff-password'),
+      role: val('staff-role') || 'editor'
+    });
+    if (!result) return;
+    toast('Staff login created');
+    setVal('staff-name',''); setVal('staff-email',''); setVal('staff-password','');
+    admToggle('staff-form');
+    this.loadStaff();
+  },
+
+  async toggleStaff(id, rev, active) {
+    const result = await api('PUT', '/staff/' + id, { rev, active: active === true || active === 'true' });
+    if (!result) return;
+    toast(result.active ? 'Login enabled' : 'Login disabled');
+    this.loadStaff();
+  },
+
+  async createToken(id) {
+    const label = prompt('Label for this API token', 'agent');
+    if (!label) return;
+    const result = await api('POST', '/staff/' + id + '/tokens', { label });
+    if (!result || !result.token) return;
+    toast('Token created. Copy it now — it is not shown again.');
+    window.prompt('Copy this API token', result.token);
+    this.loadStaff();
   },
 
   async deleteNews(id,title) {
@@ -1062,6 +1252,33 @@ window.addEventListener('resize', () => {
    INIT — runs once DOM is ready
 ───────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function() {
+  ['rel-title','rel-artist'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', function() {
+      if (val('rel-slug-touched') === '1') return;
+      setVal('rel-slug', slugifyInput((val('rel-artist') || 'artist') + '-' + (val('rel-title') || 'title')));
+    });
+  });
+  var relSlug = document.getElementById('rel-slug');
+  if (relSlug) relSlug.addEventListener('input', function() { setVal('rel-slug-touched', '1'); });
+  var newsTitle = document.getElementById('news-title');
+  if (newsTitle) newsTitle.addEventListener('input', function() {
+    if (val('news-rev')) return;
+    if (document.getElementById('news-slug') && document.getElementById('news-slug').dataset.touched) return;
+    setVal('news-slug', slugifyInput(val('news-title')));
+  });
+  var newsSlug = document.getElementById('news-slug');
+  if (newsSlug) newsSlug.addEventListener('input', function() { newsSlug.dataset.touched = '1'; });
+  var newsBody = document.getElementById('news-body');
+  if (newsBody) newsBody.addEventListener('input', function() { queueMarkdownPreview('news-body', 'news-body-preview'); });
+  var relDesc = document.getElementById('rel-desc');
+  if (relDesc) relDesc.addEventListener('input', function() { queueMarkdownPreview('rel-desc', 'rel-desc-preview'); });
+  bindCounter('rel-seo-title','rel-seo-title-count',60);
+  bindCounter('rel-seo-desc','rel-seo-desc-count',160);
+  bindCounter('news-excerpt','news-excerpt-count',200);
+  bindCounter('news-seo-title','news-seo-title-count',60);
+  bindCounter('news-seo-desc','news-seo-desc-count',160);
   var loginBtn = document.getElementById('adm-login-submit');
   if (loginBtn) {
     loginBtn.addEventListener('click', function() { ADMIN_AUTH.login(); });

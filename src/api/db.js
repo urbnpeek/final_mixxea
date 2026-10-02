@@ -94,7 +94,7 @@ function localSet(collection, data) {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
-async function get(collection) {
+async function getRaw(collection) {
   if (isRedisConfigured()) {
     try {
       const data = await redisGet(collection);
@@ -110,6 +110,23 @@ async function get(collection) {
   return localGet(collection);
 }
 
+const INDEXED = { releases: 'release', news: 'post' };
+
+async function get(collection) {
+  const kind = INDEXED[collection];
+  if (kind) {
+    try {
+      const store = require('../lib/contentStore');
+      if (await store.hasIndex(kind)) {
+        return (await store.list(kind)) || [];
+      }
+    } catch (e) {
+      console.error('[DB] indexed read failed:', e.message);
+    }
+  }
+  return getRaw(collection);
+}
+
 async function set(collection, data) {
   if (isRedisConfigured()) {
     try {
@@ -122,4 +139,4 @@ async function set(collection, data) {
   localSet(collection, data);
 }
 
-module.exports = { get, set, isRedisConfigured, getRedisConfig };
+module.exports = { get, getRaw, set, isRedisConfigured, getRedisConfig };

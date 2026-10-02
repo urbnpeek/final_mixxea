@@ -1,108 +1,155 @@
-const express   = require('express');
-const multer    = require('multer');
-const { v4: uuid } = require('uuid');
-const db        = require('./db');
+/**
+ * /api/news — editorial CRUD. Editors publish directly.
+ * Field lists are whitelisted. Conflicting revs return a reload warning.
+ */
+const express = require('express');
+const multer = require('multer');
+const db = require('./db');
 const { uploadFile } = require('./upload');
-const { requireAdmin } = require('./middleware');
-const slugify   = require('../utils/slugify');
-const { visibleNews } = require('../lib/rosterCatalog');
-const { canonicalOrigin } = require('../lib/siteUrl');
-const router    = express.Router();
+const { requireStaff, requireAdmin, resolveActor, isStaffActor, buildPreviewToken } = require('./middleware');
+const { visibleNews, newsHiddenReason } = require('../lib/rosterCatalog');
+const store = require('../lib/contentStore');
+const { normalizePost } = require('../lib/contentModel');
+const { renderMarkdown } = require('../lib/markdown');
+const { NEWS_CATEGORIES } = require('../lib/categories');
 
-const upload = multer({ storage: multer.memoryStorage() });
+const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 8 * 1024 * 1024 } });
 
-const BASE = canonicalOrigin();
-
-/* Ping Google + Bing to re-index the sitemap after content changes */
-async function pingSitemaps() {
-  const sitemap = encodeURIComponent(`${BASE}/sitemap.xml`);
-  const pings = [
-    `https://www.google.com/ping?sitemap=${sitemap}`,
-    `https://www.bing.com/ping?sitemap=${sitemap}`,
-  ];
-  await Promise.allSettled(
-    pings.map(url => fetch(url, { signal: AbortSignal.timeout(4000) }).catch(() => {}))
-  );
+function sendError(res, error) {
+  res.status(error.status || 500).json({
+    error: error.message || 'Server error',
+    ...(error.code ? { code: error.code } : {}),
+    ...(error.rev != null ? { rev: error.rev } : {}),
+    ...(error.updatedBy ? { updatedBy: error.updatedBy } : {}),
+    ...(error.updatedAt ? { updatedAt: error.updatedAt } : {}),
+  });
 }
 
+function staffView(post, artists) {
+  const reason = newsHiddenReason(post, artists);
+  return {
+    ...post,
+    hiddenReason: reason,
+    previewUrl: '/news/' + post.slug + '?preview=' + encodeURIComponent(buildPreviewToken('post', post.id)),
+  };
+}
+
+router.get('/categories', (req, res) => {
+  res.json(NEWS_CATEGORIES);
+});
+
+router.post('/render', requireStaff, (req, res) => {
+  res.json({ html: renderMarkdown(req.body && req.body.body) });
+});
+
 router.get('/', async (req, res) => {
-  let news = await db.get('news');
-  if (!req.session.admin) news = visibleNews(news, await db.get('artists'));
-  res.json(news);
+  try {
+    const actor = await resolveActor(req);
+    let news = await db.get('news');
+    const artists = await db.get('artists');
+    if (!isStaffActor(actor)) news = visibleNews(news, artists);
+    if (isStaffActor(actor)) news = news.map((item) => staffView(item, artists));
+    res.json(news);
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+router.get('/slug/:slug', async (req, res) => {
+  try {
+    const artists = await db.get('artists');
+    const actor = await resolveActor(req);
+    const indexed = await store.getBySlug('post', req.params.slug);
+    if (indexed) {
+      if (indexed.redirect) return res.json({ redirect: '/news/' + indexed.doc.slug, slug: indexed.doc.slug });
+      if (!isStaffActor(actor) && newsHiddenReason(indexed.doc, artists)) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+      return res.json(isStaffActor(actor) ? staffView(indexed.doc, artists) : indexed.doc);
+    }
+    const slugify = require('../utils/slugify');
+    const item = visibleNews(await db.get('news'), artists).find((entry) =>
+      (entry.slug || slugify(entry.title)) === req.params.slug
+    );
+    if (!item) return res.status(404).json({ error: 'Not found' });
+    res.json(item);
+  } catch (error) {
+    sendError(res, error);
+  }
 });
 
 router.get('/:id', async (req, res) => {
-  const item = (await db.get('news')).find(n => n.id === req.params.id);
-  if (!item) return res.status(404).json({ error: 'Not found' });
-  if (!req.session.admin) {
-    const allowed = visibleNews([item], await db.get('artists'));
-    if (!allowed.length) return res.status(404).json({ error: 'Not found' });
+  try {
+    if (req.params.id === 'categories' || req.params.id === 'render') return res.status(404).json({ error: 'Not found' });
+    const item = await store.getById('post', req.params.id) || (await db.get('news')).find((entry) => entry.id === req.params.id);
+    if (!item) return res.status(404).json({ error: 'Not found' });
+    const artists = await db.get('artists');
+    const actor = await resolveActor(req);
+    if (!isStaffActor(actor) && newsHiddenReason(item, artists)) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    res.json(isStaffActor(actor) ? staffView(item, artists) : item);
+  } catch (error) {
+    sendError(res, error);
   }
-  res.json(item);
 });
 
-/* Lookup by slug (used by server-side news page renderer) */
-router.get('/slug/:slug', async (req, res) => {
-  const [news, artists] = await Promise.all([db.get('news'), db.get('artists')]);
-  const target = visibleNews(news, artists).find(n =>
-    (n.slug || slugify(n.title)) === req.params.slug
-  );
-  if (!target) return res.status(404).json({ error: 'Not found' });
-  res.json(target);
-});
+const fields = upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'imageThumb', maxCount: 1 },
+  { name: 'ogImage', maxCount: 1 },
+]);
 
-router.post('/', requireAdmin, upload.single('image'), async (req, res) => {
-  const items    = await db.get('news');
-  const imageUrl = req.file ? await uploadFile(req.file, 'news') : '';
-  const title    = req.body.title || '';
-  const item = {
-    id:        uuid(),
-    ...req.body,
-    slug:      slugify(title) + (slugify(title) ? '-' : '') + Date.now().toString(36),
-    image:     imageUrl,
-    createdAt: new Date().toISOString(),
-  };
-  items.unshift(item);
-  await db.set('news', items);
-  if (item.status === 'published') pingSitemaps().catch(() => {});
-  res.status(201).json(item);
-});
-
-router.put('/:id', requireAdmin, upload.single('image'), async (req, res) => {
-  const items = await db.get('news');
-  const idx   = items.findIndex(i => i.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Not found' });
-
-  const imageUrl = req.file ? await uploadFile(req.file, 'news') : items[idx].image;
-  const wasPublished = items[idx].status === 'published';
-  const nowPublished = req.body.status === 'published';
-
-  // Regenerate slug if title changed and article doesn't have one yet
-  const newSlug = (!items[idx].slug && req.body.title)
-    ? slugify(req.body.title) + '-' + Date.now().toString(36)
-    : items[idx].slug;
-
-  items[idx] = {
-    ...items[idx],
-    ...req.body,
-    slug:      newSlug,
-    updatedAt: new Date().toISOString(),
-    ...(req.file ? { image: imageUrl } : {}),
-  };
-  await db.set('news', items);
-
-  // Ping when newly published or content changed on a published article
-  if (nowPublished || (wasPublished && !nowPublished === false)) {
-    pingSitemaps().catch(() => {});
+router.post('/', requireStaff, fields, async (req, res) => {
+  try {
+    await store.ensureSeeded('post');
+    const files = req.files || {};
+    const uploads = {
+      image: await uploadFile(files.image && files.image[0], 'news'),
+      imageThumb: await uploadFile(files.imageThumb && files.imageThumb[0], 'news'),
+      ogImage: await uploadFile(files.ogImage && files.ogImage[0], 'news'),
+    };
+    const post = normalizePost(req.body, null, req.actor, uploads);
+    await store.save('post', post, 0);
+    res.status(201).json(staffView(post, await db.get('artists')));
+  } catch (error) {
+    sendError(res, error);
   }
+});
 
-  res.json(items[idx]);
+router.put('/:id', requireStaff, fields, async (req, res) => {
+  try {
+    await store.ensureSeeded('post');
+    const existing = await store.getById('post', req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+    if (req.body.rev == null || req.body.rev === '' || !Number.isFinite(Number(req.body.rev))) {
+      return res.status(400).json({ error: 'rev is required' });
+    }
+    const files = req.files || {};
+    const uploads = {
+      image: await uploadFile(files.image && files.image[0], 'news'),
+      imageThumb: await uploadFile(files.imageThumb && files.imageThumb[0], 'news'),
+      ogImage: await uploadFile(files.ogImage && files.ogImage[0], 'news'),
+    };
+    const post = normalizePost(req.body, existing, req.actor, uploads);
+    await store.save('post', post, Number(req.body.rev));
+    res.json(staffView(post, await db.get('artists')));
+  } catch (error) {
+    sendError(res, error);
+  }
 });
 
 router.delete('/:id', requireAdmin, async (req, res) => {
-  const items = await db.get('news');
-  await db.set('news', items.filter(i => i.id !== req.params.id));
-  res.json({ success: true });
+  try {
+    await store.ensureSeeded('post');
+    const existing = await store.getById('post', req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+    await store.remove('post', req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    sendError(res, error);
+  }
 });
 
 module.exports = router;

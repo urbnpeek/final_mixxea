@@ -14,7 +14,15 @@ const slugify = require('../utils/slugify');
 const { visibleReleases, visibleEvents, visibleNews } = require('../lib/rosterCatalog');
 const { canonicalOrigin } = require('../lib/siteUrl');
 const { publicDetailExists } = require('../lib/publicDetail');
+const { NEWS_CATEGORIES } = require('../lib/categories');
+const { releaseSlug, newsSlug } = require('../render/publicPages');
 const router  = express.Router();
+
+function lastmodOf(record, fallback) {
+  const raw = record && (record.updatedAt || record.publishedAt || record.date || record.createdAt) || '';
+  const day = String(raw).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : fallback;
+}
 
 function base() {
   return canonicalOrigin();
@@ -39,6 +47,14 @@ async function generateSitemap() {
     { loc: `${BASE}/artist-management`,         lastmod: today, changefreq: 'monthly', priority: '0.8' },
     { loc: `${BASE}/electronic-music-artists`,  lastmod: today, changefreq: 'monthly', priority: '0.8' },
     { loc: `${BASE}/submit-demo`,               lastmod: today, changefreq: 'monthly', priority: '0.7' },
+    { loc: `${BASE}/releases`,                  lastmod: today, changefreq: 'weekly',  priority: '0.8' },
+    { loc: `${BASE}/news`,                      lastmod: today, changefreq: 'weekly',  priority: '0.8' },
+    ...NEWS_CATEGORIES.map((cat) => ({
+      loc: `${BASE}/news/category/${cat.slug}`,
+      lastmod: today,
+      changefreq: 'weekly',
+      priority: '0.6',
+    })),
   ];
 
   const publicNews = visibleNews(news, artists);
@@ -47,24 +63,23 @@ async function generateSitemap() {
 
   const newsUrls = publicNews
     .map(n => ({
-      loc: `${BASE}/news/${n.slug || slugify(n.title)}`,
-      lastmod: n.date || (n.createdAt || '').slice(0, 10) || today,
+      loc: `${BASE}/news/${newsSlug(n)}`,
+      lastmod: lastmodOf(n, today),
       changefreq: 'weekly',
       priority: '0.8',
+      image: n.image || (n.cover && n.cover.url) || '',
     }));
 
-  // Live www sitemap and the evidence pack (2026-09-25) list exactly two release
-  // URLs, and both return 404: /releases/grind-system-ep and /releases/void-protocol.
-  // Keep them out unless a real public page for that slug exists and returns 200.
   const releaseUrls = publicReleases
     .map(r => {
-      const slug = slugify(r.slug || r.title);
-      if (!slug || !publicDetailExists('releases', slug)) return null;
+      const slug = releaseSlug(r);
+      if (!slug) return null;
       return {
         loc: `${BASE}/releases/${slug}`,
-        lastmod: r.date || (r.createdAt || '').slice(0, 10) || today,
+        lastmod: lastmodOf(r, today),
         changefreq: 'monthly',
         priority: '0.7',
+        image: r.artwork || (r.cover && r.cover.url) || '',
       };
     })
     .filter(Boolean);
@@ -108,6 +123,7 @@ async function generateSitemap() {
       u.lastmod ? `    <lastmod>${u.lastmod}</lastmod>` : '',
       `    <changefreq>${u.changefreq}</changefreq>`,
       `    <priority>${u.priority}</priority>`,
+      u.image && /^https?:\/\//i.test(u.image) ? `    <image:image><image:loc>${u.image}</image:loc></image:image>` : '',
       '  </url>',
     ].filter(Boolean).join('\n')),
     '</urlset>',
@@ -126,10 +142,7 @@ router.get('/schema.json', async (req, res) => {
     const today = new Date().toISOString().slice(0, 10);
     const BASE = base();
     const liveReleases  = visibleReleases(releases, artists)
-      .filter(r => {
-        const slug = slugify(r.slug || r.title);
-        return (r.status === 'out' || r.status === 'pre') && publicDetailExists('releases', slug);
-      })
+      .filter(r => r.status === 'out' || r.status === 'pre' || r.status === 'published' || r.status === 'soon')
       .slice(0, 6);
     const signedArtists = artists.filter(a => a && a.name && a.status === 'signed');
     const upcoming      = visibleEvents(events, artists).filter(e => e.status === 'confirmed' && (e.date || '') >= today).slice(0, 4);
@@ -174,7 +187,7 @@ router.get('/schema.json', async (req, res) => {
           '@type': 'MusicAlbum',
           'name': r.title,
           'byArtist': { '@type': 'MusicGroup', 'name': r.artist },
-          'url': `${BASE}/releases/${slugify(r.slug || r.title)}`,
+          'url': `${BASE}/releases/${releaseSlug(r)}`,
           ...(r.artwork      ? { 'image': r.artwork }       : {}),
           ...(r.date         ? { 'datePublished': r.date }  : {}),
           ...(r.description  ? { 'description': r.description } : {}),
@@ -231,17 +244,18 @@ router.get('/news/:slug/schema.json', async (req, res) => {
   try {
     const BASE = base();
     const news    = await db.get('news');
-    const article = news.find(n =>
-      (n.slug || slugify(n.title)) === req.params.slug && n.status === 'published'
-    );
-    if (!article) return res.status(404).json({ error: 'Not found' });
+    const { newsHiddenReason } = require('../lib/rosterCatalog');
+    const artists = await db.get('artists');
+    const article = news.find(n => newsSlug(n) === req.params.slug);
+    if (!article || newsHiddenReason(article, artists)) return res.status(404).json({ error: 'Not found' });
 
-    const articleSlug = article.slug || slugify(article.title);
-    const description = (article.body || '').slice(0, 160).replace(/\n/g, ' ');
+    const articleSlug = newsSlug(article);
+    const { markdownToText } = require('../lib/markdown');
+    const description = (article.seo && article.seo.description) || markdownToText(article.excerpt || article.body || '').slice(0, 160);
 
     const schema = {
       '@context': 'https://schema.org',
-      '@type': 'Article',
+      '@type': 'BlogPosting',
       'headline': article.title,
       'description': description,
       'image': article.image || `${BASE}/og/mixxea-og.svg`,

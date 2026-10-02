@@ -125,7 +125,7 @@ app.get('/', async (req, res, next) => {
     const html = pages.injectHome(fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'), {
       artists, releases, events, news,
     });
-    sendHtml(res, 200, html);
+    sendHtml(res, 200, html, 'public, s-maxage=300, stale-while-revalidate=86400');
   } catch (e) {
     console.error('[pages] home', e);
     next();
@@ -225,6 +225,7 @@ app.use('/api/royalties',    require('./src/api/royalties'));
 app.use('/api/contracts',    require('./src/api/contracts'));
 app.use('/api/promoters',    require('./src/api/promoters'));
 app.use('/api/news',         require('./src/api/news'));
+app.use('/api/staff',        require('./src/api/staff'));
 app.use('/api/supabase',     require('./src/api/supabase'));
 app.use('/api/dj-pool',      require('./src/api/djPool'));
 
@@ -293,8 +294,96 @@ const serveSeoDetail = (folder) => (req, res) => {
   sendHtml(res, 404, pages.renderNotFound());
 };
 
-app.get('/releases/:slug', serveSeoDetail('releases'));
-app.get('/events/:slug',   serveSeoDetail('events'));
+app.get('/events/:slug', serveSeoDetail('events'));
+
+const PUBLIC_PAGE_CACHE = 'public, s-maxage=300, stale-while-revalidate=86400';
+const catalog = require('./src/render/catalogPages');
+const contentStore = require('./src/lib/contentStore');
+const { releaseHiddenReason, newsHiddenReason, visibleReleases, visibleNews } = require('./src/lib/rosterCatalog');
+const { verifyPreviewToken } = require('./src/api/middleware');
+const { categoryByInput } = require('./src/lib/categories');
+
+async function locateRecord(kind, slug, list) {
+  const indexed = await contentStore.getBySlug(kind, slug);
+  if (indexed) return indexed;
+  const doc = (Array.isArray(list) ? list : []).find((item) => {
+    const current = kind === 'release' ? pages.releaseSlug(item) : pages.newsSlug(item);
+    return current === slug || (Array.isArray(item.previousSlugs) && item.previousSlugs.includes(slug));
+  });
+  if (!doc) return null;
+  const current = kind === 'release' ? pages.releaseSlug(doc) : pages.newsSlug(doc);
+  return { doc, redirect: current !== slug };
+}
+
+app.get('/releases', async (req, res) => {
+  try {
+    const [releases, artists] = await Promise.all([db.get('releases'), db.get('artists')]);
+    sendHtml(res, 200, catalog.renderReleaseIndex(visibleReleases(releases, artists), req.query), PUBLIC_PAGE_CACHE);
+  } catch (e) {
+    console.error('[pages] releases', e);
+    sendHtml(res, 500, pages.renderNotFound());
+  }
+});
+
+app.get('/releases/:slug', async (req, res) => {
+  try {
+    const [releases, artists, news] = await Promise.all([db.get('releases'), db.get('artists'), db.get('news')]);
+    const found = await locateRecord('release', req.params.slug, releases);
+    if (!found) {
+      sendHtml(res, 404, pages.renderNotFound());
+      return;
+    }
+    const preview = verifyPreviewToken(req.query.preview, 'release', found.doc.id);
+    if (found.redirect) {
+      const next = '/releases/' + pages.releaseSlug(found.doc) + (preview ? '?preview=' + encodeURIComponent(String(req.query.preview)) : '');
+      redirectTo(res, next);
+      return;
+    }
+    const hidden = releaseHiddenReason(found.doc, artists);
+    if (hidden && !preview) {
+      sendHtml(res, 404, pages.renderNotFound());
+      return;
+    }
+    const relatedNews = visibleNews(news, artists).filter((post) =>
+      Array.isArray(post.relatedReleaseIds) && post.relatedReleaseIds.includes(found.doc.id)
+    ).slice(0, 3);
+    sendHtml(
+      res,
+      200,
+      catalog.renderReleasePage(found.doc, artists, { preview: Boolean(preview), relatedNews }),
+      preview || hidden ? 'no-store' : PUBLIC_PAGE_CACHE
+    );
+  } catch (e) {
+    console.error('[pages] release', e);
+    sendHtml(res, 500, pages.renderNotFound());
+  }
+});
+
+app.get('/news', async (req, res) => {
+  try {
+    const [news, artists] = await Promise.all([db.get('news'), db.get('artists')]);
+    sendHtml(res, 200, catalog.renderNewsIndex(visibleNews(news, artists), req.query), PUBLIC_PAGE_CACHE);
+  } catch (e) {
+    console.error('[pages] news index', e);
+    sendHtml(res, 500, pages.renderNotFound());
+  }
+});
+
+app.get('/news/category/:cat', async (req, res) => {
+  try {
+    const category = categoryByInput(req.params.cat);
+    if (!category || category.slug !== req.params.cat) {
+      sendHtml(res, 404, pages.renderNotFound());
+      return;
+    }
+    const [news, artists] = await Promise.all([db.get('news'), db.get('artists')]);
+    const posts = visibleNews(news, artists).filter((item) => categoryByInput(item.category) && categoryByInput(item.category).slug === category.slug);
+    sendHtml(res, 200, catalog.renderNewsCategory(category, posts, req.query), PUBLIC_PAGE_CACHE);
+  } catch (e) {
+    console.error('[pages] news category', e);
+    sendHtml(res, 500, pages.renderNotFound());
+  }
+});
 
 app.get('/dj-pool*', (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -313,32 +402,31 @@ app.get('/google:token([0-9a-zA-Z_-]+).html', (req, res) => {
 
 // -- Server-side rendered news article pages (/news/:slug) --
 app.get('/news/:slug', async (req, res) => {
-  const slugify = require('./src/utils/slugify');
-  const slug = req.params.slug;
-
   try {
-    const { visibleNews } = require('./src/lib/rosterCatalog');
-    const [allNews, artists] = await Promise.all([db.get('news'), db.get('artists')]);
-    const article = visibleNews(allNews, artists).find(n =>
-      (n.slug || slugify(n.title)) === slug
-    );
-
-    if (!article) {
+    const [allNews, artists, releases] = await Promise.all([db.get('news'), db.get('artists'), db.get('releases')]);
+    const found = await locateRecord('post', req.params.slug, allNews);
+    if (!found) {
       sendHtml(res, 404, pages.renderNotFound());
       return;
     }
-
-    const articleSlug = article.slug || slugify(article.title);
-    if (articleSlug && articleSlug !== slug) {
-      redirectTo(res, '/news/' + articleSlug);
+    const preview = verifyPreviewToken(req.query.preview, 'post', found.doc.id);
+    if (found.redirect) {
+      const next = '/news/' + pages.newsSlug(found.doc) + (preview ? '?preview=' + encodeURIComponent(String(req.query.preview)) : '');
+      redirectTo(res, next);
       return;
     }
-
+    const hidden = newsHiddenReason(found.doc, artists);
+    if (hidden && !preview) {
+      sendHtml(res, 404, pages.renderNotFound());
+      return;
+    }
+    const relatedId = found.doc.relatedReleaseIds && found.doc.relatedReleaseIds[0];
+    const relatedRelease = relatedId ? releases.find((item) => item.id === relatedId) : null;
     sendHtml(
       res,
       200,
-      pages.renderNewsArticle(article),
-      'public, s-maxage=3600, stale-while-revalidate=86400'
+      pages.renderNewsArticle(found.doc, { preview: Boolean(preview), relatedRelease }),
+      preview || hidden ? 'no-store' : PUBLIC_PAGE_CACHE
     );
   } catch (e) {
     console.error('[SEO] news SSR error:', e);
