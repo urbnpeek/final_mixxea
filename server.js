@@ -14,6 +14,7 @@ const { router: seoRouter, generateSitemap } = require('./src/api/seo');
 const db = require('./src/api/db');
 const pages = require('./src/render/publicPages');
 const { publicDetailPath } = require('./src/lib/publicDetail');
+const { prepareHomeHtml } = require('./src/lib/homeAssets');
 
 // -- Ensure upload directories exist (silently skip if read-only, e.g. Vercel) --
 const uploadDirs = ['public/uploads/audio','public/uploads/artwork','public/uploads/news','public/uploads/contracts'];
@@ -90,7 +91,7 @@ app.use('/api/seo', seoRouter);
 
 function sendHtml(res, status, html, cacheControl) {
   res.status(status);
-  res.set('Cache-Control', cacheControl || 'no-store, no-cache, must-revalidate');
+  res.set('Cache-Control', cacheControl || 'public, max-age=0, must-revalidate');
   if (status === 404 || status === 410) {
     res.set('X-Robots-Tag', 'noindex, nofollow');
   }
@@ -122,9 +123,9 @@ app.get('/', async (req, res, next) => {
       db.get('events'),
       db.get('news'),
     ]);
-    const html = pages.injectHome(fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'), {
+    const html = prepareHomeHtml(pages.injectHome(fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'), {
       artists, releases, events, news,
-    });
+    }));
     sendHtml(res, 200, html);
   } catch (e) {
     console.error('[pages] home', e);
@@ -186,13 +187,25 @@ app.get('/artists/:slug', async (req, res) => {
   }
 });
 
-// JS files: never cache so updates deploy immediately
-app.use('/js', express.static(path.join(__dirname, 'public', 'js'), { maxAge: 0, etag: false }));
+// Versioned /js/app.js?v=<hash> can be cached immutably. Unversioned files stay revalidated.
+app.use('/js', express.static(path.join(__dirname, 'public', 'js'), {
+  etag: true,
+  setHeaders(res) {
+    const versioned = Boolean(res.req && res.req.query && res.req.query.v);
+    res.setHeader('Cache-Control', versioned
+      ? 'public, max-age=31536000, immutable'
+      : 'public, max-age=0, must-revalidate');
+  }
+}));
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders(res, filePath) {
-    // Long cache for fingerprinted assets
-    if (/\.(css|woff2?|ttf|otf|eot|svg|png|jpg|jpeg|gif|ico|webp)$/.test(filePath)) {
-      res.set('Cache-Control', 'public, max-age=2592000, immutable');
+    if (filePath.endsWith('.avif')) res.setHeader('Content-Type', 'image/avif');
+    if (/[/\\](?:fonts|media)[/\\]/.test(filePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      return;
+    }
+    if (/\.(css|woff2?|ttf|otf|eot|svg|png|jpe?g|gif|ico|webp|avif)$/.test(filePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
     }
   }
 }));
