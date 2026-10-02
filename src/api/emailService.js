@@ -241,7 +241,7 @@ function renderAdminAlert(data) {
   });
 }
 
-async function deliverEmail({ to, subject, html, brand = 'mixxea', replyTo, tags }) {
+async function deliverEmail({ to, subject, html, brand = 'mixxea', replyTo, tags, headers, idempotencyKey }) {
   const recipients = uniqueEmails(Array.isArray(to) ? to : [to]);
   if (!recipients.length) {
     return { ok: false, skipped: true, error: 'No recipients supplied' };
@@ -250,7 +250,7 @@ async function deliverEmail({ to, subject, html, brand = 'mixxea', replyTo, tags
   const resend = getResend();
   if (resend) {
     try {
-      const result = await resend.emails.send({
+      const payload = {
         from: getFromAddress(brand),
         to: recipients,
         subject,
@@ -258,7 +258,12 @@ async function deliverEmail({ to, subject, html, brand = 'mixxea', replyTo, tags
         text: htmlToText(html),
         replyTo,
         tags,
-      });
+      };
+      if (headers && Object.keys(headers).length) payload.headers = headers;
+      const result = await resend.emails.send(
+        payload,
+        idempotencyKey ? { idempotencyKey } : undefined
+      );
       if (result.error) {
         console.error('[EMAIL][RESEND][ERROR]', result.error.message);
         return { ok: false, error: result.error.message };
@@ -280,6 +285,7 @@ async function deliverEmail({ to, subject, html, brand = 'mixxea', replyTo, tags
         subject,
         html,
         replyTo,
+        headers,
       });
       console.log('[EMAIL][SMTP][SENT]', subject, recipients.join(', '), info.messageId || '');
       return { ok: true, provider: 'smtp', id: info.messageId || null };

@@ -11,7 +11,8 @@
     "test:seo": "node test/seo-routes.js",
     "check-email-dns": "npx ts-node scripts/check-email-dns.ts",
     "generate-dns-fix": "npx ts-node scripts/generate-dns-fix.ts",
-    "test:admin-env": "node test/admin-env.js"
+    "test:admin-env": "node test/admin-env.js",
+    "test:webhook": "node test/resend-webhook.js"
   },
   "keywords": [
     "music",
@@ -36,6 +37,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.7",
     "resend": "^6.10.0",
+    "svix": "^1.88.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

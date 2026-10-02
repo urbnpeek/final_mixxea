@@ -3,12 +3,14 @@
  */
 const emailService = require('./emailService');
 
-async function sendMail({ to, subject, html, fromName, fromBrand, replyTo, tags }) {
+async function sendMail({ to, subject, html, fromName, fromBrand, replyTo, tags, headers, idempotencyKey }) {
   const brand = fromBrand || (fromName && String(fromName).toLowerCase().includes('freq') ? 'freqvault' : 'mixxea');
   return emailService.sendEmail(to, subject, html, {
     brand,
     replyTo,
     tags,
+    headers,
+    idempotencyKey,
   });
 }
 

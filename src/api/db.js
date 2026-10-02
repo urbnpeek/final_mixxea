@@ -22,6 +22,7 @@ const DEFAULTS = {
   events: [],
   newsletter: { subscribers: [], campaigns: [] },
   contactMessages: [],
+  emailBounces: [],
   news: [],
   royalties: [],
   promoters: [],
