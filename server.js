@@ -219,6 +219,7 @@ app.use('/api/demos',        require('./src/api/demos'));
 app.use('/api/bookings',     require('./src/api/bookings'));
 app.use('/api/newsletter',   require('./src/api/newsletter'));
 app.use('/api/contact',      require('./src/api/contact'));
+app.use('/api/inbox',        require('./src/api/inbox'));
 app.use('/api/events',       require('./src/api/events'));
 app.use('/api/royalties',    require('./src/api/royalties'));
 app.use('/api/contracts',    require('./src/api/contracts'));

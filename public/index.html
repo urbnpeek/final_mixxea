@@ -284,6 +284,8 @@ canvas#wc{position:absolute;inset:0;opacity:.65;z-index:0}
 .rel-filters{display:flex;gap:4px;flex-wrap:wrap}
 .f-btn{font-family:var(--Mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:9px 18px;background:none;border:1px solid var(--wire);color:var(--muted);cursor:pointer;transition:all .2s}
 .f-btn.on,.f-btn:hover{border-color:var(--g1);color:var(--g1);background:rgba(232,255,0,.04)}
+.inbox-f{font-family:var(--Mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:9px 18px;background:none;border:1px solid var(--wire);color:var(--muted);cursor:pointer;transition:all .2s}
+.inbox-f.on,.inbox-f:hover{border-color:var(--g1);color:var(--g1);background:rgba(232,255,0,.04)}
 .rel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
 .r-card{background:var(--panel);position:relative;overflow:hidden;aspect-ratio:1;cursor:pointer;transition:transform .35s var(--ease)}
 .r-card:first-child{grid-column:span 2;grid-row:span 2;aspect-ratio:auto;min-height:380px}
@@ -1262,6 +1264,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <button class="adm-nav-item" type="button" data-sec="a-djpool" onclick="goSec('a-djpool')"><span class="ico">♫</span>DJ Pool Manager</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Communications</div>
+        <button class="adm-nav-item" type="button" data-sec="a-inbox" onclick="goSec('a-inbox')"><span class="ico">✉</span>Contact Inbox</button>
         <button class="adm-nav-item" type="button" data-sec="a-nl" onclick="goSec('a-nl')"><span class="ico">📧</span>Newsletter</button>
         <button class="adm-nav-item" type="button" data-sec="a-subs" onclick="goSec('a-subs')"><span class="ico">👥</span>Subscribers</button>
       </div>
@@ -1636,6 +1639,37 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <thead><tr><th>Track</th><th>Artist</th><th>Label</th><th>BPM</th><th>Downloads</th></tr></thead>
           <tbody id="adm-djpool-tbody">
             <tr><td colspan="5" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading DJ Pool analytics...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- CONTACT INBOX -->
+      <div id="a-inbox" class="adm-section">
+        <div class="adm-top">
+          <div class="adm-h1">CONTACT <span class="hl">INBOX</span></div>
+          <div style="font-family:var(--Anton);font-size:28px;color:var(--g3)" id="adm-inbox-count">—</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+          <button class="inbox-f on" type="button" data-inbox-filter="all">All</button>
+          <button class="inbox-f" type="button" data-inbox-filter="contact">Contact</button>
+          <button class="inbox-f" type="button" data-inbox-filter="booking">Booking</button>
+          <button class="inbox-f" type="button" data-inbox-filter="demo">Demo</button>
+          <div class="adm-field" style="margin:0;min-width:220px;flex:1">
+            <input type="search" id="inbox-search" placeholder="Search name, email, subject" autocomplete="off">
+          </div>
+        </div>
+        <table class="adm-table">
+          <thead><tr><th>Date</th><th>Type</th><th>Name</th><th>Email</th><th>Subject / message</th><th>Status</th><th></th></tr></thead>
+          <tbody id="adm-inbox-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading...</td></tr>
+          </tbody>
+        </table>
+        <div id="inbox-detail" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:24px;margin-top:18px"></div>
+        <div class="adm-sec-head" style="margin-top:28px"><div class="adm-sec-title">Delivery problems</div></div>
+        <table class="adm-table">
+          <thead><tr><th>Date</th><th>Event</th><th>Recipient</th><th>Subject</th><th>Reason</th><th>Alert</th></tr></thead>
+          <tbody id="adm-bounce-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:24px">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -2309,6 +2343,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closeAdmin();});
 })();
 </script>
 <script src="/js/app.js?v=10"></script>
-<script src="/js/admin.js?v=9"></script>
+<script src="/js/admin.js?v=10"></script>
 </body>
 </html>
