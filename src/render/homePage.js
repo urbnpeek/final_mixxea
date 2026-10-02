@@ -59,13 +59,17 @@ function roleTag(artist) {
 }
 
 function rosterSrcset(slug, photo) {
-  const width = ROSTER_WIDTH[slug] || 800;
-  const parts = [`${photo} ${width}w`];
-  for (const extra of [600, 800]) {
-    if (extra === width) continue;
+  const master = ROSTER_WIDTH[slug] || 800;
+  const parts = [];
+  const listed = new Set();
+  for (const extra of [400, 600, 800]) {
+    if (extra > master) continue;
     const file = path.join(__dirname, '../../public/img/roster', `${slug}-${extra}.webp`);
-    if (fs.existsSync(file)) parts.push(`/img/roster/${slug}-${extra}.webp ${extra}w`);
+    if (!fs.existsSync(file)) continue;
+    parts.push(`/img/roster/${slug}-${extra}.webp ${extra}w`);
+    listed.add(extra);
   }
+  if (photo && !listed.has(master)) parts.push(`${photo} ${master}w`);
   return parts.join(', ');
 }
 
@@ -110,9 +114,9 @@ function renderHome(bundle) {
       <span class="meta acid">Latest</span>
       ${pages.coverUrl(latest, true) ? `<a href="${pages.esc(latestHref)}" aria-label="${pages.esc((latest.artist || '') + ' — ' + (latest.title || 'Release'))}"><img src="${pages.esc(pages.coverUrl(latest, true))}" width="44" height="44" alt=""></a>` : ''}
       <div class="mid">
-        <span class="meta">${pages.esc(latest.catNo || '')}</span>
+        <span class="meta catno">${pages.esc(latest.catNo || '')}</span>
         <a class="t" href="${pages.esc(latestHref)}">${pages.esc(latest.artist || '')} — ${pages.esc(latest.title || '')}</a>
-        <span class="meta">${pages.esc([latest.genre, pages.formatCatalogueDate(latest.date || latest.releaseDate)].filter(Boolean).join(' · '))}</span>
+        <span class="meta when">${pages.esc([latest.genre, pages.formatCatalogueDate(latest.date || latest.releaseDate)].filter(Boolean).join(' · '))}</span>
       </div>
       <div class="sp">
         ${pages.safeUrl(latestSpotify) ? `<a href="${pages.esc(pages.safeUrl(latestSpotify))}" target="_blank" rel="noopener">▶ Spotify</a>` : ''}

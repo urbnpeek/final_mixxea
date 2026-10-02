@@ -184,7 +184,7 @@ function renderDirectoryCards(artists) {
     const meta = metaLine(artist);
     const bio = String(artist.bio || '').trim();
     const book = isBookable(artist)
-      ? `<a class="btn btn-primary" href="/booking-agency?artist=${esc(slug)}">Book</a>`
+      ? `<a class="btn btn-primary" href="/booking-agency?artist=${esc(slug)}#inquiry">Book</a>`
       : '';
     return `<article class="artist-card">
       ${meta ? `<span class="artist-meta">${esc(meta)}</span>` : ''}

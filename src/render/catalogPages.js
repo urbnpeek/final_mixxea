@@ -322,7 +322,12 @@ function renderNewsCategory(category, posts, query, allPosts) {
       const href = '/news/' + pages.newsSlug(post);
       const image = pages.coverUrl(post, true);
       const plain = clipWords(post.excerpt || markdownToText(post.body), 160);
-      return `<article class="list-row"><a href="${pages.esc(href)}">${image ? `<img src="${pages.esc(image)}" alt="${pages.esc(post.imageAlt || post.title || '')}" width="240" height="135" loading="lazy">` : '<span class="ph pic"><b>NEWS</b></span>'}</a><div><h2 class="title"><a href="${pages.esc(href)}">${pages.esc(post.title || 'News')}</a></h2><p class="body">${pages.esc(plain)}</p><p class="meta">${pages.esc([pages.formatCatalogueDate(post.date || post.publishedAt), post.author].filter(Boolean).join(' · '))}</p></div></article>`;
+      const accent = categoryAccent(post.category);
+      const label = categoryLabel(post.category) || 'News';
+      const thumb = image
+        ? `<img src="${pages.esc(image)}" alt="${pages.esc(post.imageAlt || post.title || '')}" width="240" height="135" loading="lazy">`
+        : `<span class="ph pic"><span class="meta ${accent}">${pages.esc(label)}</span><b>NEWS</b></span>`;
+      return `<article class="list-row"><a href="${pages.esc(href)}">${thumb}</a><div><h2 class="title"><a href="${pages.esc(href)}">${pages.esc(post.title || 'News')}</a></h2><p class="body">${pages.esc(plain)}</p><p class="meta">${pages.esc([pages.formatCatalogueDate(post.date || post.publishedAt), post.author].filter(Boolean).join(' · '))}</p></div></article>`;
     }).join('')
     : `<p class="body">Nothing in ${pages.esc(name)} yet. <a href="/news">All news</a></p>`;
   const path = `/news/category/${category.slug}`;
@@ -368,6 +373,7 @@ ${pages.siteFooter()}`;
     title: `${name} | Mixxea News`,
     description,
     canonicalPath: query.page > 1 ? `${path}?page=${paged.current}` : path,
+    robots: posts.length ? 'index,follow' : 'noindex,follow',
     extraHead: links.extra,
     jsonLd,
     body,

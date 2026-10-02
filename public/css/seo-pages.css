@@ -113,6 +113,9 @@ img { max-width: 100%; height: auto; }
   .panel, .faq-item, .artist-card, .signal, .hero-card, .link-grid a { border-radius: 18px; }
   .footer { padding: 44px 0 56px; }
 }
+@media (max-width: 767px) {
+  .breadcrumbs a { display: inline-flex; align-items: center; min-height: 44px; }
+}
 @media (max-width: 640px) {
   .topbar-inner, .wrap, .footer-inner { width: calc(100% - 24px); }
   .brand { font-size: 22px; letter-spacing: 3px; }

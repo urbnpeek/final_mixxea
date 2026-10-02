@@ -58,6 +58,17 @@ if (isProduction) {
   cspDirectives.upgradeInsecureRequests = [];
 }
 
+// Preview deployments inject the Vercel Toolbar. Production keeps the §7
+// policy plus the analytics hosts already listed above.
+if (process.env.VERCEL_ENV === 'preview') {
+  cspDirectives.scriptSrc.push('https://vercel.live');
+  cspDirectives.styleSrc.push('https://vercel.live');
+  cspDirectives.fontSrc.push('https://vercel.live', 'https://assets.vercel.com');
+  cspDirectives.connectSrc.push('https://vercel.live', 'wss://ws-us3.pusher.com');
+  cspDirectives.imgSrc.push('https://vercel.live', 'https://vercel.com', 'blob:');
+  cspDirectives.frameSrc.push('https://vercel.live');
+}
+
 // -- Security & middleware --
 app.use(helmet({
   contentSecurityPolicy: {

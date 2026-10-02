@@ -13,7 +13,9 @@
   function trap(event) {
     if (!drawer || drawer.hidden) return;
     if (event.key === 'Escape') {
-      button.click();
+      event.preventDefault();
+      if (button.getAttribute('aria-expanded') === 'true') button.click();
+      button.focus();
       return;
     }
     if (event.key !== 'Tab') return;

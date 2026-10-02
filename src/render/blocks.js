@@ -81,7 +81,8 @@ function newsCard(post, { featured = false, excerpt = false } = {}) {
   const visual = image
     ? `<img src="${pages.esc(image)}" alt="${alt}" width="800" height="533" loading="lazy" decoding="async">`
     : `<span class="ph" style="aspect-ratio:3/2"><span class="meta ${accent}">${category}</span><b>NEWS</b></span>`;
-  const blurb = excerpt ? `<p class="small excerpt">${pages.esc(post.excerpt || '')}</p>` : '';
+  const excerptText = String(post.excerpt || '').trim();
+  const blurb = excerpt && excerptText ? `<p class="small excerpt">${pages.esc(excerptText)}</p>` : '';
   return `<a class="nc${featured ? ' featured' : ''}" href="${pages.esc(href)}">
     <span class="pic">${visual}</span>
     <span class="meta ${accent}">${category}${when ? ' · ' + pages.esc(when) : ''}</span>
