@@ -8,6 +8,7 @@ const slugify = require('../utils/slugify');
 const { visibleReleases, visibleEvents, visibleNews } = require('../lib/rosterCatalog');
 const { canonicalOrigin } = require('../lib/siteUrl');
 const { publicDetailExists } = require('../lib/publicDetail');
+const { renderPicture } = require('../lib/homeAssets');
 
 const BASE = canonicalOrigin();
 const BOOKING_EMAIL = 'booking@mixxea.com';
@@ -140,7 +141,11 @@ function renderHomeTiles(artists) {
     const photo = safeUrl(artist.photo);
     const initials = esc(String(artist.name).trim().slice(0, 2));
     const visual = photo
-      ? `<img src="${esc(photo)}" alt="${name}" style="width:100%;height:100%;object-fit:cover;opacity:.55">`
+      ? renderPicture(photo, {
+          alt: artist.name,
+          style: 'width:100%;height:100%;object-fit:cover;opacity:.55',
+          lazy: true,
+        })
       : initials;
     const book = isBookable(artist)
       ? `<a href="/booking-agency?artist=${esc(slug)}" class="at-btn at-btn-g">Book</a>`
@@ -219,7 +224,11 @@ function renderReleaseCards(releases) {
     const artwork = safeUrl(release.artwork);
     const mark = esc(release.catNo ? String(release.catNo).slice(-3) : String(release.title || '').slice(0, 2).toUpperCase());
     const visual = artwork
-      ? `<img src="${esc(artwork)}" alt="${esc(release.title || '')}" style="width:100%;height:100%;object-fit:cover;opacity:.4">`
+      ? renderPicture(artwork, {
+          alt: release.title || '',
+          style: 'width:100%;height:100%;object-fit:cover;opacity:.4',
+          lazy: true,
+        })
       : mark;
     const links = [
       ['beatport', 'Beatport'],
@@ -261,7 +270,13 @@ function renderNewsCards(news) {
     const slug = newsSlug(item);
     const href = slug ? `/news/${esc(slug)}` : '/#news';
     const visual = image
-      ? `<img src="${esc(image)}" alt="${esc(item.title || '')}" style="width:100%;height:100%;object-fit:cover">`
+      ? renderPicture(image, {
+          alt: item.title || '',
+          style: 'width:100%;height:100%;object-fit:cover',
+          lazy: true,
+          width: index === 0 ? 960 : 640,
+          height: index === 0 ? 320 : 220,
+        })
       : `<span style="font-family:var(--Anton);font-size:80px;color:rgba(232,255,0,.08)">${esc(String(item.title || '').slice(0, 2).toUpperCase())}</span>`;
     return `<a class="n-card${index === 0 ? ' n-card-featured' : ''}" href="${href}">
         <div class="nc-img">${visual}</div>

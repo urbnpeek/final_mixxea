@@ -1,0 +1,23 @@
+{
+  "https://zirwxbdwhxlhzqwo.public.blob.vercel-storage.com/artists/d32e0f88-11b1-4557-b10e-8cc58e00a6cc.png": {
+    "width": 639,
+    "height": 654,
+    "sizes": "(max-width: 640px) min(82vw, 280px), (max-width: 900px) 260px, 300px",
+    "avifSrcset": "/media/artists/eddie-bitar-420.644702a1.avif 420w, /media/artists/eddie-bitar-639.041bfd6a.avif 639w",
+    "webpSrcset": "/media/artists/eddie-bitar-420.7dc3797f.webp 420w, /media/artists/eddie-bitar-639.38e7786b.webp 639w"
+  },
+  "https://zirwxbdwhxlhzqwo.public.blob.vercel-storage.com/artists/5123c006-5632-46c0-8ba2-370689250662.png": {
+    "width": 694,
+    "height": 862,
+    "sizes": "(max-width: 640px) min(82vw, 280px), (max-width: 900px) 260px, 300px",
+    "avifSrcset": "/media/artists/david-hopperman-420.2853ff82.avif 420w, /media/artists/david-hopperman-640.0be6f65a.avif 640w",
+    "webpSrcset": "/media/artists/david-hopperman-420.7917874b.webp 420w, /media/artists/david-hopperman-640.5f8f26bc.webp 640w"
+  },
+  "https://zirwxbdwhxlhzqwo.public.blob.vercel-storage.com/artists/6025a5c6-e9b8-4b2d-b2ef-0b7616bcdb63.png": {
+    "width": 932,
+    "height": 507,
+    "sizes": "(max-width: 640px) min(82vw, 280px), (max-width: 900px) 260px, 300px",
+    "avifSrcset": "/media/artists/wally-lopez-480.d52fdcbf.avif 480w, /media/artists/wally-lopez-800.c091b6e0.avif 800w",
+    "webpSrcset": "/media/artists/wally-lopez-480.ac2c9c59.webp 480w, /media/artists/wally-lopez-800.bc54d33b.webp 800w"
+  }
+}

@@ -151,6 +151,19 @@ function escHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+/* Same markup as src/lib/homeAssets.js. Variants are injected on the homepage. */
+function mediaPicture(url, alt, style, options = {}) {
+  const variants = (typeof window !== 'undefined' && window.__IMG_VARIANTS) || {};
+  const variant = variants[url] || null;
+  const width = (variant && variant.width) || options.width;
+  const height = (variant && variant.height) || options.height;
+  const dims = width && height ? ` width="${Number(width)}" height="${Number(height)}"` : '';
+  const loading = options.lazy === false ? '' : ' loading="lazy"';
+  const img = `<img src="${escHtml(url)}" alt="${escHtml(alt)}"${dims}${loading} decoding="async"${style ? ` style="${escHtml(style)}"` : ''}>`;
+  if (!variant || !variant.avifSrcset) return img;
+  return `<picture style="display:block;width:100%;height:100%"><source type="image/avif" srcset="${escHtml(variant.avifSrcset)}" sizes="${escHtml(variant.sizes)}"><source type="image/webp" srcset="${escHtml(variant.webpSrcset)}" sizes="${escHtml(variant.sizes)}">${img}</picture>`;
+}
+
 /* ─────────────────────────────────────────────────────
    RELEASES — load from API and render
 ───────────────────────────────────────────────────── */
@@ -167,7 +180,7 @@ function releaseCardsHtml(releases) {
     const artwork = safeHref(r.artwork);
     const mark = escHtml(r.catNo ? String(r.catNo).slice(-3) : String(r.title || '').slice(0, 2).toUpperCase());
     const visual = artwork
-      ? `<img src="${escHtml(artwork)}" alt="${escHtml(r.title || '')}" style="width:100%;height:100%;object-fit:cover;opacity:.4">`
+      ? mediaPicture(artwork, r.title || '', 'width:100%;height:100%;object-fit:cover;opacity:.4')
       : mark;
     const links = [
       ['beatport', 'Beatport'],
@@ -242,7 +255,7 @@ async function loadArtists() {
       return `
       <div class="a-tile">
         <div class="at-bg" style="color:${COLORS[i % COLORS.length]}">
-          ${photo ? `<img src="${photo}" alt="${name}" style="width:100%;height:100%;object-fit:cover;opacity:.55">` : escHtml(String(a.name).slice(0, 2))}
+          ${photo ? mediaPicture(a.photo, a.name, 'width:100%;height:100%;object-fit:cover;opacity:.55') : escHtml(String(a.name).slice(0, 2))}
         </div>
         <div class="at-ov"></div>
         <div class="at-c">
@@ -326,7 +339,7 @@ async function loadNews() {
         : when.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
       return `
       <a class="n-card${i === 0 ? ' n-card-featured' : ''}" href="${href}">
-        <div class="nc-img">${image ? `<img src="${escHtml(image)}" alt="${escHtml(n.title || '')}" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-family:var(--Anton);font-size:80px;color:rgba(232,255,0,.08)">${escHtml(String(n.title || '').slice(0, 2).toUpperCase())}</span>`}</div>
+        <div class="nc-img">${image ? mediaPicture(image, n.title || '', 'width:100%;height:100%;object-fit:cover', { width: i === 0 ? 960 : 640, height: i === 0 ? 320 : 220 }) : `<span style="font-family:var(--Anton);font-size:80px;color:rgba(232,255,0,.08)">${escHtml(String(n.title || '').slice(0, 2).toUpperCase())}</span>`}</div>
         <div class="nc-cat">${escHtml(n.category || 'News')}</div>
         <div class="nc-title">${escHtml(n.title || '')}</div>
         <div class="nc-date">${escHtml(dateLabel)}</div>
