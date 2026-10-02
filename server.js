@@ -59,6 +59,13 @@ app.use(helmet({
   },
 }));
 app.use(cors());
+// Resend signs the raw body. This route must stay ahead of express.json()
+// so the Svix check sees the exact bytes, not a re-serialized object.
+app.post(
+  '/api/webhooks/resend',
+  express.raw({ type: () => true, limit: '2mb' }),
+  require('./src/api/resendWebhook').handleResendWebhook
+);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/api', (req, res, next) => {
