@@ -7,6 +7,8 @@ const multer  = require('multer');
 const { v4: uuid } = require('uuid');
 const db      = require('./db');
 const { uploadFile } = require('./upload');
+const { presentRecord, sendStoredFile } = require('../lib/privateFiles');
+const { resolveActor } = require('./middleware');
 const mailer  = require('./mailer');
 const { requireAdmin } = require('./middleware');
 const { getAppUrl }    = require('./appUrl');
@@ -66,7 +68,7 @@ router.post('/submit', maybeUpload, async (req, res) => {
       // Legacy compat
       notes:        req.body.notes        || req.body.description || '',
       soundcloudLink: req.body.soundcloudLink || req.body.social || '',
-      file:         await uploadFile(req.file, 'audio'),
+      file:         await uploadFile(req.file, 'audio', { access: 'private' }),
       submittedAt:  new Date().toISOString(),
       status:       'new',
     };
@@ -152,7 +154,29 @@ router.post('/send-link', requireAdmin, async (req, res) => {
 });
 
 // ── List demos (admin) ────────────────────────────────────────────────────────
-router.get('/', requireAdmin, async (req, res) => res.json(await db.get('demos')));
+function presentDemo(demo) {
+  return presentRecord(demo, `/api/demos/${demo.id}/file`);
+}
+
+router.get('/', requireAdmin, async (req, res) => {
+  const demos = await db.get('demos');
+  res.json(demos.map(presentDemo));
+});
+
+router.get('/:id/file', async (req, res) => {
+  try {
+    const actor = await resolveActor(req);
+    if (!actor) return res.status(401).json({ error: 'Sign in required' });
+    if (actor.role !== 'admin') return res.status(403).json({ error: 'Admin access required' });
+    const demos = await db.get('demos');
+    const demo = demos.find((item) => item.id === req.params.id);
+    if (!demo || !demo.file) return res.status(404).json({ error: 'File not found' });
+    await sendStoredFile(res, demo.file);
+  } catch (error) {
+    console.error('[DEMOS] file error:', error);
+    if (!res.headersSent) res.status(500).json({ error: 'Could not open the file' });
+  }
+});
 
 // ── Update status (admin) ─────────────────────────────────────────────────────
 router.put('/:id/status', requireAdmin, async (req, res) => {
@@ -174,7 +198,7 @@ router.put('/:id/status', requireAdmin, async (req, res) => {
       { brand: 'mixxea' }
     );
   }
-  res.json(demos[idx]);
+  res.json(presentDemo(demos[idx]));
 });
 
 // ── Delete demo (admin) ───────────────────────────────────────────────────────

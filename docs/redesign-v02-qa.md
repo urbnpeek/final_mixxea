@@ -89,6 +89,19 @@ Headless Chrome, no stored choice: no requests to `google-analytics.com`, `analy
 
 Signed-out admin API checks are in the PR report. Writes return 403. Catalogue reads `GET /api/releases`, `/api/artists`, `/api/news`, `/api/events`, and `/api/news/categories` stay public.
 
+## Go-live order
+
+Do not run either migration with `--apply` until Fuad signs off and these land in this order:
+
+1. Merge PR #10.
+2. Merge PR #11.
+3. `node scripts/migrate-redesign-data.js --apply`
+4. `node scripts/migrate-private-blobs.js --apply`
+
+`--apply` on the private-blob script copies each public demo and contract blob to private storage, updates the KV record, and deletes the public copy only after the private copy is verified. It writes a JSON backup under `data/backups/` first. It was not run here.
+
+Set `UNSUBSCRIBE_SECRET` before newsletter mail is sent. Private Blob uses the existing `BLOB_READ_WRITE_TOKEN` with `access: 'private'`. No extra Blob env var.
+
 ## Still blocked on confirmation
 
 Unconfirmed dates stay `draft`. Unconfirmed links stay empty.

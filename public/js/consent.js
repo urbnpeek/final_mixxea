@@ -1,18 +1,27 @@
 (function () {
   var KEY = 'mx-consent';
 
+  function fresh(saved) {
+    if (!saved || saved.v !== 1 || typeof saved.at !== 'string') return false;
+    var then = new Date(saved.at);
+    if (isNaN(then.getTime())) return false;
+    var limit = new Date(then.getTime());
+    limit.setMonth(limit.getMonth() + 12);
+    return Date.now() < limit.getTime();
+  }
+
   function read() {
     try {
       var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
-      if (!saved || saved.v !== 1) return null;
-      return { analytics: !!saved.analytics, marketing: !!saved.marketing };
+      if (!fresh(saved)) return null;
+      return { analytics: !!saved.analytics, marketing: !!saved.marketing, at: saved.at };
     } catch (e) {
       return null;
     }
   }
 
   function write(choice) {
-    var value = { v: 1, analytics: !!choice.analytics, marketing: !!choice.marketing };
+    var value = { v: 1, analytics: !!choice.analytics, marketing: !!choice.marketing, at: new Date().toISOString() };
     try { localStorage.setItem(KEY, JSON.stringify(value)); } catch (e) { /* private mode */ }
     return value;
   }

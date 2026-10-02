@@ -444,6 +444,47 @@ app.get('/privacy', (req, res) => {
   sendHtml(res, 200, require('./src/render/privacyPage').renderPrivacyPage({ preview }), cache);
 });
 
+app.get('/unsubscribe', (req, res) => {
+  const { verifyUnsubscribeToken } = require('./src/lib/unsubscribeToken');
+  const { renderUnsubscribePage } = require('./src/render/unsubscribePage');
+  const preview = process.env.VERCEL_ENV === 'preview';
+  const token = String(req.query.token || '');
+  const email = verifyUnsubscribeToken(token);
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  res.set('Cache-Control', 'no-store');
+  sendHtml(res, email ? 200 : 400, renderUnsubscribePage({
+    preview,
+    token,
+    email,
+    invalid: !email,
+  }), 'no-store');
+});
+
+app.post('/unsubscribe', async (req, res) => {
+  const { verifyUnsubscribeToken } = require('./src/lib/unsubscribeToken');
+  const { unsubscribeEmail } = require('./src/lib/newsletterList');
+  const { renderUnsubscribePage } = require('./src/render/unsubscribePage');
+  const db = require('./src/api/db');
+  const token = String((req.query && req.query.token) || (req.body && req.body.token) || '');
+  const email = verifyUnsubscribeToken(token);
+  const oneClick = String((req.body && (req.body['List-Unsubscribe'] || req.body.listUnsubscribe)) || '') === 'One-Click';
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  res.set('Cache-Control', 'no-store');
+  if (!email) {
+    if (oneClick) return res.status(400).json({ error: 'Invalid token' });
+    return sendHtml(res, 400, renderUnsubscribePage({ preview: process.env.VERCEL_ENV === 'preview', invalid: true }), 'no-store');
+  }
+  const current = await db.get('newsletter');
+  const result = unsubscribeEmail(current, email);
+  await db.set('newsletter', result.newsletter);
+  if (oneClick) return res.status(200).json({ success: true });
+  sendHtml(res, 200, renderUnsubscribePage({
+    preview: process.env.VERCEL_ENV === 'preview',
+    done: true,
+    email,
+  }), 'no-store');
+});
+
 const serveSeoDetail = (folder) => (req, res) => {
   const filePath = publicDetailPath(folder, req.params.slug);
   if (filePath && fs.existsSync(filePath)) {

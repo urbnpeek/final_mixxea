@@ -451,7 +451,16 @@ window.mxLoadPixel=function(){
 };
 try{
   var saved=JSON.parse(localStorage.getItem('mx-consent')||'null');
-  if(saved&&saved.v===1){
+  var fresh=false;
+  if(saved&&saved.v===1&&typeof saved.at==='string'){
+    var then=new Date(saved.at);
+    if(!isNaN(then.getTime())){
+      var limit=new Date(then.getTime());
+      limit.setMonth(limit.getMonth()+12);
+      fresh=Date.now()<limit.getTime();
+    }
+  }
+  if(fresh){
     if(saved.analytics)window.mxLoadAnalytics();
     if(saved.marketing)window.mxLoadPixel();
   }

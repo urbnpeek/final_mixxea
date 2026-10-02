@@ -234,7 +234,13 @@ async function main() {
     assert(page.body.includes('data-cookie-settings'), 'cookie settings control missing');
     assert(page.body.includes('Change cookie settings'), 'change settings label missing');
     assert(page.body.includes('href="/privacy"'), 'footer privacy link missing');
-    assert(page.body.includes('[CONFIRM]'), 'open items missing');
+    assert(page.body.includes('[CONFIRM-PRODUCT]'), 'product questions missing');
+    assert(!/\[CONFIRM\](?!-PRODUCT)/.test(page.body), 'unresolved CONFIRM marker');
+    assert(!page.body.includes('[CONFIRM-SMTP]'), 'smtp marker should be gone');
+    assert(page.body.includes('Resend is the only email provider'), 'resend wording');
+    assert(page.body.includes('The minimum age is 16'), 'age missing');
+    assert(page.body.includes('stored privately'), 'private files wording');
+    assert(page.body.includes('unsubscribe link'), 'unsubscribe missing');
     assert(page.body.includes('Last updated 2 October 2026'), 'date missing');
     assert(/name="robots" content="index,follow"/.test(page.body), 'production robots');
     assert(!page.body.includes('Draft for approval'), 'draft banner leaked outside preview');

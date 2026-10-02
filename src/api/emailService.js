@@ -158,20 +158,42 @@ function renderShell({ brand = 'mixxea', preheader, eyebrow, title, body, ctaLab
 </html>`;
 }
 
-function renderNewsletterTemplate({ subject, body, intro, fromName }) {
+function renderNewsletterTemplate({ subject, body, intro, fromName, unsubscribeUrl }) {
   const content = String(body || '')
     .split(/\r?\n\r?\n/)
     .map((block) => `<p>${escapeHtml(block).replace(/\r?\n/g, '<br />')}</p>`)
     .join('');
+  const unsubscribe = unsubscribeUrl
+    ? `<p><a href="${escapeHtml(unsubscribeUrl)}">Unsubscribe</a></p>`
+    : '';
 
   return renderShell({
     brand: 'mixxea',
     preheader: intro || subject,
     eyebrow: 'Newsletter',
     title: subject,
-    body: `${intro ? `<p>${escapeHtml(intro)}</p>` : ''}${content}`,
+    body: `${intro ? `<p>${escapeHtml(intro)}</p>` : ''}${content}${unsubscribe}`,
     footerNote: `You are receiving this because you subscribed to ${escapeHtml(fromName || process.env.LABEL_NAME || 'Mixxea Records')} updates.`
   });
+}
+
+function newsletterDelivery(email, content) {
+  const { unsubscribeUrl: buildUrl, unsubscribeSecret } = require('../lib/unsubscribeToken');
+  if (!unsubscribeSecret()) {
+    console.error('[EMAIL][NEWSLETTER] UNSUBSCRIBE_SECRET is not set; email not sent');
+    return null;
+  }
+  const url = buildUrl(content.origin, email);
+  if (!url) return null;
+  return {
+    to: String(email || '').trim(),
+    subject: content.subject,
+    html: renderNewsletterTemplate({ ...content, unsubscribeUrl: url }),
+    headers: {
+      'List-Unsubscribe': `<${url}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
+  };
 }
 
 function renderBookingConfirmation(data) {
@@ -305,28 +327,34 @@ async function sendEmail(to, subject, html, options = {}) {
 
 async function sendNewsletter(subscribers, content) {
   const emails = uniqueEmails(subscribers);
-  const html = renderNewsletterTemplate(content);
-  const batchSize = 50;
+  if (!emails.length) return { ok: true, attempted: 0, batches: 0, results: [] };
+  if (!newsletterDelivery(emails[0], content)) {
+    return { ok: false, error: 'UNSUBSCRIBE_SECRET is not set', attempted: 0, batches: 0, results: [] };
+  }
   const results = [];
 
-  for (let i = 0; i < emails.length; i += batchSize) {
-    const batch = emails.slice(i, i + batchSize);
+  for (const email of emails) {
+    const message = newsletterDelivery(email, content);
+    if (!message) {
+      results.push({ ok: false, error: 'UNSUBSCRIBE_SECRET is not set' });
+      continue;
+    }
     results.push(await deliverEmail({
-      to: batch,
-      subject: content.subject,
-      html,
+      to: message.to,
+      subject: message.subject,
+      html: message.html,
       brand: 'mixxea',
       replyTo: process.env.NEWSLETTER_REPLY_TO,
       tags: [{ name: 'campaign', value: 'newsletter' }],
+      headers: message.headers,
     }));
   }
 
   return {
-    ok: results.every((entry) => entry.ok),
+    ok: results.length > 0 && results.every((entry) => entry.ok),
     attempted: emails.length,
     batches: results.length,
     results,
-    html,
   };
 }
 
@@ -396,6 +424,7 @@ module.exports = {
   getAdminRecipients,
   sendEmail,
   sendNewsletter,
+  newsletterDelivery,
   sendBookingConfirmation,
   sendDemoSubmissionConfirmation,
   sendAdminNotification,

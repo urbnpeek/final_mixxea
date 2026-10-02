@@ -6,6 +6,8 @@ const { v4: uuid } = require('uuid');
 const db = require('./db');
 const mailer = require('./mailer');
 const { requireAdmin } = require('./middleware');
+const { getAppUrl } = require('./appUrl');
+const { addSubscriber, unsubscribeEmail } = require('../lib/newsletterList');
 const router = express.Router();
 
 router.post('/subscribe', async (req, res) => {
@@ -15,27 +17,42 @@ router.post('/subscribe', async (req, res) => {
   }
   const normalized = String(email).trim().toLowerCase();
   const nl = await db.get('newsletter');
-  if (nl.subscribers.find((s) => s.email === normalized)) {
+  const added = addSubscriber(nl, { email: normalized, source });
+  if (added.status === 'invalid') return res.status(400).json({ error: 'Valid email required' });
+  if (added.status === 'suppressed') {
+    return res.status(200).json({ success: true, suppressed: true, message: 'This address has unsubscribed' });
+  }
+  if (added.status === 'exists') {
     return res.json({ success: true, message: 'Already subscribed' });
   }
-  nl.subscribers.push({ email: normalized, joinedAt: new Date().toISOString(), source });
-  await db.set('newsletter', nl);
+  await db.set('newsletter', added.newsletter);
 
-  await mailer.sendEmail(
-    normalized,
-    'Welcome to Mixxea Records Newsletter',
-    mailer.renderTemplates.newsletter({ subject: 'Welcome to Mixxea + FreqVault', intro: 'You are officially on the list.', body: 'You will receive updates on new releases, artist news, bookings, and events across the Mixxea ecosystem.', fromName: process.env.LABEL_NAME || 'Mixxea Records' }),
-    { brand: 'mixxea', replyTo: process.env.NEWSLETTER_REPLY_TO, tags: [{ name: 'flow', value: 'newsletter-subscribe' }] }
-  ).catch(() => {});
+  const welcome = mailer.newsletterDelivery(normalized, {
+    subject: 'Welcome to Mixxea Records Newsletter',
+    intro: 'You are officially on the list.',
+    body: 'You will receive updates on new releases, artist news, bookings, and events across the Mixxea ecosystem.',
+    fromName: process.env.LABEL_NAME || 'Mixxea Records',
+    origin: getAppUrl(req) || 'https://www.mixxea.com',
+  });
+  if (!welcome) {
+    console.error('[NEWSLETTER] UNSUBSCRIBE_SECRET is not set; welcome email not sent');
+    return res.json({ success: true, warning: 'Subscribed, but the welcome email was not sent.' });
+  }
+  await mailer.sendEmail(welcome.to, welcome.subject, welcome.html, {
+    brand: 'mixxea',
+    replyTo: process.env.NEWSLETTER_REPLY_TO,
+    tags: [{ name: 'flow', value: 'newsletter-subscribe' }],
+    headers: welcome.headers,
+  }).catch(() => {});
 
   res.json({ success: true });
 });
 
-router.delete('/unsubscribe/:email', async (req, res) => {
+router.delete('/unsubscribe/:email', requireAdmin, async (req, res) => {
   const nl = await db.get('newsletter');
-  nl.subscribers = nl.subscribers.filter((s) => s.email !== req.params.email);
-  await db.set('newsletter', nl);
-  res.json({ success: true });
+  const result = unsubscribeEmail(nl, decodeURIComponent(req.params.email));
+  await db.set('newsletter', result.newsletter);
+  res.json({ success: true, removed: result.removed });
 });
 
 router.get('/subscribers', requireAdmin, async (req, res) => {
@@ -61,14 +78,20 @@ router.post('/send', requireAdmin, async (req, res) => {
 
   const nl = await db.get('newsletter');
 
+  const origin = getAppUrl(req) || 'https://www.mixxea.com';
   if (testEmail) {
-    const result = await mailer.sendEmail(testEmail, `[TEST] ${subject}`, mailer.previewNewsletter({ subject, body, intro, fromName }), { brand: 'mixxea', replyTo: process.env.NEWSLETTER_REPLY_TO, tags: [{ name: 'campaign', value: 'newsletter-test' }] });
+    const message = mailer.newsletterDelivery(testEmail, { subject: `[TEST] ${subject}`, body, intro, fromName, origin });
+    if (!message) {
+      console.error('[NEWSLETTER] UNSUBSCRIBE_SECRET is not set; test email not sent');
+      return res.status(500).json({ error: 'UNSUBSCRIBE_SECRET is not set' });
+    }
+    const result = await mailer.sendEmail(message.to, message.subject, message.html, { brand: 'mixxea', replyTo: process.env.NEWSLETTER_REPLY_TO, tags: [{ name: 'campaign', value: 'newsletter-test' }], headers: message.headers });
     if (!result.ok) return res.status(502).json({ error: result.error || 'Test email failed' });
     return res.json({ success: true, sent: 1, test: true, provider: result.provider || 'resend' });
   }
 
   const recipients = nl.subscribers.map((s) => s.email);
-  const result = await mailer.sendNewsletter(recipients, { subject, body, intro, fromName });
+  const result = await mailer.sendNewsletter(recipients, { subject, body, intro, fromName, origin });
 
   const campaign = {
     id: uuid(), subject, intro, fromName,
