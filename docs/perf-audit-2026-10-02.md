@@ -134,24 +134,24 @@ On viewports under 640px, `.h-bg-txt` is `display: none`, which is why mobile LC
 7. **Move the admin overlay and its inline script off the homepage document.** Large HTML on every visit. Not done: it changes when admin UI is available.
 8. **Repair the two 404 news images.** The files are not in the repo or on the live server. Not invented.
 
-## After (local production-like server)
+## After (this PR’s Vercel preview)
 
-The Vercel preview was not available when this was measured. The repeat run used the same Lighthouse CLI (12.6.1, 3 runs, median) against `http://127.0.0.1:3456/` with the live roster/news JSON loaded into the local data files so the page content matches production. Express on that server does **not** Brotli-compress, so HTML and JS transfer sizes below are larger than they will be on Vercel (the live before-audit already showed Brotli). Lazy images were not in the initial viewport, so their bytes are not in this total. That is the intended deferral.
+Same Lighthouse CLI (12.6.1, 3 runs, median) against the preview deployment `final-mixxea-378nueprv-urbnpeeks-projects.vercel.app`, which is the build of this branch. The preview is behind Vercel Authentication; the runs used a short-lived bypass cookie and were not a redirect. SSR HTML on that deployment includes the three artist `<picture>` elements, so the missing image bytes are lazy-load deferral, not missing content. Vercel Brotli is on (`content-encoding: br`).
 
-| Metric | Mobile before (www) | Mobile after (local) | Desktop before (www) | Desktop after (local) |
+| Metric | Mobile before (www) | Mobile after (preview) | Desktop before (www) | Desktop after (preview) |
 | --- | ---: | ---: | ---: | ---: |
-| Performance | 70 | 90 | 90 | 100 |
-| LCP | 10.8 s | 3.4 s | 2.0 s | 0.76 s |
-| FCP | 2.8 s | 1.7 s | 0.8 s | 0.38 s |
+| Performance | 70 | 98 | 90 | 100 |
+| LCP | 10.8 s | 2.4 s | 2.0 s | 0.61 s |
+| FCP | 2.8 s | 1.1 s | 0.8 s | 0.33 s |
 | TBT | 0 ms | 0 ms | 0 ms | 0 ms |
-| CLS | 0.003 | 0 | 0.027 | 0.000 |
-| Speed Index | 2.8 s | 1.7 s | 0.8 s | 0.46 s |
-| Total weight | 1,810,295 B | 348,115 B | 1,810,672 B | 348,115 B |
-| Requests | 30 | 22 | 30 | 22 |
+| CLS | 0.003 | 0 | 0.027 | 0 |
+| Speed Index | 2.8 s | 1.4 s | 0.8 s | 0.57 s |
+| Total weight | 1,810,295 B | 128,283 B | 1,810,672 B | 128,249 B |
+| Requests | 30 | 23 | 30 | 23 |
 
-Local after transfer mix (mobile run 1, uncompressed): document 168 KB, scripts 95 KB, fonts 61 KB, images 0 KB during the trace. Lighthouse still flags text compression (~204 KB, absent locally, present on Vercel) and about 50 KB of unused JavaScript (`admin.js` on a page view that never opens admin).
+Preview mobile run 1 transfer: document ~38 KB (brotli), three latin fonts ~58 KB, no image bytes during the trace. Mobile LCP moved to the nav wordmark (`a.nav-logo`). Desktop LCP stayed on `div.h-bg-txt`.
 
-Mobile LCP stayed on text (`p.h-tag` or the nav wordmark). Desktop LCP stayed on `div.h-bg-txt`.
+A local `node server.js` run (no Brotli) scored 90 mobile / 100 desktop with a 348 KB uncompressed transfer. Those numbers are not the comparison above. Local Lighthouse did flag ~50 KB of unused JavaScript in `admin.js`, which is still downloaded on every homepage view.
 
 ## What this PR changes
 
