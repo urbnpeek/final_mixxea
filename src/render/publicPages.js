@@ -420,14 +420,56 @@ function injectRoster(html, artists) {
 
 function trackingHead() {
   return `<script>
-window.addEventListener('load', function () {
-  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-KCNCSXM7');
-  var g=document.createElement('script'); g.async=true; g.src='https://www.googletagmanager.com/gtag/js?id=G-MEVRRCQQ5T'; document.head.appendChild(g);
-  window.dataLayer=window.dataLayer||[]; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-MEVRRCQQ5T');
-  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-  fbq('init','1331927570650344'); fbq('track','PageView');
+window.dataLayer=window.dataLayer||[];
+function gtag(){dataLayer.push(arguments);}
+window.gtag=gtag;
+gtag('consent','default',{
+  ad_storage:'denied',
+  analytics_storage:'denied',
+  ad_user_data:'denied',
+  ad_personalization:'denied',
+  wait_for_update:500
 });
+window.mxLoadAnalytics=function(){
+  if(window.__mxGa)return;
+  window.__mxGa=true;
+  gtag('consent','update',{analytics_storage:'granted'});
+  var s=document.createElement('script');
+  s.async=true;
+  s.src='https://www.googletagmanager.com/gtag/js?id=G-MEVRRCQQ5T';
+  document.head.appendChild(s);
+  gtag('js',new Date());
+  gtag('config','G-MEVRRCQQ5T');
+};
+window.mxLoadPixel=function(){
+  if(window.__mxPx)return;
+  window.__mxPx=true;
+  gtag('consent','update',{ad_storage:'granted',ad_user_data:'granted',ad_personalization:'granted'});
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init','1331927570650344');
+  fbq('track','PageView');
+};
+try{
+  var saved=JSON.parse(localStorage.getItem('mx-consent')||'null');
+  if(saved&&saved.v===1){
+    if(saved.analytics)window.mxLoadAnalytics();
+    if(saved.marketing)window.mxLoadPixel();
+  }
+}catch(e){}
 </script>`;
+}
+
+function stripTrackers(html) {
+  return String(html)
+    .replace(/<!--\s*Google Tag Manager(?:\s*\(noscript\))?\s*-->[\s\S]*?<!--\s*End Google Tag Manager(?:\s*\(noscript\))?\s*-->/gi, '')
+    .replace(/<!--\s*Google tag \(gtag\.js\)\s*-->/gi, '')
+    .replace(/<!--\s*Meta Pixel Code\s*-->[\s\S]*?<!--\s*End Meta Pixel Code\s*-->/gi, '')
+    .replace(/<script[^>]+googletagmanager\.com\/gtag\/js[^>]*>\s*<\/script>/gi, '')
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (block) => (
+      /GTM-KCNCSXM7|gtag\(|fbq\(|fbevents\.js|googletagmanager\.com/.test(block) ? '' : block
+    ))
+    .replace(/<noscript>\s*<iframe[^>]+googletagmanager\.com\/ns\.html[\s\S]*?<\/noscript>/gi, '')
+    .replace(/<noscript>\s*<img[^>]+facebook\.com\/tr[\s\S]*?<\/noscript>/gi, '');
 }
 
 const NAV_ITEMS = [
@@ -527,7 +569,7 @@ function siteFooter(options = {}) {
   </div>
   <div class="wrap ft-base">
     <span>&copy; ${year} Mixxea Records · FreqVault Agency · Since 2013</span>
-    <span><a href="/portal">Artist login</a></span>
+    <span><button type="button" class="linkish" data-cookie-settings>Cookie settings</button> · <a href="/portal">Artist login</a></span>
   </div>
 </footer>`;
 }
@@ -541,15 +583,19 @@ function seoFooter() {
 }
 
 function applyChrome(html, currentPath) {
-  let out = String(html);
+  let out = stripTrackers(html);
   out = out.replace(/<link[^>]+fonts\.googleapis\.com\/css2\?[^>]*>/gi, '');
   if (!out.includes('/css/site.css')) {
     out = out.replace(/<\/head>/i, '<link rel="stylesheet" href="/css/site.css">\n<script>document.documentElement.classList.add("js")</script>\n</head>');
+  }
+  if (!out.includes('mxLoadAnalytics')) {
+    out = out.replace(/<\/head>/i, `${trackingHead()}\n</head>`);
   }
   out = out.replace(/<header\b[^>]*>[\s\S]*?<\/header>/i, siteNav(currentPath));
   out = out.replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/i, siteFooter());
   if (!out.includes('id="content"')) out = out.replace(/<main\b/i, '<main id="content"');
   if (!out.includes('/js/site.js')) out = out.replace(/<\/body>/i, '<script src="/js/site.js" defer></script>\n</body>');
+  if (!out.includes('/js/consent.js')) out = out.replace(/<\/body>/i, '<script src="/js/consent.js" defer></script>\n</body>');
   out = out.replace(/Freq Vault/g, 'FreqVault');
   out = out.replace(/Jack \/ FreqVault · Mixxea Records/g, 'FreqVault Agency · Mixxea Records');
   out = out.replace(/Est\. 2024(?:\s*·\s*Global)?/g, 'Since 2013 · Label & management since 2017');
@@ -601,9 +647,9 @@ ${trackingHead()}
 ${graph}
 </head>
 <body>
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KCNCSXM7" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 ${body}
 <script src="/js/site.js" defer></script>
+<script src="/js/consent.js" defer></script>
 </body>
 </html>`;
 }

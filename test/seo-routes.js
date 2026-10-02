@@ -181,8 +181,12 @@ async function main() {
     assert(res.body.includes('BlogPosting'), 'missing BlogPosting');
     assert(!res.body.includes('class="h-title"'), 'homepage H1 leaked');
     assert(/name="robots" content="index,follow"/.test(res.body), 'robots meta');
-    assert(res.body.includes('GTM-KCNCSXM7'), 'GTM removed');
-    assert(res.body.includes('G-MEVRRCQQ5T'), 'GA4 removed');
+    assert(!res.body.includes('GTM-KCNCSXM7'), 'GTM still present');
+    assert(res.body.includes('G-MEVRRCQQ5T'), 'GA4 id missing');
+    assert(!res.body.includes('G-BQW5PQ4Y99'), 'second GA4 property loaded');
+    assert(!res.body.includes('G-PW4MLCMX1L'), 'freqvault property loaded');
+    assert(res.body.includes("analytics_storage:'denied'"), 'consent default missing');
+    assert(!/<script[^>]+src="[^"]*fbevents\.js/.test(res.body), 'pixel script tag present');
   });
 
   await check('missing news is 404', async () => {
@@ -212,7 +216,10 @@ async function main() {
     const home = await request(port, '/');
     assert(home.body.includes('class="h-title"'), 'home H1 missing');
     assert(home.body.includes('booking@mixxea.com'), 'booking email changed');
-    assert(home.body.includes('GTM-KCNCSXM7'), 'GTM removed');
+    assert(!home.body.includes('GTM-KCNCSXM7'), 'GTM still present');
+    assert(home.body.includes('G-MEVRRCQQ5T'), 'GA4 id missing');
+    assert(home.body.includes('data-cookie-settings'), 'cookie settings missing');
+    assert(home.body.includes('/css/site.css?v='), 'css is not versioned');
     assert(home.body.includes('href="/news/nera-joins-the-roster"'), 'news card is not linked');
     assert(home.body.includes('href="/releases/north-signal"'), 'release card is not linked');
     assert(home.body.includes('href="/releases"'), 'all releases link missing');

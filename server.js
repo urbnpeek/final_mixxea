@@ -16,6 +16,7 @@ const { router: seoRouter, generateSitemap } = require('./src/api/seo');
 const db = require('./src/api/db');
 const pages = require('./src/render/publicPages');
 const { publicDetailPath } = require('./src/lib/publicDetail');
+const { versionHtml } = require('./src/lib/assetVersion');
 
 // -- Ensure upload directories exist (silently skip if read-only, e.g. Vercel) --
 const uploadDirs = ['public/uploads/audio','public/uploads/artwork','public/uploads/news','public/uploads/contracts'];
@@ -37,26 +38,45 @@ if (isProduction) {
 
 const cspDirectives = {
   defaultSrc: ["'self'"],
-  scriptSrc: ["'self'", "'unsafe-inline'", 'https://www.googletagmanager.com', 'https://connect.facebook.net'],
+  scriptSrc: [
+    "'self'",
+    (req, res) => `'nonce-${res.locals.cspNonce}'`,
+    'https://www.googletagmanager.com',
+    'https://connect.facebook.net',
+    'https://cdnjs.cloudflare.com',
+  ],
   scriptSrcAttr: ["'unsafe-inline'"],
   styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
   fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
-  imgSrc: ["'self'", 'data:', 'https:', 'https://*.public.blob.vercel-storage.com'],
+  imgSrc: [
+    "'self'",
+    'data:',
+    'https://*.public.blob.vercel-storage.com',
+    'https://*.google-analytics.com',
+    'https://*.googletagmanager.com',
+    'https://www.facebook.com',
+  ],
   mediaSrc: ["'self'", 'blob:', 'data:', 'https:'],
-  connectSrc: ["'self'", 'https://www.googletagmanager.com', 'https://www.google-analytics.com',
-    'https://*.google-analytics.com', 'https://analytics.google.com', 'https://*.analytics.google.com',
-    'https://www.google.com', 'https://stats.g.doubleclick.net',
-    'https://www.facebook.com', 'https://connect.facebook.net'],
-  frameSrc: ['https://www.googletagmanager.com', 'https://open.spotify.com', 'https://w.soundcloud.com', 'https://www.youtube-nocookie.com', 'https://www.facebook.com'],
+  connectSrc: [
+    "'self'",
+    'https://*.google-analytics.com',
+    'https://*.analytics.google.com',
+    'https://analytics.google.com',
+    'https://*.googletagmanager.com',
+    'https://www.google.com',
+    'https://stats.g.doubleclick.net',
+    'https://www.facebook.com',
+  ],
+  frameSrc: ['https://open.spotify.com', 'https://w.soundcloud.com', 'https://www.youtube-nocookie.com'],
   objectSrc: ["'none'"],
   baseUri: ["'self'"],
-  formAction: ["'self'", 'https://www.facebook.com'],
+  formAction: ["'self'"],
   frameAncestors: ["'self'"],
 };
 
-if (isProduction) {
-  cspDirectives.upgradeInsecureRequests = [];
-}
+// Helmet's default CSP turns this on. Keep it for production, and leave HTTP
+// local servers alone so a browser check can load the page.
+cspDirectives.upgradeInsecureRequests = isProduction ? [] : null;
 
 // Preview deployments inject the Vercel Toolbar. Production keeps the §7
 // policy plus the analytics hosts already listed above.
@@ -69,11 +89,17 @@ if (process.env.VERCEL_ENV === 'preview') {
   cspDirectives.frameSrc.push('https://vercel.live');
 }
 
+app.use((req, res, next) => {
+  res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
+  next();
+});
+
 // -- Security & middleware --
 app.use(helmet({
   contentSecurityPolicy: {
     directives: cspDirectives,
   },
+  strictTransportSecurity: isProduction ? undefined : false,
 }));
 app.use(cors());
 // Resend signs the raw body. This route must stay ahead of express.json()
@@ -105,13 +131,22 @@ app.get('/sitemap.xml', async (req, res) => {
 // -- SEO API (schema.json endpoints) --
 app.use('/api/seo', seoRouter);
 
+function stampHtml(res, html) {
+  const nonce = res.locals.cspNonce || '';
+  const versioned = versionHtml(String(html)).replace(/__CSP_NONCE__/g, nonce);
+  return versioned.replace(/<script\b([^>]*)>/gi, (match, attrs) => {
+    if (/\bsrc\s*=/i.test(attrs) || /\bnonce\s*=/i.test(attrs)) return match;
+    return `<script${attrs} nonce="${nonce}">`;
+  });
+}
+
 function sendHtml(res, status, html, cacheControl) {
   res.status(status);
   res.set('Cache-Control', cacheControl || 'no-store, no-cache, must-revalidate');
   if (status === 404 || status === 410) {
     res.set('X-Robots-Tag', 'noindex, nofollow');
   }
-  res.type('html').send(html);
+  res.type('html').send(stampHtml(res, html));
 }
 
 function redirectTo(res, location) {
@@ -210,8 +245,7 @@ app.get('/admin', (req, res) => {
   const html = fs.readFileSync(file, 'utf8')
     .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="noindex, nofollow">');
   res.set('X-Robots-Tag', 'noindex, nofollow');
-  res.set('Cache-Control', 'no-store');
-  res.type('html').send(html);
+  sendHtml(res, 200, html, 'no-store');
 });
 
 // JS files: never cache so updates deploy immediately
@@ -508,8 +542,8 @@ app.get('/news/category/:cat', async (req, res) => {
 });
 
 app.get('/dj-pool*', (req, res) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-  res.sendFile(path.join(__dirname, 'public', 'dj-pool.html'));
+  const html = fs.readFileSync(path.join(__dirname, 'public', 'dj-pool.html'), 'utf8');
+  sendHtml(res, 200, html, 'no-store, no-cache, must-revalidate');
 });
 
 // -- Google Search Console HTML file verification --

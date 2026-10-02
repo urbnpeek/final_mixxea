@@ -111,8 +111,10 @@ function renderHome(bundle) {
     : '';
 
   const latestHtml = latest ? `<div class="latest">
-      <span class="meta acid">Latest</span>
-      ${pages.coverUrl(latest, true) ? `<a href="${pages.esc(latestHref)}" aria-label="${pages.esc((latest.artist || '') + ' — ' + (latest.title || 'Release'))}"><img src="${pages.esc(pages.coverUrl(latest, true))}" width="44" height="44" alt=""></a>` : ''}
+      <div class="latest-top">
+        <span class="meta acid">Latest</span>
+        ${pages.coverUrl(latest, true) ? `<a href="${pages.esc(latestHref)}" aria-label="${pages.esc((latest.artist || '') + ' — ' + (latest.title || 'Release'))}"><img src="${pages.esc(pages.coverUrl(latest, true))}" width="44" height="44" alt=""></a>` : ''}
+      </div>
       <div class="mid">
         <span class="meta catno">${pages.esc(latest.catNo || '')}</span>
         <a class="t" href="${pages.esc(latestHref)}">${pages.esc(latest.artist || '')} — ${pages.esc(latest.title || '')}</a>
