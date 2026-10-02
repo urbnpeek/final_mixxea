@@ -350,7 +350,7 @@ img.article-hero{display:block}
   .feature .pic,.feature .txt{grid-column:1 / -1}
   .embed{grid-template-columns:96px minmax(0,1fr) auto;height:152px}
   .ft-grid a,.ft-base a,.crumbs a,.share a,.band-head a,.latest a,.view-switch a,.pager a,
-  .demo-row a,.embed .fallback,.door .cta,.rc h3 a{
+  .demo-row a,.embed .fallback,.door .cta,.rc h3 a,.breadcrumbs a{
     display:inline-flex;align-items:center;min-height:44px;padding:8px 4px
   }
   .door .cta{padding-top:var(--s-5);padding-right:0;padding-bottom:0;padding-left:0}
