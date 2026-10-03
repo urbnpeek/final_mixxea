@@ -463,6 +463,7 @@ article figure + .a-body{margin-top:var(--s-5)}
 .landing-hero{padding:48px 0 64px}
 .landing-hero .hero-grid{padding-top:0}
 .landing-hero .breadcrumbs{
+  display:block;
   font-family:var(--f-mono);
   font-size:12px;
   line-height:1.4;
@@ -470,8 +471,15 @@ article figure + .a-body{margin-top:var(--s-5)}
   text-transform:uppercase;
   color:var(--mx-mute);
   margin:0 0 28px;
-  gap:8px;
 }
+.landing-hero .breadcrumbs > *{
+  display:inline;
+  margin:0;
+  padding:0;
+  min-height:0;
+  vertical-align:baseline;
+}
+.landing-hero .breadcrumbs > a + span{margin-inline:8px}
 .landing-hero .breadcrumbs a{color:var(--mx-mute)}
 .landing-hero .kicker{
   font-family:var(--f-mono);
@@ -515,7 +523,7 @@ article figure + .a-body{margin-top:var(--s-5)}
 .landing-hero .hero-ctas .btn{
   width:auto;
   max-width:100%;
-  flex:0 0 auto;
+  flex:0 1 auto;
   white-space:nowrap;
   border-radius:0;
   text-transform:none;
@@ -524,6 +532,8 @@ article figure + .a-body{margin-top:var(--s-5)}
   font-size:15px;
   font-weight:600;
   min-height:48px;
+  padding:0 22px;
+  box-sizing:border-box;
 }
 .landing-hero .hero-card{
   background:transparent;
@@ -549,7 +559,22 @@ article figure + .a-body{margin-top:var(--s-5)}
   color:var(--mx-acid);
 }
 .landing-hero .hero-card p{margin:0;color:var(--mx-mute);line-height:1.5}
-.landing-hero .hero-card .signature{margin-top:12px;font-family:var(--f-ui);font-size:14px;letter-spacing:0;text-transform:none}
+.landing-hero .hero-card a{
+  display:inline;
+  margin:0;
+  padding:0;
+  min-height:0;
+  vertical-align:baseline;
+}
+.landing-hero .hero-card .signature{
+  margin-top:12px;
+  padding:0;
+  text-indent:0;
+  font-family:var(--f-ui);
+  font-size:14px;
+  letter-spacing:0;
+  text-transform:none;
+}
 .landing-hero .hero-card .signature a{color:var(--mx-acid)}
 .landing-hero .hero-card .mail-link{
   display:inline;
@@ -573,7 +598,5 @@ article figure + .a-body{margin-top:var(--s-5)}
   .landing-hero{padding:24px 0 40px}
   .landing-hero p.lead{font-size:16px}
   .landing-hero .breadcrumbs{margin-bottom:20px}
-  .landing-hero .breadcrumbs a{min-height:44px;padding:8px 8px 8px 0}
-  .landing-hero .hero-ctas .btn{min-height:44px}
-  .landing-hero .hero-card .mail-link{display:inline;padding:0;min-height:0}
+  .landing-hero .hero-ctas .btn{min-height:44px;padding:0 22px}
 }
