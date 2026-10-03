@@ -2,6 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /admin
+Disallow: /*?preview=
 
 # Block AI training crawlers (2025/2026 best practice)
 User-agent: GPTBot

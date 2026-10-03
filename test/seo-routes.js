@@ -63,8 +63,8 @@ async function main() {
     { id: 'lyda', name: 'Lyda', slug: 'lyda', status: 'signed', genre: 'Techno', type: 'both' },
   ]);
   writeCollection('releases.json', [
-    { title: 'Grind System EP', slug: 'grind-system-ep', artist: 'Lyda', status: 'out', date: '2025-06-01' },
-    { title: 'Void Protocol', slug: 'void-protocol', artist: 'Lyda', status: 'out', date: '2025-02-12' },
+    { title: 'Grind System EP', slug: 'grind-system-ep', artist: 'Lyda', status: 'out', date: '2025-06-01', updatedAt: '2026-09-01T15:00:00.000Z', type: 'ep' },
+    { title: 'Void Protocol', slug: 'void-protocol', artist: 'Lyda', status: 'out', type: 'single', date: '2025-02-12', updatedAt: '2026-04-02T00:00:00.000Z' },
   ]);
   writeCollection('news.json', [{
     id: 'n1',
@@ -74,6 +74,7 @@ async function main() {
     category: 'Roster',
     author: 'Mixxea Team',
     date: '2026-06-17',
+    updatedAt: '2026-08-02T10:00:00.000Z',
     body: 'Lyda is now listed for bookings.\n\nThe roster page has the profile.',
   }]);
   writeCollection('events.json', []);
@@ -128,29 +129,42 @@ async function main() {
     assert(/noindex/i.test(res.body), 'missing noindex');
   });
 
-  await check('dead release URLs 404', async () => {
-    for (const slug of ['grind-system-ep', 'void-protocol']) {
-      const res = await request(port, '/releases/' + slug);
-      assert(res.status === 404, slug + ' status ' + res.status);
-      assert(/noindex/i.test(res.body), slug + ' missing noindex');
-    }
+  await check('release pages are server rendered', async () => {
+    const ep = await request(port, '/releases/grind-system-ep');
+    assert(ep.status === 200, 'ep status ' + ep.status);
+    assert(ep.body.includes('MusicAlbum'), 'missing MusicAlbum');
+    assert(ep.body.includes('Grind System EP'), 'missing title');
+    assert(!ep.body.includes('class="h-title"'), 'homepage shell');
+    const single = await request(port, '/releases/void-protocol');
+    assert(single.status === 200, 'single status ' + single.status);
+    assert(single.body.includes('MusicRecording'), 'single should use MusicRecording');
+    const missing = await request(port, '/releases/not-a-real-release');
+    assert(missing.status === 404, 'missing status ' + missing.status);
+    assert(/noindex/i.test(missing.body), 'missing noindex');
   });
 
-  await check('sitemap omits release 404s and uses www', async () => {
+  await check('sitemap lists live releases and uses www', async () => {
     const res = await request(port, '/sitemap.xml');
     assert(res.status === 200, 'status ' + res.status);
-    assert(!res.body.includes('/releases/grind-system-ep'), 'lists /releases/grind-system-ep');
-    assert(!res.body.includes('/releases/void-protocol'), 'lists /releases/void-protocol');
+    assert(res.body.includes('https://www.mixxea.com/releases/grind-system-ep'), 'missing release url');
+    assert(res.body.includes('https://www.mixxea.com/releases/void-protocol'), 'missing second release');
+    assert(res.body.includes('<lastmod>2026-09-01</lastmod>'), 'release lastmod should use updatedAt');
+    assert(res.body.includes('https://www.mixxea.com/releases</loc>'), 'missing releases index');
+    assert(res.body.includes('https://www.mixxea.com/news</loc>'), 'missing news index');
+    assert(res.body.includes('https://www.mixxea.com/news/category/release-news'), 'missing category');
     assert(res.body.includes('https://www.mixxea.com/news/lyda-joins-the-roster'), 'missing news url');
+    assert(res.body.includes('<lastmod>2026-08-02</lastmod>'), 'news lastmod should use updatedAt');
     assert(res.body.includes('https://www.mixxea.com/artists/lyda'), 'missing artist url');
     assert(res.body.includes('https://www.mixxea.com/booking-agency'), 'missing booking url');
     assert(!res.body.includes('https://mixxea.com/'), 'apex loc leaked');
+    assert(!res.body.includes('google.com/ping'), 'sitemap ping leaked');
   });
 
   await check('robots sitemap host is www', async () => {
     const res = await request(port, '/robots.txt');
     assert(res.status === 200, 'status ' + res.status);
     assert(res.body.includes('Sitemap: https://www.mixxea.com/sitemap.xml'), res.body);
+    assert(res.body.includes('Disallow: /*?preview='), 'preview urls should stay out of the index');
   });
 
   await check('news article SSR has self canonical and article H1', async () => {
@@ -161,6 +175,7 @@ async function main() {
     assert(links[0].includes('https://www.mixxea.com/news/lyda-joins-the-roster'), links[0]);
     assert(res.body.includes('<h1 class="article-title">Lyda joins the roster</h1>'), 'missing article H1');
     assert(res.body.includes('Lyda is now listed for bookings.'), 'missing article body');
+    assert(res.body.includes('BlogPosting'), 'missing BlogPosting');
     assert(!res.body.includes('class="h-title"'), 'homepage H1 leaked');
     assert(/name="robots" content="index,follow"/.test(res.body), 'robots meta');
     assert(res.body.includes('GTM-KCNCSXM7'), 'GTM removed');
@@ -196,6 +211,9 @@ async function main() {
     assert(home.body.includes('booking@mixxea.com'), 'booking email changed');
     assert(home.body.includes('GTM-KCNCSXM7'), 'GTM removed');
     assert(home.body.includes('href="/news/lyda-joins-the-roster"'), 'news card is not linked');
+    assert(home.body.includes('href="/releases/grind-system-ep"'), 'release card is not linked');
+    assert(home.body.includes('href="/releases"'), 'all releases link missing');
+    assert(home.body.includes('href="/news"'), 'all news link missing');
   });
 
   await check('api collection still responds', async () => {

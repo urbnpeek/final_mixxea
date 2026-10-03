@@ -8,6 +8,8 @@ const slugify = require('../utils/slugify');
 const { visibleReleases, visibleEvents, visibleNews } = require('../lib/rosterCatalog');
 const { canonicalOrigin } = require('../lib/siteUrl');
 const { publicDetailExists } = require('../lib/publicDetail');
+const { renderMarkdown, markdownToText } = require('../lib/markdown');
+const { categoryLabel, categoryByInput } = require('../lib/categories');
 
 const BASE = canonicalOrigin();
 const BOOKING_EMAIL = 'booking@mixxea.com';
@@ -114,9 +116,16 @@ function matchesArtist(value, name) {
   return nameTokens(value).includes(wanted) || String(value || '').trim().toLowerCase() === wanted;
 }
 
+function releaseSlug(release) {
+  if (!release) return '';
+  const explicit = slugify(release.slug);
+  if (explicit) return explicit;
+  return slugify(`${release.artist || ''}-${release.title || ''}`);
+}
+
 function releaseHref(release) {
-  const slug = slugify(release.slug || release.title);
-  if (!slug || !publicDetailExists('releases', slug)) return '';
+  const slug = releaseSlug(release);
+  if (!slug) return '';
   return `/releases/${slug}`;
 }
 
@@ -204,22 +213,48 @@ function formatEventDate(value) {
 }
 
 function releaseStatus(release) {
-  if (release.status === 'out') return { cls: 's-out', label: 'Out Now' };
-  if (release.status === 'pre') return { cls: 's-pre', label: 'Pre-Order' };
-  return { cls: 's-pre', label: 'Coming Soon' };
+  const status = String(release && release.status || '').toLowerCase();
+  if (status === 'pre') return { cls: 's-pre', label: 'Pre-Order' };
+  if (status === 'soon') return { cls: 's-pre', label: 'Coming Soon' };
+  const date = String((release && (release.releaseDate || release.date)) || '');
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date) && date > new Date().toISOString().slice(0, 10)) {
+    return { cls: 's-pre', label: 'Coming Soon' };
+  }
+  return { cls: 's-out', label: 'Out Now' };
+}
+
+function sortReleases(releases) {
+  return [...(Array.isArray(releases) ? releases : [])].sort((a, b) => {
+    const featured = Number(Boolean(b && b.featured)) - Number(Boolean(a && a.featured));
+    if (featured) return featured;
+    const left = String((a && (a.releaseDate || a.date || a.publishedAt)) || '');
+    const right = String((b && (b.releaseDate || b.date || b.publishedAt)) || '');
+    return right.localeCompare(left);
+  });
+}
+
+function coverUrl(record, thumb) {
+  const cover = record && record.cover;
+  if (thumb && cover && cover.thumbUrl) return safeUrl(cover.thumbUrl);
+  if (cover && cover.url) return safeUrl(cover.url);
+  return safeUrl(record && (record.artwork || record.image));
 }
 
 function renderReleaseCards(releases) {
-  const list = Array.isArray(releases) ? releases : [];
+  const list = sortReleases(releases).slice(0, 6);
   if (!list.length) return '<p class="catalog-empty">No releases on file yet.</p>';
 
   return list.map((release, index) => {
     const featured = index === 0;
     const status = releaseStatus(release);
-    const artwork = safeUrl(release.artwork);
+    const artwork = coverUrl(release, true);
+    const alt = (release.cover && release.cover.alt) || release.title || '';
+    const width = release.cover && release.cover.w;
+    const height = release.cover && release.cover.h;
+    const dims = width && height ? ` width="${esc(width)}" height="${esc(height)}"` : '';
     const mark = esc(release.catNo ? String(release.catNo).slice(-3) : String(release.title || '').slice(0, 2).toUpperCase());
     const visual = artwork
-      ? `<img src="${esc(artwork)}" alt="${esc(release.title || '')}" style="width:100%;height:100%;object-fit:cover;opacity:.4">`
+      ? `<img src="${esc(artwork)}" alt="${esc(alt)}"${dims} loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;opacity:.4">`
       : mark;
     const links = [
       ['beatport', 'Beatport'],
@@ -228,19 +263,21 @@ function renderReleaseCards(releases) {
       ['soundcloud', 'SoundCloud'],
       ['bandcamp', 'Bandcamp'],
     ].map(([key, label]) => {
-      const href = safeUrl(release[key]);
+      const href = safeUrl(release[key] || (release.links && release.links[key]));
       return href ? `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" class="dsp-link">${label}</a>` : '';
     }).join('');
-    const when = formatNewsDate(release.date);
+    const when = formatNewsDate(release.date || release.releaseDate);
     const who = [release.artist, when].filter(Boolean).join(' — ');
-    return `<div class="r-card${featured ? ' r-card-featured' : ''}" data-track="${index}">
-        <div class="rc-art${featured ? ' big' : ''}" style="color:rgba(232,255,0,.08)">${visual}</div>
+    const href = releaseHref(release);
+    const title = esc(String(release.title || '').toUpperCase());
+    return `<div class="r-card${featured ? ' r-card-featured' : ''}" data-track="${index}" data-genre="${esc(String(release.genre || '').toLowerCase())}" data-title="${esc(release.title || '')}" data-artist="${esc(release.artist || '')}" data-art="${mark}" data-audio="${esc(safeUrl(release.audioPreview))}">
+        <div class="rc-art${featured ? ' big' : ''}" style="color:rgba(232,255,0,.08)">${href ? `<a href="${esc(href)}">${visual}</a>` : visual}</div>
         <div class="rc-grad"></div>
         <div class="rc-status ${status.cls}">${status.label}</div>
         <button class="rc-play" onclick="playTrack(${index}, event)">▶</button>
         <div class="rc-cnt${featured ? ' big' : ''}">
           <div class="rc-cat">${esc([release.genre, release.catNo].filter(Boolean).join(' · '))}</div>
-          <div class="rc-title${featured ? ' big' : ''}">${esc(String(release.title || '').toUpperCase())}</div>
+          <div class="rc-title${featured ? ' big' : ''}">${href ? `<a href="${esc(href)}">${title}</a>` : title}</div>
           <div class="rc-who">${esc(who)}</div>
         </div>
         <div class="rc-dsp">${links}</div>
@@ -252,12 +289,20 @@ function newsSlug(item) {
   return slugify(item && (item.slug || item.title));
 }
 
+function sortNews(news) {
+  return [...(Array.isArray(news) ? news : [])].sort((a, b) => {
+    const left = String((a && (a.publishedAt || a.date || a.createdAt)) || '');
+    const right = String((b && (b.publishedAt || b.date || b.createdAt)) || '');
+    return right.localeCompare(left);
+  });
+}
+
 function renderNewsCards(news) {
-  const list = Array.isArray(news) ? news : [];
+  const list = sortNews(news).slice(0, 3);
   if (!list.length) return '<p class="catalog-empty">No news on file yet.</p>';
 
   return list.map((item, index) => {
-    const image = safeUrl(item.image);
+    const image = coverUrl(item, true);
     const slug = newsSlug(item);
     const href = slug ? `/news/${esc(slug)}` : '/#news';
     const visual = image
@@ -374,6 +419,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 function seoNav(currentPath) {
   const items = [
     ['/record-label', 'Record Label'],
+    ['/releases', 'Releases'],
+    ['/news', 'News'],
     ['/artist-management', 'Artist Management'],
     ['/booking-agency', 'Booking'],
     ['/submit-demo', 'Submit Demo'],
@@ -593,54 +640,78 @@ ${seoFooter()}`,
   });
 }
 
-function renderNewsArticle(article) {
+function renderNewsArticle(article, options = {}) {
   const slug = newsSlug(article);
   const title = String(article.title || 'News').trim() || 'News';
-  const bodyText = String(article.body || article.excerpt || '').trim();
-  const description = bodyText.replace(/\s+/g, ' ').slice(0, 160) || `${title} — Mixxea Records.`;
-  const image = absoluteAsset(article.image) || `${BASE}/og/mixxea-og.svg`;
-  const when = formatNewsDate(article.date || article.createdAt);
-  const category = String(article.category || 'News').trim() || 'News';
+  const plain = markdownToText(article.excerpt || article.body || '');
+  const seo = article.seo || {};
+  const description = String(seo.description || plain).replace(/\s+/g, ' ').slice(0, 160) || `${title} — Mixxea Records.`;
+  const pageTitle = seo.title ? `${seo.title}` : `${title} | Mixxea Records`;
+  const image = absoluteAsset((seo.ogImage) || coverUrl(article, false) || article.image) || `${BASE}/og/mixxea-og.svg`;
+  const when = formatNewsDate(article.date || article.publishedAt || article.createdAt);
+  const category = categoryLabel(article.category || 'News') || 'News';
+  const categorySlug = (categoryByInput(article.category) || {}).slug || '';
   const author = String(article.author || 'Mixxea Records').trim() || 'Mixxea Records';
   const canonicalPath = `/news/${slug}`;
   const canonical = `${BASE}${canonicalPath}`;
-  const published = article.date || String(article.createdAt || '').slice(0, 10);
-  const modified = String(article.updatedAt || article.date || article.createdAt || '').slice(0, 10);
+  const published = article.date || String(article.publishedAt || article.createdAt || '').slice(0, 10);
+  const modified = String(article.updatedAt || article.publishedAt || article.date || article.createdAt || '').slice(0, 10);
+  const cover = article.cover || {};
+  const dims = cover.w && cover.h ? ` width="${esc(cover.w)}" height="${esc(cover.h)}"` : '';
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: title,
-    description,
-    image,
-    datePublished: published,
-    dateModified: modified,
-    author: { '@type': 'Organization', name: author, '@id': `${BASE}/#mixxea` },
-    publisher: { '@type': 'Organization', name: 'Mixxea Records', '@id': `${BASE}/#mixxea` },
-    mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
-    url: canonical,
+    '@graph': [
+      {
+        '@type': 'BlogPosting',
+        headline: title,
+        description,
+        image,
+        datePublished: published,
+        dateModified: modified,
+        articleSection: category,
+        author: { '@type': 'Organization', name: author, '@id': `${BASE}/#mixxea` },
+        publisher: { '@type': 'Organization', name: 'Mixxea Records', '@id': `${BASE}/#mixxea` },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+        url: canonical,
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${BASE}/` },
+          { '@type': 'ListItem', position: 2, name: 'News', item: `${BASE}/news` },
+          { '@type': 'ListItem', position: 3, name: title, item: canonical },
+        ],
+      },
+    ],
   };
-  const figure = absoluteAsset(article.image)
-    ? `<figure class="article-figure"><img src="${esc(absoluteAsset(article.image))}" alt="${esc(title)}"></figure>`
+  const figure = absoluteAsset(coverUrl(article, false) || article.image)
+    ? `<figure class="article-figure"><img src="${esc(absoluteAsset(coverUrl(article, false) || article.image))}" alt="${esc(cover.alt || title)}"${dims} decoding="async"></figure>`
     : '';
   const meta = [when, author].filter(Boolean).map(esc).join(' · ');
-  const body = `${seoNav()}
+  const categoryHref = categorySlug ? `/news/category/${categorySlug}` : '/news';
+  const related = options.relatedRelease
+    ? `<aside class="panel related-release"><span class="artist-meta">Related release</span><h3><a href="${esc(releaseHref(options.relatedRelease))}">${esc(options.relatedRelease.title || 'Release')}</a></h3><p>${esc(options.relatedRelease.artist || '')}</p></aside>`
+    : '';
+  const body = `${seoNav('/news')}
 <main>
 <section class="hero"><div class="wrap">
-  <div class="breadcrumbs"><a href="/">Home</a><span>/</span><a href="/#news">News</a><span>/</span><span>${esc(title)}</span></div>
-  <div class="kicker">${esc(category)}</div>
+  <div class="breadcrumbs"><a href="/">Home</a><span>/</span><a href="/news">News</a><span>/</span><span>${esc(title)}</span></div>
+  <div class="kicker"><a href="${esc(categoryHref)}">${esc(category)}</a></div>
   <h1 class="article-title">${esc(title)}</h1>
   ${meta ? `<p class="article-meta">${meta}</p>` : ''}
   ${figure}
-  <div class="article-body">${renderPlainText(bodyText)}</div>
-  <div class="actions"><a class="btn btn-secondary" href="/#news">All news</a><a class="btn btn-primary" href="/booking-agency">Booking agency</a></div>
+  <div class="article-body">${renderMarkdown(article.body || article.excerpt || '')}</div>
+  ${related}
+  <div class="actions"><a class="btn btn-secondary" href="/news">All news</a><a class="btn btn-primary" href="/booking-agency">Booking agency</a></div>
 </div></section>
 </main>
 ${seoFooter()}`;
 
   return pageShell({
-    title: `${title} | Mixxea Records`,
+    title: pageTitle,
     description,
     canonicalPath,
+    robots: options.preview ? 'noindex, nofollow' : 'index,follow',
     ogType: 'article',
     ogImage: image,
     jsonLd,
@@ -663,4 +734,18 @@ module.exports = {
   renderNotFound,
   renderHomeTiles,
   renderDirectoryCards,
+  pageShell,
+  seoNav,
+  seoFooter,
+  esc,
+  safeUrl,
+  formatNewsDate,
+  newsSlug,
+  releaseSlug,
+  releaseHref,
+  sortReleases,
+  sortNews,
+  coverUrl,
+  absoluteAsset,
+  jsonScript,
 };

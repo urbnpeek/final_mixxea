@@ -97,16 +97,6 @@ function shoutedOffRoster(text, names) {
   });
 }
 
-function rosterReleases(releases, artists) {
-  const names = rosterNameSet(artists);
-  return (Array.isArray(releases) ? releases : []).filter((release) => {
-    const status = String(release && release.status || '').toLowerCase();
-    if (status === 'draft' || status === 'hidden') return false;
-    if (!creditedToRoster(release.artist, names)) return false;
-    return !shoutedOffRoster(`${release.title || ''} ${release.description || ''}`, names);
-  });
-}
-
 function rosterEvents(events, artists) {
   const names = rosterNameSet(artists);
   return (Array.isArray(events) ? events : []).filter((event) => {
@@ -116,12 +106,23 @@ function rosterEvents(events, artists) {
   });
 }
 
-function rosterNews(news, artists) {
-  const names = rosterNameSet(artists);
-  return (Array.isArray(news) ? news : []).filter((item) => {
-    if (!item || String(item.status || 'published').toLowerCase() !== 'published') return false;
-    if (item.artist && !creditedToRoster(item.artist, names)) return false;
-    return !shoutedOffRoster(`${item.title || ''} ${item.body || ''}`, names);
+function hydrateReleasePlayer() {
+  const cards = [...document.querySelectorAll('#rel-grid-dynamic .r-card')];
+  window.TRACKS = cards.map((card) => ({
+    title: card.dataset.title || '',
+    artist: card.dataset.artist || '',
+    art: card.dataset.art || '',
+    src: card.dataset.audio || null,
+  }));
+  if (typeof buildPlaylist === 'function') buildPlaylist();
+}
+
+function filterReleaseCards(genre) {
+  const wanted = String(genre || 'all').toLowerCase();
+  document.querySelectorAll('#rel-grid-dynamic .r-card').forEach((card) => {
+    const value = String(card.dataset.genre || '').toLowerCase();
+    const show = wanted === 'all' || value === wanted || value.includes(wanted);
+    card.style.display = show ? '' : 'none';
   });
 }
 
@@ -151,73 +152,11 @@ function escHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-/* ─────────────────────────────────────────────────────
-   RELEASES — load from API and render
-───────────────────────────────────────────────────── */
 function safeHref(value) {
   const url = String(value || '').trim();
   if (/^https?:\/\//i.test(url)) return url;
   if (url.startsWith('/') && !url.startsWith('//')) return url;
   return '';
-}
-
-function releaseCardsHtml(releases) {
-  if (!releases.length) return '<p class="catalog-empty">No releases on file yet.</p>';
-  return releases.map((r, i) => {
-    const artwork = safeHref(r.artwork);
-    const mark = escHtml(r.catNo ? String(r.catNo).slice(-3) : String(r.title || '').slice(0, 2).toUpperCase());
-    const visual = artwork
-      ? `<img src="${escHtml(artwork)}" alt="${escHtml(r.title || '')}" style="width:100%;height:100%;object-fit:cover;opacity:.4">`
-      : mark;
-    const links = [
-      ['beatport', 'Beatport'],
-      ['spotify', 'Spotify'],
-      ['apple', 'Apple'],
-      ['soundcloud', 'SoundCloud'],
-      ['bandcamp', 'Bandcamp'],
-    ].map(([key, label]) => {
-      const href = safeHref(r[key]);
-      return href ? `<a href="${escHtml(href)}" target="_blank" rel="noopener noreferrer" class="dsp-link">${label}</a>` : '';
-    }).join('');
-    const status = r.status === 'out' ? ['s-out', 'Out Now'] : r.status === 'pre' ? ['s-pre', 'Pre-Order'] : ['s-pre', 'Coming Soon'];
-    return `
-      <div class="r-card${i === 0 ? ' r-card-featured' : ''}" data-track="${i}">
-        <div class="rc-art${i === 0 ? ' big' : ''}" style="color:rgba(232,255,0,.08)">${visual}</div>
-        <div class="rc-grad"></div>
-        <div class="rc-status ${status[0]}">${status[1]}</div>
-        <button class="rc-play" onclick="playTrack(${i}, event)">▶</button>
-        <div class="rc-cnt${i === 0 ? ' big' : ''}">
-          <div class="rc-cat">${escHtml([r.genre, r.catNo].filter(Boolean).join(' · '))}</div>
-          <div class="rc-title${i === 0 ? ' big' : ''}">${escHtml(String(r.title || '').toUpperCase())}</div>
-          <div class="rc-who">${escHtml(r.artist || '')}</div>
-        </div>
-        <div class="rc-dsp">${links}</div>
-      </div>`;
-  }).join('');
-}
-
-async function loadReleases(genre = 'all') {
-  try {
-    const url = genre === 'all' ? '/releases' : `/releases?genre=${encodeURIComponent(genre)}`;
-    const [releases, artists] = await Promise.all([
-      API.get(url),
-      rosterArtists.length ? rosterArtists : loadRosterArtists(),
-    ]);
-    const grid = document.getElementById('rel-grid-dynamic');
-    if (!grid) return;
-    const visible = rosterReleases(releases, artists);
-    grid.innerHTML = releaseCardsHtml(visible);
-
-    window.TRACKS = visible.map((r) => ({
-      title: r.title || '',
-      artist: r.artist || '',
-      art: r.catNo ? String(r.catNo).slice(-3) : String(r.title || '').slice(0, 2).toUpperCase(),
-      src: r.audioPreview || null,
-    }));
-    if (!window.TRACKS.length && typeof resetPlayerLabels === 'function') resetPlayerLabels();
-  } catch (e) {
-    console.warn('Could not load releases from API');
-  }
 }
 
 /* ─────────────────────────────────────────────────────
@@ -296,45 +235,6 @@ async function loadEvents() {
     }).join('');
   } catch (e) {
     console.warn('Could not load events from API');
-  }
-}
-
-/* ─────────────────────────────────────────────────────
-   NEWS — load from API
-───────────────────────────────────────────────────── */
-async function loadNews() {
-  try {
-    const [news, artists] = await Promise.all([
-      API.get('/news'),
-      rosterArtists.length ? rosterArtists : loadRosterArtists(),
-    ]);
-    const grid = document.getElementById('news-grid-dynamic');
-    if (!grid) return;
-    const visible = rosterNews(news, artists);
-    if (!visible.length) {
-      grid.innerHTML = '<p class="catalog-empty">No news on file yet.</p>';
-      return;
-    }
-
-    grid.innerHTML = visible.map((n, i) => {
-      const image = safeHref(n.image);
-      const slug = slugify(n.slug || n.title);
-      const href = slug ? `/news/${escHtml(slug)}` : '/#news';
-      const when = new Date(n.date || n.createdAt);
-      const dateLabel = Number.isNaN(when.getTime())
-        ? ''
-        : when.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
-      return `
-      <a class="n-card${i === 0 ? ' n-card-featured' : ''}" href="${href}">
-        <div class="nc-img">${image ? `<img src="${escHtml(image)}" alt="${escHtml(n.title || '')}" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-family:var(--Anton);font-size:80px;color:rgba(232,255,0,.08)">${escHtml(String(n.title || '').slice(0, 2).toUpperCase())}</span>`}</div>
-        <div class="nc-cat">${escHtml(n.category || 'News')}</div>
-        <div class="nc-title">${escHtml(n.title || '')}</div>
-        <div class="nc-date">${escHtml(dateLabel)}</div>
-        <div class="nc-arr">↗</div>
-      </a>`;
-    }).join('');
-  } catch (e) {
-    console.warn('Could not load news from API');
   }
 }
 
@@ -693,11 +593,11 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ─────────────────────────────────────────────────────
    FILTER BUTTONS — wire to live API
 ───────────────────────────────────────────────────── */
-document.querySelectorAll('.f-btn').forEach(btn => {
+document.querySelectorAll('#releases .f-btn').forEach(btn => {
   btn.addEventListener('click', function() {
-    document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('on'));
+    document.querySelectorAll('#releases .f-btn').forEach(b => b.classList.remove('on'));
     this.classList.add('on');
-    loadReleases(this.dataset.f || 'all');
+    filterReleaseCards(this.dataset.f || 'all');
   });
 });
 
@@ -747,11 +647,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('[data-inquiry]').forEach((el) => {
     el.addEventListener('click', () => setInquiry(el.getAttribute('data-inquiry')));
   });
+  hydrateReleasePlayer();
   await Promise.allSettled([
-    loadReleases(),
     loadArtists(),
     loadEvents(),
-    loadNews(),
     checkArtistSession().then(() => { if (_artistSession) injectLogoutButton(); })
   ]);
 

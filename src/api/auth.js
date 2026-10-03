@@ -5,14 +5,14 @@ const express  = require('express');
 const bcrypt   = require('bcryptjs');
 const { v4: uuid } = require('uuid');
 const db       = require('./db');
-const { buildAdminToken, getCookie, verifySignedCookie } = require('./middleware');
+const { buildAdminToken, buildStaffToken, resolveActor } = require('./middleware');
 const { getAdminLoginEmail } = require('./adminEnv');
 const router   = express.Router();
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-function setAdminCookie(res) {
-  res.cookie('mixxea_auth', buildAdminToken(), {
+function setAdminCookie(res, token) {
+  res.cookie('mixxea_auth', token || buildAdminToken(), {
     httpOnly: true,
     sameSite: 'lax',
     secure: isProduction,
@@ -25,19 +25,51 @@ function clearAdminCookie(res) {
   res.clearCookie('mixxea_auth', { path: '/' });
 }
 
+function startSession(req, actor) {
+  req.session.admin = true;
+  req.session.role = actor.role;
+  req.session.staffId = actor.id;
+  req.session.staffName = actor.name;
+  req.session.adminEmail = actor.email;
+}
+
 // ── Admin Login ───────────────────────────────────────────────────
-router.post('/admin/login', (req, res) => {
-  const { email, password } = req.body || {};
-  const adminEmail = getAdminLoginEmail();
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  // Refuse login when the credentials are not configured (undefined === undefined).
-  if (adminEmail && adminPassword && email === adminEmail && password === adminPassword) {
-    req.session.admin = true;
-    req.session.adminEmail = email;
-    setAdminCookie(res);
-    return res.json({ success: true, message: 'Admin authenticated' });
+router.post('/admin/login', async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+    const adminEmail = getAdminLoginEmail();
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    // Refuse login when the credentials are not configured (undefined === undefined).
+    if (adminEmail && adminPassword && email === adminEmail && password === adminPassword) {
+      const actor = { role: 'admin', id: 'env', name: 'Admin', email };
+      startSession(req, actor);
+      setAdminCookie(res, buildAdminToken());
+      return res.json({ success: true, message: 'Admin authenticated', role: 'admin', name: 'Admin' });
+    }
+    const store = require('../lib/contentStore');
+    const person = await store.findStaffByEmail(email);
+    if (person && person.active !== false && person.passwordHash) {
+      const ok = await bcrypt.compare(String(password || ''), person.passwordHash);
+      if (ok) {
+        const actor = {
+          role: person.role === 'editor' ? 'editor' : 'admin',
+          id: person.id,
+          name: person.name || person.email,
+          email: person.email,
+        };
+        person.lastLoginAt = new Date().toISOString();
+        const previousRev = Number(person.rev) || 0;
+        person.rev = previousRev + 1;
+        try { await store.save('staff', person, previousRev); } catch (e) { /* login still succeeds */ }
+        startSession(req, actor);
+        setAdminCookie(res, buildStaffToken(person.id, actor.role));
+        return res.json({ success: true, message: 'Signed in', role: actor.role, name: actor.name });
+      }
+    }
+    res.status(401).json({ error: 'Invalid credentials' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
-  res.status(401).json({ error: 'Invalid credentials' });
 });
 
 // ── Admin Logout ──────────────────────────────────────────────────
@@ -48,10 +80,14 @@ router.post('/admin/logout', (req, res) => {
 });
 
 // ── Check admin session ────────────────────────────────────────────
-router.get('/admin/check', (req, res) => {
-  const sessionOk = !!(req.session && req.session.admin);
-  const cookieOk  = verifySignedCookie(getCookie(req, 'mixxea_auth')) === 'admin:1';
-  res.json({ loggedIn: sessionOk || cookieOk });
+router.get('/admin/check', async (req, res) => {
+  try {
+    const actor = await resolveActor(req);
+    if (!actor) return res.json({ loggedIn: false });
+    res.json({ loggedIn: true, role: actor.role, name: actor.name, email: actor.email });
+  } catch (e) {
+    res.json({ loggedIn: false });
+  }
 });
 
 // ── Artist Portal: Register ────────────────────────────────────────
