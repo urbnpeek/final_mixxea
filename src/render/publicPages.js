@@ -293,7 +293,7 @@ function renderReleaseCards(releases) {
         <div class="rc-art${featured ? ' big' : ''}" style="color:rgba(232,255,0,.08)">${href ? `<a href="${esc(href)}">${visual}</a>` : visual}</div>
         <div class="rc-grad"></div>
         <div class="rc-status ${status.cls}">${status.label}</div>
-        <button class="rc-play" onclick="playTrack(${index}, event)">▶</button>
+        <button class="rc-play" data-act="${esc(JSON.stringify(['playTrack', index, '@event']))}">▶</button>
         <div class="rc-cnt${featured ? ' big' : ''}">
           <div class="rc-cat">${esc([release.genre, release.catNo].filter(Boolean).join(' · '))}</div>
           <div class="rc-title${featured ? ' big' : ''}">${href ? `<a href="${esc(href)}">${title}</a>` : title}</div>
@@ -954,6 +954,7 @@ module.exports = {
   renderHomeTiles,
   renderDirectoryCards,
   pageShell,
+  trackingHead,
   seoNav,
   seoFooter,
   siteNav,

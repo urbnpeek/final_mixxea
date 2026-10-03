@@ -25,6 +25,11 @@ const S = {
 };
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
+function actAttr(spec, eventName) {
+  let attr = ' data-act="' + esc(JSON.stringify(spec)) + '"';
+  if (eventName && eventName !== 'click') attr += ' data-act-on="' + eventName + '"';
+  return attr;
+}
 function esc(v) {
   return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -57,13 +62,13 @@ function coverHtml(t, cls = '') {
   const img = t.cover_image ? `<img src="${esc(t.cover_image)}" alt="" loading="lazy">` : '';
   return `<div class="${cls || 'track-card-art'}">
     ${img}<span class="art-init">${esc(artInitials(t))}</span>
-    <div class="play-overlay"><button onclick="Pool.play('${esc(t.id)}')" title="Play">▶</button></div>
+    <div class="play-overlay"><button${actAttr(["Pool.play", t.id])} title="Play">▶</button></div>
   </div>`;
 }
 
 function heartBtn(t, cls = 'heart-btn-overlay') {
   const on = S.hearts.has(t.id) ? ' on' : '';
-  return `<button class="${cls}${on}" data-hid="${esc(t.id)}" onclick="Pool.toggleHeart('${esc(t.id)}',this)" title="Like">${S.hearts.has(t.id) ? '♥' : '♡'}</button>`;
+  return `<button class="${cls}${on}" data-hid="${esc(t.id)}"${actAttr(["Pool.toggleHeart", t.id, "@el"])} title="Like">${S.hearts.has(t.id) ? '♥' : '♡'}</button>`;
 }
 
 function trackCard(t) {
@@ -81,9 +86,9 @@ function trackCard(t) {
       </div>
       <div class="energy-dots">${energyDots(t.energy_level)}</div>
       <div class="track-card-actions">
-        <button class="btn sm" onclick="Pool.play('${esc(t.id)}')">▶ Play</button>
-        <button class="btn sm" onclick="Pool.addToCrate('${esc(t.id)}')">+ Crate</button>
-        <button class="btn sm primary" onclick="Pool.download('${esc(t.id)}')">⬇</button>
+        <button class="btn sm"${actAttr(["Pool.play", t.id])}>▶ Play</button>
+        <button class="btn sm"${actAttr(["Pool.addToCrate", t.id])}>+ Crate</button>
+        <button class="btn sm primary"${actAttr(["Pool.download", t.id])}>⬇</button>
       </div>
     </div>
   </div>`;
@@ -93,7 +98,7 @@ function trackRow(t) {
   const artImg = t.cover_image ? `<img src="${esc(t.cover_image)}" alt="" loading="lazy">` : '';
   return `<div class="track-row" data-tid="${esc(t.id)}">
     <div class="track-row-art">${artImg}<span class="row-init">${esc(artInitials(t))}</span></div>
-    <button class="heart-btn${S.hearts.has(t.id) ? ' on' : ''}" data-hid="${esc(t.id)}" onclick="Pool.toggleHeart('${esc(t.id)}',this)" title="Like">${S.hearts.has(t.id) ? '♥' : '♡'}</button>
+    <button class="heart-btn${S.hearts.has(t.id) ? ' on' : ''}" data-hid="${esc(t.id)}"${actAttr(["Pool.toggleHeart", t.id, "@el"])} title="Like">${S.hearts.has(t.id) ? '♥' : '♡'}</button>
     <div class="track-row-info">
       <div class="track-row-title">${esc(t.title)}</div>
       <div class="track-row-artist">${esc(t.artist)} · ${esc(t.label)}</div>
@@ -104,9 +109,9 @@ function trackRow(t) {
     <div class="track-row-energy">${energyDots(t.energy_level, 'energy-dot')}</div>
     <div class="track-row-actions">
       ${tagHtml(t)}
-      <button class="btn icon sm" onclick="Pool.play('${esc(t.id)}')" title="Play">▶</button>
-      <button class="btn icon sm" onclick="Pool.addToCrate('${esc(t.id)}')" title="Add to crate">+</button>
-      <button class="btn sm primary" onclick="Pool.download('${esc(t.id)}')">⬇</button>
+      <button class="btn icon sm"${actAttr(["Pool.play", t.id])} title="Play">▶</button>
+      <button class="btn icon sm"${actAttr(["Pool.addToCrate", t.id])} title="Add to crate">+</button>
+      <button class="btn sm primary"${actAttr(["Pool.download", t.id])}>⬇</button>
     </div>
   </div>`;
 }
@@ -119,9 +124,9 @@ function crateTrackRow(t, crateId, idx) {
       <div class="crate-track-sub">${esc(t.artist)} · ${t.bpm || '—'} BPM · ${esc(t.musical_key || '—')}</div>
     </div>
     <div style="display:flex;gap:5px;align-items:center">
-      <button class="heart-btn${S.hearts.has(t.id) ? ' on' : ''}" data-hid="${esc(t.id)}" onclick="Pool.toggleHeart('${esc(t.id)}',this)">${S.hearts.has(t.id) ? '♥' : '♡'}</button>
-      <button class="btn sm" onclick="Pool.download('${esc(t.id)}')">⬇</button>
-      <button class="btn sm ghost" onclick="Pool.removeCrateTrack('${esc(crateId)}','${esc(t.id)}')">✕</button>
+      <button class="heart-btn${S.hearts.has(t.id) ? ' on' : ''}" data-hid="${esc(t.id)}"${actAttr(["Pool.toggleHeart", t.id, "@el"])}>${S.hearts.has(t.id) ? '♥' : '♡'}</button>
+      <button class="btn sm"${actAttr(["Pool.download", t.id])}>⬇</button>
+      <button class="btn sm ghost"${actAttr(["Pool.removeCrateTrack", crateId, t.id])}>✕</button>
     </div>
   </div>`;
 }
@@ -130,6 +135,11 @@ function crateTrackRow(t, crateId, idx) {
 const Pool = {
 
   /* ── Tab navigation ─────────────────────────────────────────── */
+  openPlans() {
+    Pool.showTab('dashboard');
+    setTimeout(() => document.getElementById('plans')?.scrollIntoView({ behavior: 'scroll' }), 100);
+  },
+
   showTab(name) {
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
@@ -236,7 +246,7 @@ const Pool = {
     const gtabs = document.getElementById('genre-tabs');
     if (gtabs) {
       gtabs.innerHTML = ['', ...(S.facets.genres || [])].map(g =>
-        `<button class="genre-tab${g === '' ? ' active' : ''}" onclick="Pool.filterGenre('${esc(g)}')">${g || 'All'}</button>`
+        `<button class="genre-tab${g === '' ? ' active' : ''}"${actAttr(["Pool.filterGenre", g])}>${g || 'All'}</button>`
       ).join('');
     }
   },
@@ -315,11 +325,11 @@ const Pool = {
         <h3>${esc(crate.name)}</h3>
         <div class="crate-meta">${tracks.length} track${tracks.length !== 1 ? 's' : ''}</div>
         <div class="crate-actions">
-          <button class="btn sm primary" onclick="Pool.downloadCrateZip('${esc(crate.id)}')">⬇ Download ZIP</button>
-          <button class="btn sm" onclick="Pool.crateSort('bpm')">BPM</button>
-          <button class="btn sm" onclick="Pool.crateSort('key')">Key</button>
-          <button class="btn sm" onclick="Pool.crateSort('energy')">Energy</button>
-          <button class="btn sm ghost" onclick="Pool.deleteCrate('${esc(crate.id)}')">Delete</button>
+          <button class="btn sm primary"${actAttr(["Pool.downloadCrateZip", crate.id])}>⬇ Download ZIP</button>
+          <button class="btn sm"${actAttr(["Pool.crateSort", "bpm"])}>BPM</button>
+          <button class="btn sm"${actAttr(["Pool.crateSort", "key"])}>Key</button>
+          <button class="btn sm"${actAttr(["Pool.crateSort", "energy"])}>Energy</button>
+          <button class="btn sm ghost"${actAttr(["Pool.deleteCrate", crate.id])}>Delete</button>
         </div>
         <div class="crate-tracks">
           ${tracks.length ? tracks.map((t, i) => crateTrackRow(t, crate.id, i)).join('') : '<div class="empty-state" style="padding:16px">Empty crate.</div>'}
@@ -348,9 +358,9 @@ const Pool = {
           <div class="drop-card-footer">
             <span class="drop-track-count">${(d.tracks || []).length} tracks</span>
             <div style="display:flex;gap:6px">
-              <button class="btn sm" onclick="Pool.openDrop('${esc(d.id)}')">View Pack</button>
+              <button class="btn sm"${actAttr(["Pool.openDrop", d.id])}>View Pack</button>
               ${(d.tracks || []).some(t => t.audio_url)
-                ? `<button class="btn sm primary" onclick="Pool.downloadDropZip('${esc(d.id)}')">⬇ ZIP</button>`
+                ? `<button class="btn sm primary"${actAttr(["Pool.downloadDropZip", d.id])}>⬇ ZIP</button>`
                 : ''}
             </div>
           </div>
@@ -372,7 +382,7 @@ const Pool = {
           <div class="eyebrow">${esc(drop.genre || 'Curated Pack')}</div>
           <h2 style="font-family:var(--font-d);font-size:32px;margin-bottom:8px">${esc(drop.name)}</h2>
           <p style="color:var(--muted);font-size:13px;margin-bottom:12px">${esc(drop.description || '')}</p>
-          ${tracks.some(t => t.audio_url) ? `<button class="btn primary" onclick="Pool.downloadDropZip('${esc(drop.id)}')">⬇ Download All as ZIP</button>` : ''}
+          ${tracks.some(t => t.audio_url) ? `<button class="btn primary"${actAttr(["Pool.downloadDropZip", drop.id])}>⬇ Download All as ZIP</button>` : ''}
         </div>
       </div>
       <div class="tracks-grid">${tracks.length ? tracks.map(trackCard).join('') : '<div class="empty-state">No tracks in this drop yet.</div>'}</div>
@@ -388,7 +398,7 @@ const Pool = {
       <div class="label-card-name">${esc(l.name)}</div>
       <div class="label-card-desc">${esc(l.description)}</div>
       <div style="display:flex;gap:8px">
-        <button class="btn sm" onclick="Pool.openLabel('${esc(l.id)}')">Browse Tracks</button>
+        <button class="btn sm"${actAttr(["Pool.openLabel", l.id])}>Browse Tracks</button>
       </div>
     </div>`).join('');
   },
@@ -735,3 +745,4 @@ const Pool = {
 };
 
 document.addEventListener('DOMContentLoaded', () => Pool.init().catch(console.error));
+window.Pool = Pool;

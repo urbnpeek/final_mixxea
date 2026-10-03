@@ -302,7 +302,7 @@
       <div class="nav-row">
         <div class="step-of">Step 1 of 4</div>
         <div class="nav-right">
-          <button class="btn-next" onclick="goTo(2)">Next &rarr;</button>
+          <button class="btn-next" data-act="[&quot;goTo&quot;,2]">Next &rarr;</button>
         </div>
       </div>
     </div>
@@ -333,16 +333,16 @@
       <div class="field">
         <label class="lbl">Genre <span class="req">*</span></label>
         <div class="genre-wrap" id="genreWrap">
-          <button type="button" class="genre-btn" onclick="pickGenre(this,'Techno')">Techno</button>
-          <button type="button" class="genre-btn" onclick="pickGenre(this,'Deep House')">Deep House</button>
-          <button type="button" class="genre-btn" onclick="pickGenre(this,'Melodic H&T')">Melodic H&amp;T</button>
-          <button type="button" class="genre-btn" onclick="pickGenre(this,'Afro / Organic')">Afro / Organic</button>
-          <button type="button" class="genre-btn" onclick="pickGenre(this,'Trance / Prog')">Trance / Prog</button>
-          <button type="button" class="genre-btn" onclick="pickGenre(this,'EDM / Big Room')">EDM / Big Room</button>
-          <button type="button" class="genre-btn" onclick="pickGenre(this,'Minimal')">Minimal</button>
-          <button type="button" class="genre-btn" onclick="pickGenre(this,'Ambient')">Ambient</button>
-          <button type="button" class="genre-btn" onclick="pickGenre(this,'Drum & Bass')">Drum &amp; Bass</button>
-          <button type="button" class="genre-btn" onclick="pickGenre(this,'Other')">Other</button>
+          <button type="button" class="genre-btn" data-act="[&quot;pickGenre&quot;,&quot;@el&quot;,&quot;Techno&quot;]">Techno</button>
+          <button type="button" class="genre-btn" data-act="[&quot;pickGenre&quot;,&quot;@el&quot;,&quot;Deep House&quot;]">Deep House</button>
+          <button type="button" class="genre-btn" data-act="[&quot;pickGenre&quot;,&quot;@el&quot;,&quot;Melodic H&amp;T&quot;]">Melodic H&amp;T</button>
+          <button type="button" class="genre-btn" data-act="[&quot;pickGenre&quot;,&quot;@el&quot;,&quot;Afro / Organic&quot;]">Afro / Organic</button>
+          <button type="button" class="genre-btn" data-act="[&quot;pickGenre&quot;,&quot;@el&quot;,&quot;Trance / Prog&quot;]">Trance / Prog</button>
+          <button type="button" class="genre-btn" data-act="[&quot;pickGenre&quot;,&quot;@el&quot;,&quot;EDM / Big Room&quot;]">EDM / Big Room</button>
+          <button type="button" class="genre-btn" data-act="[&quot;pickGenre&quot;,&quot;@el&quot;,&quot;Minimal&quot;]">Minimal</button>
+          <button type="button" class="genre-btn" data-act="[&quot;pickGenre&quot;,&quot;@el&quot;,&quot;Ambient&quot;]">Ambient</button>
+          <button type="button" class="genre-btn" data-act="[&quot;pickGenre&quot;,&quot;@el&quot;,&quot;Drum &amp; Bass&quot;]">Drum &amp; Bass</button>
+          <button type="button" class="genre-btn" data-act="[&quot;pickGenre&quot;,&quot;@el&quot;,&quot;Other&quot;]">Other</button>
         </div>
         <input type="hidden" id="genre">
         <div class="err-msg" id="e-genre">Please select a genre</div>
@@ -394,11 +394,11 @@
         <label class="lbl">Previously released? <span class="req">*</span></label>
         <div class="radio-group">
           <label class="radio-card sel" id="rc-no">
-            <input type="radio" name="prevRel" value="no" checked onchange="togglePrev(false)">
+            <input type="radio" name="prevRel" value="no" checked data-act="[&quot;togglePrev&quot;,false]" data-act-on="change">
             <div><div class="rc-main">No &mdash; unreleased &amp; exclusive</div></div>
           </label>
           <label class="radio-card" id="rc-yes">
-            <input type="radio" name="prevRel" value="yes" onchange="togglePrev(true)">
+            <input type="radio" name="prevRel" value="yes" data-act="[&quot;togglePrev&quot;,true]" data-act-on="change">
             <div><div class="rc-main">Yes &mdash; previously released</div><div class="rc-sub">Please specify below</div></div>
           </label>
         </div>
@@ -408,10 +408,10 @@
       </div>
 
       <div class="nav-row">
-        <button class="btn-back" onclick="goTo(1)">&larr; Back</button>
+        <button class="btn-back" data-act="[&quot;goTo&quot;,1]">&larr; Back</button>
         <div class="nav-right">
           <div class="step-of">Step 2 of 4</div>
-          <button class="btn-next" onclick="goTo(3)">Next &rarr;</button>
+          <button class="btn-next" data-act="[&quot;goTo&quot;,3]">Next &rarr;</button>
         </div>
       </div>
     </div>
@@ -435,11 +435,11 @@
         <label class="lbl">Writers &amp; producers <span class="req">*</span></label>
         <div class="radio-group">
           <label class="radio-card sel" id="rc-sole">
-            <input type="radio" name="writers" value="sole" checked onchange="toggleWriters('sole')">
+            <input type="radio" name="writers" value="sole" checked data-act="[&quot;toggleWriters&quot;,&quot;sole&quot;]" data-act-on="change">
             <div><div class="rc-main">Just me &mdash; sole writer &amp; producer</div><div class="rc-sub">100% ownership, registered under Mixxea Publishing</div></div>
           </label>
           <label class="radio-card" id="rc-collab">
-            <input type="radio" name="writers" value="collab" onchange="toggleWriters('collab')">
+            <input type="radio" name="writers" value="collab" data-act="[&quot;toggleWriters&quot;,&quot;collab&quot;]" data-act-on="change">
             <div><div class="rc-main">Multiple writers or collaborators</div><div class="rc-sub">List everyone with their split percentage below</div></div>
           </label>
         </div>
@@ -453,14 +453,14 @@
         <label class="lbl">Publishing arrangement</label>
         <div class="radio-group">
           <label class="radio-card sel" id="rc-pub-mxr">
-            <input type="radio" name="pubAgree" value="mixxea" checked onchange="togglePubArrange('mixxea')">
+            <input type="radio" name="pubAgree" value="mixxea" checked data-act="[&quot;togglePubArrange&quot;,&quot;mixxea&quot;]" data-act-on="change">
             <div>
               <div class="rc-main">Mixxea Publishing &mdash; full administration</div>
               <div class="rc-sub">Recommended. We handle all global collection and registration on your behalf.</div>
             </div>
           </label>
           <label class="radio-card" id="rc-pub-own">
-            <input type="radio" name="pubAgree" value="own" onchange="togglePubArrange('own')">
+            <input type="radio" name="pubAgree" value="own" data-act="[&quot;togglePubArrange&quot;,&quot;own&quot;]" data-act-on="change">
             <div>
               <div class="rc-main">I already have my own publisher</div>
               <div class="rc-sub">Co-publishing terms will be negotiated before signing. Please specify below.</div>
@@ -476,25 +476,25 @@
         <label class="lbl">Samples used?</label>
         <div class="radio-group">
           <label class="radio-card sel" id="rc-s-none">
-            <input type="radio" name="samples" value="none" checked onchange="syncRadioCards('samples')">
+            <input type="radio" name="samples" value="none" checked data-act="[&quot;syncRadioCards&quot;,&quot;samples&quot;]" data-act-on="change">
             <div><div class="rc-main">No samples &mdash; 100% original</div></div>
           </label>
           <label class="radio-card" id="rc-s-cleared">
-            <input type="radio" name="samples" value="cleared" onchange="syncRadioCards('samples')">
+            <input type="radio" name="samples" value="cleared" data-act="[&quot;syncRadioCards&quot;,&quot;samples&quot;]" data-act-on="change">
             <div><div class="rc-main">Samples used &mdash; all cleared &amp; licensed</div><div class="rc-sub">Clearance documentation required on signing</div></div>
           </label>
           <label class="radio-card" id="rc-s-uncleared">
-            <input type="radio" name="samples" value="uncleared" onchange="syncRadioCards('samples')">
+            <input type="radio" name="samples" value="uncleared" data-act="[&quot;syncRadioCards&quot;,&quot;samples&quot;]" data-act-on="change">
             <div><div class="rc-main">Samples used &mdash; not yet cleared</div><div class="rc-sub">Cannot release until cleared. Label can advise on the process.</div></div>
           </label>
         </div>
       </div>
 
       <div class="nav-row">
-        <button class="btn-back" onclick="goTo(2)">&larr; Back</button>
+        <button class="btn-back" data-act="[&quot;goTo&quot;,2]">&larr; Back</button>
         <div class="nav-right">
           <div class="step-of">Step 3 of 4</div>
-          <button class="btn-next" onclick="goTo(4)">Next &rarr;</button>
+          <button class="btn-next" data-act="[&quot;goTo&quot;,4]">Next &rarr;</button>
         </div>
       </div>
     </div>
@@ -535,10 +535,10 @@
       <div class="submit-error" id="submit-error"></div>
 
       <div class="nav-row">
-        <button class="btn-back" onclick="goTo(3)">&larr; Back</button>
+        <button class="btn-back" data-act="[&quot;goTo&quot;,3]">&larr; Back</button>
         <div class="nav-right">
           <div class="step-of">Step 4 of 4</div>
-          <button class="btn-submit" id="submitBtn" onclick="submitForm()">Submit track</button>
+          <button class="btn-submit" id="submitBtn" data-act="[&quot;submitForm&quot;]">Submit track</button>
         </div>
       </div>
     </div>
@@ -560,7 +560,7 @@
     </div>
     <div class="ref-pill" id="refPill">REF: MXX-0000000</div>
     <br>
-    <button class="btn-reset" onclick="resetAll()">Submit another track</button>
+    <button class="btn-reset" data-act="[&quot;resetAll&quot;]">Submit another track</button>
   </div>
 
   <!-- FOOTER -->
@@ -571,6 +571,7 @@
 
 </div><!-- /wrap -->
 
+<script src="/js/actions.js"></script>
 <script>
   let currentPage = 1;
   let selectedGenre = '';

@@ -31,6 +31,11 @@ function setVal(id,v) { const e=document.getElementById(id); if(e)e.value=v||'';
 function setText(id,v) { const e=document.getElementById(id); if(e)e.textContent=(v===null||v===undefined)?'—':v; }
 function setHTML(id,v) { const e=document.getElementById(id); if(e)e.innerHTML=v; }
 function badge(text,cls) { return `<span class="adm-badge ${cls}">${text}</span>`; }
+function actAttr(spec, eventName) {
+  let attr = ' data-act="' + esc(JSON.stringify(spec)) + '"';
+  if (eventName && eventName !== 'click') attr += ' data-act-on="' + eventName + '"';
+  return attr;
+}
 function esc(value) {
   return String(value == null ? '' : value)
     .replace(/&/g, '&amp;')
@@ -316,9 +321,9 @@ const ADMIN = {
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(r.date||r.releaseDate)}</td>
         <td>${relBadge(r.status)}</td>
         <td><div class="tbl-actions">
-          <button class="tbl-btn" onclick="ADMIN.editRelease('${esc(r.id)}')">Edit</button>
+          <button class="tbl-btn"${actAttr(["ADMIN.editRelease", r.id])}>Edit</button>
           ${r.previewUrl?`<a class="tbl-btn" href="${esc(r.previewUrl)}" target="_blank" rel="noopener">Preview</a>`:''}
-          ${canDelete?`<button class="tbl-btn del" onclick="ADMIN.deleteRelease('${esc(r.id)}','${esc(r.title||'')}')">Delete</button>`:''}
+          ${canDelete?`<button class="tbl-btn del"${actAttr(["ADMIN.deleteRelease", r.id, r.title||''])}>Delete</button>`:''}
         </div></td>
       </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No releases yet — add your first one above</td></tr>');
   },
@@ -418,8 +423,8 @@ const ADMIN = {
         <td>${badge(a.type==='both'?'Label + Agency':a.type==='label'?'Label Only':'Agency Only',a.type==='both'?'ab-review':'ab-draft')}</td>
         <td>${badge(a.status,a.status==='signed'?'ab-signed':'ab-unsigned')}</td>
         <td><div class="tbl-actions">
-          <button class="tbl-btn" onclick="ADMIN.editArtist('${a.id}')">Edit</button>
-          <button class="tbl-btn del" onclick="ADMIN.deleteArtist('${a.id}','${a.name}')">Delete</button>
+          <button class="tbl-btn"${actAttr(["ADMIN.editArtist", a.id])}>Edit</button>
+          <button class="tbl-btn del"${actAttr(["ADMIN.deleteArtist", a.id, a.name])}>Delete</button>
         </div></td>
       </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No artists yet</td></tr>');
   },
@@ -483,11 +488,11 @@ const ADMIN = {
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(d.submittedAt)}</td>
         <td>${badge(d.status,sc[d.status]||'ab-draft')}</td>
         <td><div class="tbl-actions">
-          <button class="tbl-btn" style="color:#c8b8ff" onclick="ADMIN.viewDemo('${d.id}')">View</button>
-          <button class="tbl-btn" onclick="ADMIN.setDemoStatus('${d.id}','reviewing')">Review</button>
-          <button class="tbl-btn" style="color:var(--g1)" onclick="ADMIN.setDemoStatus('${d.id}','approved')">Approve</button>
-          <button class="tbl-btn del" onclick="ADMIN.setDemoStatus('${d.id}','declined')">Decline</button>
-          <button class="tbl-btn del" onclick="ADMIN.deleteDemo('${d.id}')">Delete</button>
+          <button class="tbl-btn" style="color:#c8b8ff"${actAttr(["ADMIN.viewDemo", d.id])}>View</button>
+          <button class="tbl-btn"${actAttr(["ADMIN.setDemoStatus", d.id, "reviewing"])}>Review</button>
+          <button class="tbl-btn" style="color:var(--g1)"${actAttr(["ADMIN.setDemoStatus", d.id, "approved"])}>Approve</button>
+          <button class="tbl-btn del"${actAttr(["ADMIN.setDemoStatus", d.id, "declined"])}>Decline</button>
+          <button class="tbl-btn del"${actAttr(["ADMIN.deleteDemo", d.id])}>Delete</button>
         </div></td>
       </tr>`).join('') : `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No ${this._df==='all'?'':this._df+' '}demos</td></tr>`);
   },
@@ -580,10 +585,10 @@ const ADMIN = {
       `<div style="margin-bottom:4px">${lbl('Status')}${badge(d.status,sc[d.status]||'ab-draft')}</div>`;
 
     document.getElementById('adm-demo-detail-actions').innerHTML=
-      `<button class="tbl-btn" onclick="ADMIN.setDemoStatus('${d.id}','reviewing');closeDemoDetailModal()">Mark Reviewing</button>`+
-      `<button class="tbl-btn" style="color:var(--g1)" onclick="ADMIN.setDemoStatus('${d.id}','approved');closeDemoDetailModal()">Approve</button>`+
-      `<button class="tbl-btn del" onclick="ADMIN.setDemoStatus('${d.id}','declined');closeDemoDetailModal()">Decline</button>`+
-      (d.email?`<button class="tbl-btn" style="margin-left:auto" onclick="navigator.clipboard.writeText('${d.email}');toast('Email copied')">Copy Email</button>`:'');
+      `<button class="tbl-btn"${actAttr([["ADMIN.setDemoStatus", d.id, "reviewing"], ["closeDemoDetailModal"]])}>Mark Reviewing</button>`+
+      `<button class="tbl-btn" style="color:var(--g1)"${actAttr([["ADMIN.setDemoStatus", d.id, "approved"], ["closeDemoDetailModal"]])}>Approve</button>`+
+      `<button class="tbl-btn del"${actAttr([["ADMIN.setDemoStatus", d.id, "declined"], ["closeDemoDetailModal"]])}>Decline</button>`+
+      (d.email?`<button class="tbl-btn" style="margin-left:auto"${actAttr(['mxCopy', d.email, "Email copied"])}>Copy Email</button>`:'');
 
     document.getElementById('adm-demo-detail-modal').style.display='flex';
   },
@@ -608,7 +613,7 @@ const ADMIN = {
         <td>${badge(c.status,c.status==='active'?'ab-signed':'ab-draft')}</td>
         <td><div class="tbl-actions">
           ${c.file?`<a href="/api/contracts/${c.id}/file" target="_blank" class="tbl-btn" style="display:inline-block">Open</a>`:''}
-          <button class="tbl-btn del" onclick="ADMIN.deleteContract('${c.id}','${c.artist}')">Remove</button>
+          <button class="tbl-btn del"${actAttr(["ADMIN.deleteContract", c.id, c.artist])}>Remove</button>
         </div></td>
       </tr>`;}).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No contracts yet</td></tr>');
   },
@@ -658,9 +663,9 @@ const ADMIN = {
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(n.date||n.publishedAt||n.createdAt)}</td>
         <td>${badge(n.status,n.status==='published'?'ab-live':'ab-draft')}</td>
         <td><div class="tbl-actions">
-          <button class="tbl-btn" onclick="ADMIN.editNews('${esc(n.id)}')">Edit</button>
+          <button class="tbl-btn"${actAttr(["ADMIN.editNews", n.id])}>Edit</button>
           ${n.previewUrl?`<a class="tbl-btn" href="${esc(n.previewUrl)}" target="_blank" rel="noopener">Preview</a>`:''}
-          ${canDelete?`<button class="tbl-btn del" onclick="ADMIN.deleteNews('${esc(n.id)}','${esc((n.title||'').slice(0,40))}')">Delete</button>`:''}
+          ${canDelete?`<button class="tbl-btn del"${actAttr(["ADMIN.deleteNews", n.id, (n.title||'').slice(0,40)])}>Delete</button>`:''}
         </div></td>
       </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No posts yet</td></tr>');
   },
@@ -737,8 +742,8 @@ const ADMIN = {
         <td>${badge(person.role, person.role === 'admin' ? 'ab-live' : 'ab-review')}</td>
         <td>${badge(person.active ? 'active' : 'disabled', person.active ? 'ab-live' : 'ab-draft')}</td>
         <td><div class="tbl-actions">
-          <button class="tbl-btn" onclick="ADMIN.toggleStaff('${esc(person.id)}', ${person.rev || 1}, ${person.active ? 'false' : 'true'})">${person.active ? 'Disable' : 'Enable'}</button>
-          <button class="tbl-btn" onclick="ADMIN.createToken('${esc(person.id)}')">API token</button>
+          <button class="tbl-btn"${actAttr(["ADMIN.toggleStaff", person.id, person.rev || 1, !(person.active)])}>${person.active ? 'Disable' : 'Enable'}</button>
+          <button class="tbl-btn"${actAttr(["ADMIN.createToken", person.id])}>API token</button>
         </div></td>
       </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No staff logins yet</td></tr>');
   },
@@ -796,8 +801,8 @@ const ADMIN = {
         <td style="font-family:var(--Anton);font-size:16px;color:var(--g1)">${e.fee?eur(e.fee):'TBC'}</td>
         <td>${badge(e.status,sc[e.status]||'ab-draft')}</td>
         <td><div class="tbl-actions">
-          <button class="tbl-btn" onclick="ADMIN.toggleEvent('${e.id}','${e.status}')">${e.status==='hold'?'Confirm':'Hold'}</button>
-          <button class="tbl-btn del" onclick="ADMIN.deleteEvent('${e.id}','${(e.venue||'').replace(/'/g,'')}')">Remove</button>
+          <button class="tbl-btn"${actAttr(["ADMIN.toggleEvent", e.id, e.status])}>${e.status==='hold'?'Confirm':'Hold'}</button>
+          <button class="tbl-btn del"${actAttr(["ADMIN.deleteEvent", e.id, (e.venue||'').replace(/'/g,'')])}>Remove</button>
         </div></td>
       </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No shows yet — add your first one above</td></tr>');
   },
@@ -846,10 +851,10 @@ const ADMIN = {
         </div>
         <div class="bk-msg">${b.notes||''}</div>
         <div class="bk-actions">
-          <button class="bk-confirm" onclick="ADMIN.setBkStatus('${b.id}','confirmed')">Confirm</button>
-          <button class="bk-hold"    onclick="ADMIN.setBkStatus('${b.id}','discussing')">Hold</button>
-          <button class="bk-decline" onclick="ADMIN.setBkStatus('${b.id}','declined')">Decline</button>
-          <button class="tbl-btn"    onclick="ADMIN.deleteBooking('${b.id}')" style="margin-left:8px">Remove</button>
+          <button class="bk-confirm"${actAttr(["ADMIN.setBkStatus", b.id, "confirmed"])}>Confirm</button>
+          <button class="bk-hold"   ${actAttr(["ADMIN.setBkStatus", b.id, "discussing"])}>Hold</button>
+          <button class="bk-decline"${actAttr(["ADMIN.setBkStatus", b.id, "declined"])}>Decline</button>
+          <button class="tbl-btn"   ${actAttr(["ADMIN.deleteBooking", b.id])} style="margin-left:8px">Remove</button>
         </div>
       </div>`).join('') : `<div style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:48px">No ${this._bf==='all'?'':this._bf+' '}bookings</div>`);
   },
@@ -881,7 +886,7 @@ const ADMIN = {
         <td style="font-family:var(--Anton);font-size:22px;color:var(--g1)">${p.totalBookings}</td>
         <td><div class="tbl-actions">
           <a href="mailto:${p.email}" class="tbl-btn" style="display:inline-block">Email</a>
-          <button class="tbl-btn del" onclick="ADMIN.deletePromoter('${p.id}')">Remove</button>
+          <button class="tbl-btn del"${actAttr(["ADMIN.deletePromoter", p.id])}>Remove</button>
         </div></td>
       </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No promoters yet</td></tr>');
   },
@@ -1295,3 +1300,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✓ Mixxea Admin — 14 modules loaded, all wired to real API');
+window.ADMIN = ADMIN;
+window.ADMIN_AUTH = ADMIN_AUTH;

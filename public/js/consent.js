@@ -26,6 +26,52 @@
     return value;
   }
 
+  function cookieNames() {
+    return (document.cookie || '').split(';').map(function (part) {
+      return part.split('=')[0].trim();
+    }).filter(Boolean);
+  }
+
+  function expireCookie(name) {
+    var expires = 'Thu, 01 Jan 1970 00:00:00 GMT';
+    var host = location.hostname;
+    var variants = [
+      name + '=; Max-Age=0; path=/; expires=' + expires,
+      name + '=; Max-Age=0; path=/; expires=' + expires + '; Secure',
+      name + '=; Max-Age=0; path=/; expires=' + expires + '; domain=.mixxea.com',
+      name + '=; Max-Age=0; path=/; expires=' + expires + '; domain=.mixxea.com; Secure',
+    ];
+    if (host) {
+      variants.push(name + '=; Max-Age=0; path=/; expires=' + expires + '; domain=' + host);
+      variants.push(name + '=; Max-Age=0; path=/; expires=' + expires + '; domain=' + host + '; Secure');
+      if (host.indexOf('.') !== -1) {
+        variants.push(name + '=; Max-Age=0; path=/; expires=' + expires + '; domain=.' + host);
+        variants.push(name + '=; Max-Age=0; path=/; expires=' + expires + '; domain=.' + host + '; Secure');
+      }
+    }
+    variants.forEach(function (item) { document.cookie = item; });
+  }
+
+  function matchesCookie(name, pattern) {
+    if (pattern.charAt(pattern.length - 1) === '*') return name.indexOf(pattern.slice(0, -1)) === 0;
+    return name === pattern;
+  }
+
+  function clearTracking(choice) {
+    var patterns = [];
+    if (!choice.analytics) patterns.push('_ga', '_ga_*', '_gid');
+    if (!choice.marketing) patterns.push('_fbp', '_fbc', '_gcl_au', '_gcl_*');
+    if (!patterns.length) return;
+    cookieNames().forEach(function (name) {
+      for (var i = 0; i < patterns.length; i++) {
+        if (matchesCookie(name, patterns[i])) {
+          expireCookie(name);
+          return;
+        }
+      }
+    });
+  }
+
   function apply(choice) {
     if (typeof window.gtag === 'function') {
       window.gtag('consent', 'update', {
@@ -35,6 +81,7 @@
         ad_personalization: choice.marketing ? 'granted' : 'denied',
       });
     }
+    clearTracking(choice);
     if (choice.analytics && typeof window.mxLoadAnalytics === 'function') window.mxLoadAnalytics();
     if (choice.marketing && typeof window.mxLoadPixel === 'function') window.mxLoadPixel();
   }
