@@ -17,6 +17,7 @@ const db = require('./src/api/db');
 const pages = require('./src/render/publicPages');
 const { publicDetailPath } = require('./src/lib/publicDetail');
 const { versionHtml } = require('./src/lib/assetVersion');
+const { SCRIPT_HASHES } = require('./src/lib/scriptHashes');
 
 // -- Ensure upload directories exist (silently skip if read-only, e.g. Vercel) --
 const uploadDirs = ['public/uploads/audio','public/uploads/artwork','public/uploads/news','public/uploads/contracts'];
@@ -40,12 +41,11 @@ const cspDirectives = {
   defaultSrc: ["'self'"],
   scriptSrc: [
     "'self'",
-    (req, res) => `'nonce-${res.locals.cspNonce}'`,
+    ...SCRIPT_HASHES,
     'https://www.googletagmanager.com',
     'https://connect.facebook.net',
-    'https://cdnjs.cloudflare.com',
   ],
-  scriptSrcAttr: ["'unsafe-inline'"],
+  scriptSrcAttr: ["'none'"],
   styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
   fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
   imgSrc: [
@@ -55,6 +55,9 @@ const cspDirectives = {
     'https://*.google-analytics.com',
     'https://*.googletagmanager.com',
     'https://www.facebook.com',
+    'https://pagead2.googlesyndication.com',
+    'https://www.googleadservices.com',
+    'https://googleads.g.doubleclick.net',
   ],
   mediaSrc: ["'self'", 'blob:', 'data:', 'https:'],
   connectSrc: [
@@ -66,11 +69,19 @@ const cspDirectives = {
     'https://www.google.com',
     'https://stats.g.doubleclick.net',
     'https://www.facebook.com',
+    'https://pagead2.googlesyndication.com',
+    'https://www.googleadservices.com',
+    'https://googleads.g.doubleclick.net',
   ],
-  frameSrc: ['https://open.spotify.com', 'https://w.soundcloud.com', 'https://www.youtube-nocookie.com'],
+  frameSrc: [
+    'https://open.spotify.com',
+    'https://w.soundcloud.com',
+    'https://www.youtube-nocookie.com',
+    'https://www.facebook.com',
+  ],
   objectSrc: ["'none'"],
   baseUri: ["'self'"],
-  formAction: ["'self'"],
+  formAction: ["'self'", 'https://www.facebook.com'],
   frameAncestors: ["'self'"],
 };
 
@@ -90,7 +101,7 @@ if (process.env.VERCEL_ENV === 'preview') {
 }
 
 app.use((req, res, next) => {
-  res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
+  res.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()');
   next();
 });
 
@@ -99,7 +110,11 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: cspDirectives,
   },
-  strictTransportSecurity: isProduction ? undefined : false,
+  strictTransportSecurity: {
+    maxAge: 63072000,
+    includeSubDomains: true,
+    preload: false,
+  },
 }));
 app.use(cors());
 // Resend signs the raw body. This route must stay ahead of express.json()
@@ -132,12 +147,7 @@ app.get('/sitemap.xml', async (req, res) => {
 app.use('/api/seo', seoRouter);
 
 function stampHtml(res, html) {
-  const nonce = res.locals.cspNonce || '';
-  const versioned = versionHtml(String(html)).replace(/__CSP_NONCE__/g, nonce);
-  return versioned.replace(/<script\b([^>]*)>/gi, (match, attrs) => {
-    if (/\bsrc\s*=/i.test(attrs) || /\bnonce\s*=/i.test(attrs)) return match;
-    return `<script${attrs} nonce="${nonce}">`;
-  });
+  return versionHtml(String(html));
 }
 
 function sendHtml(res, status, html, cacheControl) {

@@ -26,6 +26,52 @@
     return value;
   }
 
+  function cookieNames() {
+    return (document.cookie || '').split(';').map(function (part) {
+      return part.split('=')[0].trim();
+    }).filter(Boolean);
+  }
+
+  function expireCookie(name) {
+    var expires = 'Thu, 01 Jan 1970 00:00:00 GMT';
+    var host = location.hostname;
+    var variants = [
+      name + '=; Max-Age=0; path=/; expires=' + expires,
+      name + '=; Max-Age=0; path=/; expires=' + expires + '; Secure',
+      name + '=; Max-Age=0; path=/; expires=' + expires + '; domain=.mixxea.com',
+      name + '=; Max-Age=0; path=/; expires=' + expires + '; domain=.mixxea.com; Secure',
+    ];
+    if (host) {
+      variants.push(name + '=; Max-Age=0; path=/; expires=' + expires + '; domain=' + host);
+      variants.push(name + '=; Max-Age=0; path=/; expires=' + expires + '; domain=' + host + '; Secure');
+      if (host.indexOf('.') !== -1) {
+        variants.push(name + '=; Max-Age=0; path=/; expires=' + expires + '; domain=.' + host);
+        variants.push(name + '=; Max-Age=0; path=/; expires=' + expires + '; domain=.' + host + '; Secure');
+      }
+    }
+    variants.forEach(function (item) { document.cookie = item; });
+  }
+
+  function matchesCookie(name, pattern) {
+    if (pattern.charAt(pattern.length - 1) === '*') return name.indexOf(pattern.slice(0, -1)) === 0;
+    return name === pattern;
+  }
+
+  function clearTracking(choice) {
+    var patterns = [];
+    if (!choice.analytics) patterns.push('_ga', '_ga_*', '_gid');
+    if (!choice.marketing) patterns.push('_fbp', '_fbc', '_gcl_au', '_gcl_*');
+    if (!patterns.length) return;
+    cookieNames().forEach(function (name) {
+      for (var i = 0; i < patterns.length; i++) {
+        if (matchesCookie(name, patterns[i])) {
+          expireCookie(name);
+          return;
+        }
+      }
+    });
+  }
+
   function apply(choice) {
     if (typeof window.gtag === 'function') {
       window.gtag('consent', 'update', {
@@ -35,12 +81,39 @@
         ad_personalization: choice.marketing ? 'granted' : 'denied',
       });
     }
+    clearTracking(choice);
     if (choice.analytics && typeof window.mxLoadAnalytics === 'function') window.mxLoadAnalytics();
     if (choice.marketing && typeof window.mxLoadPixel === 'function') window.mxLoadPixel();
   }
 
   function close(root) {
     if (root && root.parentNode) root.parentNode.removeChild(root);
+  }
+
+  function preferenceLimit(content, cap, room) {
+    var limit = cap;
+    if (room != null && content <= room) limit = Math.min(cap, room);
+    if (content <= cap) limit = Math.max(limit, content);
+    return limit;
+  }
+
+  function fitBanner(root) {
+    if (!root || !root.classList.contains('is-prefs')) {
+      if (root) root.style.maxHeight = '';
+      return;
+    }
+    root.style.maxHeight = '';
+    var cap = window.innerHeight - 24;
+    var content = root.scrollHeight;
+    var room = null;
+    var link = document.querySelector('[data-consent-avoid]');
+    if (link && window.innerWidth <= 480) {
+      var rect = link.getBoundingClientRect();
+      if (rect.bottom > 0 && rect.top < window.innerHeight) {
+        room = window.innerHeight - rect.bottom - 12;
+      }
+    }
+    root.style.maxHeight = preferenceLimit(content, cap, room) + 'px';
   }
 
   function button(label, className) {
@@ -51,7 +124,10 @@
     return el;
   }
 
+  var onResize = null;
+
   function open(options) {
+    if (onResize) window.removeEventListener('resize', onResize);
     var existing = document.getElementById('cookie-consent');
     if (existing) existing.parentNode.removeChild(existing);
     var root = document.createElement('div');
@@ -94,7 +170,10 @@
 
     var previous = document.activeElement;
     var opener = options && options.returnFocus;
+    onResize = function () { fitBanner(root); };
     function finish() {
+      window.removeEventListener('resize', onResize);
+      onResize = null;
       close(root);
       var target = opener || (previous && previous !== document.body && previous !== document.documentElement ? previous : null);
       if (target && target !== root && typeof target.focus === 'function' && document.contains(target)) target.focus();
@@ -113,6 +192,7 @@
       save.hidden = false;
       preferences.hidden = true;
       root.classList.add('is-prefs');
+      fitBanner(root);
       var box = prefs.querySelector('[data-analytics]');
       if (box) box.focus();
     });
@@ -125,8 +205,12 @@
     });
 
     document.body.appendChild(root);
-    root.tabIndex = -1;
-    if (!opener) root.focus({ preventScroll: true });
+    fitBanner(root);
+    window.addEventListener('resize', onResize);
+    if (opener) {
+      root.tabIndex = -1;
+      root.focus({ preventScroll: true });
+    }
   }
 
   function boot() {

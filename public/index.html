@@ -794,9 +794,9 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
     <div class="p-artist" id="p-artist"></div>
   </div>
   <div class="p-controls">
-    <button class="p-btn" onclick="prevTrack()" title="Previous">⏮</button>
-    <button class="p-btn p-play" id="p-playbtn" onclick="togglePlay()">▶</button>
-    <button class="p-btn" onclick="nextTrack()" title="Next">⏭</button>
+    <button class="p-btn" data-act="[&quot;prevTrack&quot;]" title="Previous">⏮</button>
+    <button class="p-btn p-play" id="p-playbtn" data-act="[&quot;togglePlay&quot;]">▶</button>
+    <button class="p-btn" data-act="[&quot;nextTrack&quot;]" title="Next">⏭</button>
   </div>
   <div class="p-progress">
     <div class="p-bar-wrap" id="p-bar-wrap">
@@ -809,10 +809,10 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
   </div>
   <div class="p-vol-wrap">
     <span class="p-vol-icon">🔊</span>
-    <input type="range" class="p-vol" id="p-vol" min="0" max="1" step="0.05" value="0.8" oninput="setVol(this.value)">
+    <input type="range" class="p-vol" id="p-vol" min="0" max="1" step="0.05" value="0.8" data-act="[&quot;setVol&quot;,&quot;@value&quot;]" data-act-on="input">
   </div>
   <div class="p-pl" id="p-playlist"></div>
-  <button class="p-close" onclick="closePlayer()">✕</button>
+  <button class="p-close" data-act="[&quot;closePlayer&quot;]">✕</button>
 </div>
 
 <!-- ═══════════════════════════════════════════
@@ -952,7 +952,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
   <div>
     <div class="nl-form">
       <input class="nl-input" type="email" id="nl-email" placeholder="your@email.com">
-      <button class="nl-btn" onclick="nlSubscribe()">Subscribe →</button>
+      <button class="nl-btn" data-act="[&quot;nlSubscribe&quot;]">Subscribe →</button>
     </div>
     <div class="nl-ok" id="nl-ok">✓ You're subscribed. Welcome to Mixxea.</div>
   </div>
@@ -1026,10 +1026,10 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
     <div class="rv"><div class="sec-kicker">06 · Secure Portal</div><h2 class="sec-h2">ARTIST<br><span class="out">PORTAL</span></h2></div>
     <div class="portal-shell rv">
       <div class="p-topbar">
-        <button class="p-tab on" onclick="ptab(this,'pp-login')">Login</button>
-        <button class="p-tab" onclick="ptab(this,'pp-reg')">Register</button>
-        <button class="p-tab" onclick="ptab(this,'pp-sub')">Submit Track</button>
-        <button class="p-tab" onclick="ptab(this,'pp-dash')">My Dashboard</button>
+        <button class="p-tab on">Login</button>
+        <button class="p-tab">Register</button>
+        <button class="p-tab">Submit Track</button>
+        <button class="p-tab">My Dashboard</button>
       </div>
 
       <!-- LOGIN -->
@@ -1039,7 +1039,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
         <div class="field"><label>Email</label><input type="email" placeholder="artist@email.com"></div>
         <div class="field"><label>Password</label><input type="password" placeholder="••••••••••••"></div>
         <button class="sub-full" style="margin-top:20px" type="button">Access Portal →</button>
-        <div style="text-align:center;margin-top:18px"><a href="javascript:void(0)" onclick="ptab(document.querySelector('.p-tab:nth-child(2)'), 'pp-reg')" style="font-family:var(--Mono);font-size:10px;color:var(--muted)">New artist? Register here →</a></div>
+        <div style="text-align:center;margin-top:18px"><button type="button" data-act="openArtistRegister" style="font-family:var(--Mono);font-size:10px;color:var(--muted)">New artist? Register here →</button></div>
       </div></div>
 
       <!-- REGISTER -->
@@ -1066,8 +1066,8 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
       <div id="pp-sub" class="p-body"><div class="auth-wrap" style="max-width:680px">
         <div class="a-title">Submit Track</div>
         <div class="a-sub">A&R Submission Portal</div>
-        <div class="drop-zone" onclick="document.getElementById('fUp').click()">
-          <input type="file" id="fUp" accept="audio/*" style="display:none" onchange="onUp(this)">
+        <div class="drop-zone" data-act="[&quot;mxClickId&quot;,&quot;fUp&quot;]">
+          <input type="file" id="fUp" accept="audio/*" style="display:none" data-act="[&quot;onUp&quot;,&quot;@el&quot;]" data-act-on="change">
           <span class="drop-ico">♪</span>
           <h4>Drop your track here or click to browse</h4>
           <p>WAV · AIFF · MP3 — Max 200MB · 24-bit preferred</p>
@@ -1090,7 +1090,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
           <p>Response time: <strong style="color:var(--text)">4–6 weeks</strong>. Only successful submissions will receive a reply.</p>
           <label class="chk"><input type="checkbox" id="agr"><span>I own the rights to this track and agree to <strong>Mixxea's submission terms</strong>.</span></label>
         </div>
-        <button class="sub-full" style="margin-top:20px" onclick="doSub()">Submit to Mixxea A&R →</button>
+        <button class="sub-full" style="margin-top:20px" data-act="[&quot;doSub&quot;]">Submit to Mixxea A&R →</button>
         <div class="ok-msg" id="sub-ok">✓ Submission received. We'll be in touch within 4–6 weeks if there's a fit.</div>
       </div></div>
 
@@ -1099,12 +1099,12 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
         <div class="dash-wrap">
           <div class="d-side">
             <div class="du"><div class="du-name">Artist</div><div class="du-role"><span class="du-dot"></span>Sign in to view your account</div></div>
-            <button class="d-nav on" onclick="dsec(this,'ds-ov')"><span>◉</span> Overview</button>
-            <button class="d-nav" onclick="dsec(this,'ds-tr')"><span>♪</span> My Tracks</button>
-            <button class="d-nav" onclick="dsec(this,'ds-new')"><span>+</span> New Submission</button>
-            <button class="d-nav" onclick="dsec(this,'ds-ct')"><span>☰</span> Contracts</button>
-            <button class="d-nav" onclick="dsec(this,'ds-ry')"><span>$</span> Royalties</button>
-            <button class="d-nav" onclick="dsec(this,'ds-bk')"><span>◆</span> Bookings</button>
+            <button class="d-nav on" data-act="[&quot;dsec&quot;,&quot;@el&quot;,&quot;ds-ov&quot;]"><span>◉</span> Overview</button>
+            <button class="d-nav" data-act="[&quot;dsec&quot;,&quot;@el&quot;,&quot;ds-tr&quot;]"><span>♪</span> My Tracks</button>
+            <button class="d-nav" data-act="[&quot;dsec&quot;,&quot;@el&quot;,&quot;ds-new&quot;]"><span>+</span> New Submission</button>
+            <button class="d-nav" data-act="[&quot;dsec&quot;,&quot;@el&quot;,&quot;ds-ct&quot;]"><span>☰</span> Contracts</button>
+            <button class="d-nav" data-act="[&quot;dsec&quot;,&quot;@el&quot;,&quot;ds-ry&quot;]"><span>$</span> Royalties</button>
+            <button class="d-nav" data-act="[&quot;dsec&quot;,&quot;@el&quot;,&quot;ds-bk&quot;]"><span>◆</span> Bookings</button>
           </div>
           <div class="d-main">
             <div id="ds-ov" class="d-sec on">
@@ -1162,7 +1162,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
         <div class="field"><label>SoundCloud / Private Link</label><input type="url" id="ct-link" placeholder="https://..."></div>
         <div class="field"><label>Message</label><textarea id="ct-message" placeholder="Artist, date, city, venue, and the details of the request."></textarea></div>
         <label class="chk" style="margin-bottom:18px"><input type="checkbox" id="ct-newsletter-opt-in"><span>Subscribe me to Mixxea updates as well.</span></label>
-        <button class="sub-full" onclick="doCt()">Send Message →</button>
+        <button class="sub-full" data-act="[&quot;doCt&quot;]">Send Message →</button>
         <div class="ok-msg" id="ct-ok">✓ Message received. We'll be in touch soon.</div>
       </div>
     </div>
@@ -1202,7 +1202,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
       <div class="adm-field"><label>Password</label><input type="password" id="adm-login-password" placeholder="Enter password"></div>
       <div class="adm-btn-row">
         <button class="adm-submit" type="button" id="adm-login-submit">Access Admin</button>
-        <button class="adm-cancel" type="button" onclick="closeAdmin()">Cancel</button>
+        <button class="adm-cancel" type="button" data-act="[&quot;closeAdmin&quot;]">Cancel</button>
       </div>
       <div class="adm-auth-msg" id="adm-auth-msg"></div>
     </div>
@@ -1215,37 +1215,37 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
         <div class="adm-logo-sub">Admin Panel</div>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Overview</div>
-        <button class="adm-nav-item on" type="button" data-sec="a-dash" onclick="goSec('a-dash')"><span class="ico">◉</span>Dashboard</button>
+        <button class="adm-nav-item on" type="button" data-sec="a-dash" data-act="[&quot;goSec&quot;,&quot;a-dash&quot;]"><span class="ico">◉</span>Dashboard</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Label</div>
-        <button class="adm-nav-item" type="button" data-sec="a-rel" onclick="goSec('a-rel')"><span class="ico">🎵</span>Releases</button>
-        <button class="adm-nav-item" type="button" data-sec="a-art" data-min-role="admin" onclick="goSec('a-art')"><span class="ico">👤</span>Artists</button>
-        <button class="adm-nav-item" type="button" data-sec="a-demo" data-min-role="admin" onclick="goSec('a-demo')"><span class="ico">📥</span>Demo Inbox</button>
-        <button class="adm-nav-item" type="button" data-sec="a-con" data-min-role="admin" onclick="goSec('a-con')"><span class="ico">📄</span>Contracts</button>
+        <button class="adm-nav-item" type="button" data-sec="a-rel" data-act="[&quot;goSec&quot;,&quot;a-rel&quot;]"><span class="ico">🎵</span>Releases</button>
+        <button class="adm-nav-item" type="button" data-sec="a-art" data-min-role="admin" data-act="[&quot;goSec&quot;,&quot;a-art&quot;]"><span class="ico">👤</span>Artists</button>
+        <button class="adm-nav-item" type="button" data-sec="a-demo" data-min-role="admin" data-act="[&quot;goSec&quot;,&quot;a-demo&quot;]"><span class="ico">📥</span>Demo Inbox</button>
+        <button class="adm-nav-item" type="button" data-sec="a-con" data-min-role="admin" data-act="[&quot;goSec&quot;,&quot;a-con&quot;]"><span class="ico">📄</span>Contracts</button>
       </div>
       <div class="adm-nav-group"><div class="adm-nav-label">Content</div>
-        <button class="adm-nav-item" type="button" data-sec="a-news" onclick="goSec('a-news')"><span class="ico">📰</span>News / Blog</button>
-        <button class="adm-nav-item" type="button" data-sec="a-ev" data-min-role="admin" onclick="goSec('a-ev')"><span class="ico">🗓</span>Events</button>
+        <button class="adm-nav-item" type="button" data-sec="a-news" data-act="[&quot;goSec&quot;,&quot;a-news&quot;]"><span class="ico">📰</span>News / Blog</button>
+        <button class="adm-nav-item" type="button" data-sec="a-ev" data-min-role="admin" data-act="[&quot;goSec&quot;,&quot;a-ev&quot;]"><span class="ico">🗓</span>Events</button>
       </div>
       <div class="adm-nav-group" data-min-role="admin"><div class="adm-nav-label">FreqVault</div>
-        <button class="adm-nav-item" type="button" data-sec="a-bk" onclick="goSec('a-bk')"><span class="ico">🎛</span>Bookings</button>
-        <button class="adm-nav-item" type="button" data-sec="a-promo" onclick="goSec('a-promo')"><span class="ico">📋</span>Promoter CRM</button>
-        <button class="adm-nav-item" type="button" data-sec="a-djpool" onclick="goSec('a-djpool')"><span class="ico">♫</span>DJ Pool Manager</button>
+        <button class="adm-nav-item" type="button" data-sec="a-bk" data-act="[&quot;goSec&quot;,&quot;a-bk&quot;]"><span class="ico">🎛</span>Bookings</button>
+        <button class="adm-nav-item" type="button" data-sec="a-promo" data-act="[&quot;goSec&quot;,&quot;a-promo&quot;]"><span class="ico">📋</span>Promoter CRM</button>
+        <button class="adm-nav-item" type="button" data-sec="a-djpool" data-act="[&quot;goSec&quot;,&quot;a-djpool&quot;]"><span class="ico">♫</span>DJ Pool Manager</button>
       </div>
       <div class="adm-nav-group" data-min-role="admin"><div class="adm-nav-label">Communications</div>
-        <button class="adm-nav-item" type="button" data-sec="a-inbox" onclick="goSec('a-inbox')"><span class="ico">✉</span>Contact Inbox</button>
-        <button class="adm-nav-item" type="button" data-sec="a-nl" onclick="goSec('a-nl')"><span class="ico">📧</span>Newsletter</button>
-        <button class="adm-nav-item" type="button" data-sec="a-subs" onclick="goSec('a-subs')"><span class="ico">👥</span>Subscribers</button>
+        <button class="adm-nav-item" type="button" data-sec="a-inbox" data-act="[&quot;goSec&quot;,&quot;a-inbox&quot;]"><span class="ico">✉</span>Contact Inbox</button>
+        <button class="adm-nav-item" type="button" data-sec="a-nl" data-act="[&quot;goSec&quot;,&quot;a-nl&quot;]"><span class="ico">📧</span>Newsletter</button>
+        <button class="adm-nav-item" type="button" data-sec="a-subs" data-act="[&quot;goSec&quot;,&quot;a-subs&quot;]"><span class="ico">👥</span>Subscribers</button>
       </div>
       <div class="adm-nav-group" data-min-role="admin"><div class="adm-nav-label">Analytics</div>
-        <button class="adm-nav-item" type="button" data-sec="a-analytics" onclick="goSec('a-analytics')"><span class="ico">🎬</span>Analytics</button>
+        <button class="adm-nav-item" type="button" data-sec="a-analytics" data-act="[&quot;goSec&quot;,&quot;a-analytics&quot;]"><span class="ico">🎬</span>Analytics</button>
       </div>
       <div class="adm-nav-group" data-min-role="admin"><div class="adm-nav-label">Access</div>
-        <button class="adm-nav-item" type="button" data-sec="a-staff" onclick="goSec('a-staff')"><span class="ico">✎</span>Staff</button>
+        <button class="adm-nav-item" type="button" data-sec="a-staff" data-act="[&quot;goSec&quot;,&quot;a-staff&quot;]"><span class="ico">✎</span>Staff</button>
       </div>
       <div class="adm-close">
-        <button class="adm-close-btn" onclick="closeAdmin()">✕ Exit Admin</button>
-        <button class="adm-logout-btn" type="button" onclick="ADMIN_AUTH.logout()">Log Out</button>
+        <button class="adm-close-btn" data-act="[&quot;closeAdmin&quot;]">✕ Exit Admin</button>
+        <button class="adm-logout-btn" type="button" data-act="[&quot;ADMIN_AUTH.logout&quot;]">Log Out</button>
       </div>
     </div>
 
@@ -1253,7 +1253,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
     <div class="adm-main">
       <div class="adm-mobile-bar">
         <div class="adm-mobile-title">Mixxea Admin Console</div>
-        <button class="adm-mobile-menu" type="button" onclick="toggleAdminNav()">Sections</button>
+        <button class="adm-mobile-menu" type="button" data-act="[&quot;toggleAdminNav&quot;]">Sections</button>
       </div>
 
       <!-- DASHBOARD -->
@@ -1284,7 +1284,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
       <div id="a-rel" class="adm-section">
         <div class="adm-top">
           <div class="adm-h1">RELEASE <span class="hl">MANAGER</span></div>
-          <button class="adm-add-btn" onclick="admToggle('rel-form')">+ Add Release</button>
+          <button class="adm-add-btn" data-act="[&quot;admToggle&quot;,&quot;rel-form&quot;]">+ Add Release</button>
         </div>
         <!-- Add/Edit Form -->
         <div id="rel-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:28px;margin-bottom:28px">
@@ -1337,10 +1337,10 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
             </div>
           </div>
           <div class="adm-btn-row">
-            <button class="adm-submit" type="button" onclick="ADMIN.saveRelease('draft')">Save draft</button>
-            <button class="adm-submit" type="button" onclick="ADMIN.saveRelease('publish')">Publish</button>
-            <button class="adm-cancel" type="button" onclick="ADMIN.saveRelease('unpublish')">Unpublish</button>
-            <button class="adm-cancel" type="button" onclick="admToggle('rel-form');admClearRel()">Cancel</button>
+            <button class="adm-submit" type="button" data-act="[&quot;ADMIN.saveRelease&quot;,&quot;draft&quot;]">Save draft</button>
+            <button class="adm-submit" type="button" data-act="[&quot;ADMIN.saveRelease&quot;,&quot;publish&quot;]">Publish</button>
+            <button class="adm-cancel" type="button" data-act="[&quot;ADMIN.saveRelease&quot;,&quot;unpublish&quot;]">Unpublish</button>
+            <button class="adm-cancel" type="button" data-act="[[&quot;admToggle&quot;,&quot;rel-form&quot;],[&quot;admClearRel&quot;]]">Cancel</button>
           </div>
         </div>
         <table class="adm-table">
@@ -1355,7 +1355,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
       <div id="a-art" class="adm-section" data-min-role="admin">
         <div class="adm-top">
           <div class="adm-h1">ARTIST <span class="hl">PROFILES</span></div>
-          <button class="adm-add-btn" onclick="admToggle('art-form')">+ Add Artist</button>
+          <button class="adm-add-btn" data-act="[&quot;admToggle&quot;,&quot;art-form&quot;]">+ Add Artist</button>
         </div>
         <div id="art-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:28px;margin-bottom:28px">
           <div style="font-family:var(--Anton);font-size:24px;margin-bottom:20px" id="art-form-title">NEW ARTIST</div>
@@ -1388,8 +1388,8 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
             </div>
           </div>
           <div class="adm-btn-row">
-            <button class="adm-submit" onclick="ADMIN.saveArtist()">Save Artist</button>
-            <button class="adm-cancel" onclick="admToggle('art-form');admClearArt()">Cancel</button>
+            <button class="adm-submit" data-act="[&quot;ADMIN.saveArtist&quot;]">Save Artist</button>
+            <button class="adm-cancel" data-act="[[&quot;admToggle&quot;,&quot;art-form&quot;],[&quot;admClearArt&quot;]]">Cancel</button>
           </div>
         </div>
         <table class="adm-table">
@@ -1406,15 +1406,15 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
           <div class="adm-h1">DEMO <span class="hl">INBOX</span></div>
           <div style="display:flex;align-items:center;gap:12px">
             <div style="font-family:var(--Anton);font-size:28px;color:var(--g3)" id="adm-demo-count">—</div>
-            <button class="adm-add-btn" onclick="openSendLinkModal()" style="background:rgba(200,184,255,.12);border-color:rgba(200,184,255,.3);color:#c8b8ff">✉ Send Submission Link</button>
+            <button class="adm-add-btn" data-act="[&quot;openSendLinkModal&quot;]" style="background:rgba(200,184,255,.12);border-color:rgba(200,184,255,.3);color:#c8b8ff">✉ Send Submission Link</button>
           </div>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-          <button class="f-btn on" onclick="ADMIN.filterDemos('all',this)">All</button>
-          <button class="f-btn" onclick="ADMIN.filterDemos('new',this)">New</button>
-          <button class="f-btn" onclick="ADMIN.filterDemos('reviewing',this)">Reviewing</button>
-          <button class="f-btn" onclick="ADMIN.filterDemos('approved',this)">Approved</button>
-          <button class="f-btn" onclick="ADMIN.filterDemos('declined',this)">Declined</button>
+          <button class="f-btn on" data-act="[&quot;ADMIN.filterDemos&quot;,&quot;all&quot;,&quot;@el&quot;]">All</button>
+          <button class="f-btn" data-act="[&quot;ADMIN.filterDemos&quot;,&quot;new&quot;,&quot;@el&quot;]">New</button>
+          <button class="f-btn" data-act="[&quot;ADMIN.filterDemos&quot;,&quot;reviewing&quot;,&quot;@el&quot;]">Reviewing</button>
+          <button class="f-btn" data-act="[&quot;ADMIN.filterDemos&quot;,&quot;approved&quot;,&quot;@el&quot;]">Approved</button>
+          <button class="f-btn" data-act="[&quot;ADMIN.filterDemos&quot;,&quot;declined&quot;,&quot;@el&quot;]">Declined</button>
         </div>
         <table class="adm-table">
           <thead><tr><th>Artist</th><th>Track</th><th>Genre / BPM</th><th>Download</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
@@ -1429,7 +1429,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
         <div style="background:#0f0f12;border:0.5px solid rgba(200,184,255,.25);border-radius:10px;width:100%;max-width:440px;padding:28px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">
             <div style="font-family:var(--Mono);font-size:11px;letter-spacing:2px;color:#c8b8ff;text-transform:uppercase">Send Submission Link</div>
-            <button onclick="closeSendLinkModal()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1">&times;</button>
+            <button data-act="[&quot;closeSendLinkModal&quot;]" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1">&times;</button>
           </div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6">Send the artist an invitation to fill out the official 4-step track submission form.</div>
           <div class="adm-field" style="margin-bottom:14px">
@@ -1441,8 +1441,8 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
             <input type="email" id="sl-email" placeholder="artist@email.com">
           </div>
           <div style="display:flex;gap:10px;align-items:center">
-            <button id="sl-send-btn" onclick="sendSubmissionLinkBtn()" style="background:linear-gradient(135deg,#6b5fff,#9b6fff);border:none;color:#fff;font-size:12px;font-weight:600;padding:10px 24px;border-radius:6px;cursor:pointer;font-family:var(--Mono);letter-spacing:1px">SEND LINK</button>
-            <button onclick="closeSendLinkModal()" style="background:none;border:0.5px solid rgba(255,255,255,.15);color:var(--muted);font-size:12px;padding:10px 18px;border-radius:6px;cursor:pointer;font-family:var(--Mono)">Cancel</button>
+            <button id="sl-send-btn" data-act="[&quot;sendSubmissionLinkBtn&quot;]" style="background:linear-gradient(135deg,#6b5fff,#9b6fff);border:none;color:#fff;font-size:12px;font-weight:600;padding:10px 24px;border-radius:6px;cursor:pointer;font-family:var(--Mono);letter-spacing:1px">SEND LINK</button>
+            <button data-act="[&quot;closeSendLinkModal&quot;]" style="background:none;border:0.5px solid rgba(255,255,255,.15);color:var(--muted);font-size:12px;padding:10px 18px;border-radius:6px;cursor:pointer;font-family:var(--Mono)">Cancel</button>
             <span id="sl-result" style="font-size:11px;font-family:var(--Mono);flex:1;text-align:right"></span>
           </div>
         </div>
@@ -1456,7 +1456,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
               <div style="font-family:var(--Mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Submission Detail</div>
               <div id="adm-demo-detail-title" style="font-size:16px;font-weight:500;color:var(--text)"></div>
             </div>
-            <button onclick="closeDemoDetailModal()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;flex-shrink:0">&times;</button>
+            <button data-act="[&quot;closeDemoDetailModal&quot;]" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;flex-shrink:0">&times;</button>
           </div>
           <div id="adm-demo-detail-body"></div>
           <div id="adm-demo-detail-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding-top:18px;border-top:0.5px solid rgba(255,255,255,.08)"></div>
@@ -1467,7 +1467,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
       <div id="a-con" class="adm-section" data-min-role="admin">
         <div class="adm-top">
           <div class="adm-h1">CONTRACT <span class="hl">MANAGER</span></div>
-          <button class="adm-add-btn" onclick="admToggle('con-form')">+ Add Contract</button>
+          <button class="adm-add-btn" data-act="[&quot;admToggle&quot;,&quot;con-form&quot;]">+ Add Contract</button>
         </div>
         <div id="con-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:24px;margin-bottom:24px">
           <div style="font-family:var(--Anton);font-size:22px;margin-bottom:16px">NEW CONTRACT</div>
@@ -1482,8 +1482,8 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
             <div class="adm-field"><label>Notes</label><input type="text" id="con-notes" placeholder="Optional notes"></div>
           </div>
           <div class="adm-btn-row" style="margin-top:12px">
-            <button class="adm-submit" onclick="ADMIN.saveContract()">Save Contract</button>
-            <button class="adm-cancel" onclick="admToggle('con-form')">Cancel</button>
+            <button class="adm-submit" data-act="[&quot;ADMIN.saveContract&quot;]">Save Contract</button>
+            <button class="adm-cancel" data-act="[&quot;admToggle&quot;,&quot;con-form&quot;]">Cancel</button>
           </div>
         </div>
         <table class="adm-table">
@@ -1498,7 +1498,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
       <div id="a-news" class="adm-section">
         <div class="adm-top">
           <div class="adm-h1">NEWS / <span class="hl">BLOG</span></div>
-          <button class="adm-add-btn" onclick="admToggle('news-form')">+ New Post</button>
+          <button class="adm-add-btn" data-act="[&quot;admToggle&quot;,&quot;news-form&quot;]">+ New Post</button>
         </div>
         <div id="news-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:28px;margin-bottom:28px">
           <div style="font-family:var(--Anton);font-size:24px;margin-bottom:20px" id="news-form-title">NEW POST</div>
@@ -1533,10 +1533,10 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
           </div>
           <p id="news-preview-wrap" style="display:none;font-family:var(--Mono);font-size:11px"><a id="news-preview-link" href="#" target="_blank" rel="noopener">Open preview</a></p>
           <div class="adm-btn-row">
-            <button class="adm-submit" type="button" onclick="ADMIN.saveNews('draft')">Save draft</button>
-            <button class="adm-submit" type="button" onclick="ADMIN.saveNews('publish')">Publish</button>
-            <button class="adm-cancel" type="button" onclick="ADMIN.saveNews('unpublish')">Unpublish</button>
-            <button class="adm-cancel" type="button" onclick="admToggle('news-form');admClearNews()">Cancel</button>
+            <button class="adm-submit" type="button" data-act="[&quot;ADMIN.saveNews&quot;,&quot;draft&quot;]">Save draft</button>
+            <button class="adm-submit" type="button" data-act="[&quot;ADMIN.saveNews&quot;,&quot;publish&quot;]">Publish</button>
+            <button class="adm-cancel" type="button" data-act="[&quot;ADMIN.saveNews&quot;,&quot;unpublish&quot;]">Unpublish</button>
+            <button class="adm-cancel" type="button" data-act="[[&quot;admToggle&quot;,&quot;news-form&quot;],[&quot;admClearNews&quot;]]">Cancel</button>
           </div>
         </div>
         <table class="adm-table">
@@ -1551,7 +1551,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
       <div id="a-staff" class="adm-section" data-min-role="admin">
         <div class="adm-top">
           <div class="adm-h1">STAFF <span class="hl">LOGINS</span></div>
-          <button class="adm-add-btn" type="button" onclick="admToggle('staff-form')">+ Add editor</button>
+          <button class="adm-add-btn" type="button" data-act="[&quot;admToggle&quot;,&quot;staff-form&quot;]">+ Add editor</button>
         </div>
         <div id="staff-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:28px;margin-bottom:28px">
           <div style="font-family:var(--Anton);font-size:24px;margin-bottom:20px">NEW STAFF LOGIN</div>
@@ -1564,8 +1564,8 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
             </div>
           </div>
           <div class="adm-btn-row">
-            <button class="adm-submit" type="button" onclick="ADMIN.saveStaff()">Create login</button>
-            <button class="adm-cancel" type="button" onclick="admToggle('staff-form')">Cancel</button>
+            <button class="adm-submit" type="button" data-act="[&quot;ADMIN.saveStaff&quot;]">Create login</button>
+            <button class="adm-cancel" type="button" data-act="[&quot;admToggle&quot;,&quot;staff-form&quot;]">Cancel</button>
           </div>
         </div>
         <table class="adm-table">
@@ -1580,7 +1580,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
       <div id="a-ev" class="adm-section" data-min-role="admin">
         <div class="adm-top">
           <div class="adm-h1">EVENTS <span class="hl">MANAGER</span></div>
-          <button class="adm-add-btn" onclick="admToggle('ev-add-form')">+ Add Show</button>
+          <button class="adm-add-btn" data-act="[&quot;admToggle&quot;,&quot;ev-add-form&quot;]">+ Add Show</button>
         </div>
         <div id="ev-add-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:24px;margin-bottom:24px">
           <div style="font-family:var(--Anton);font-size:22px;margin-bottom:16px">NEW SHOW</div>
@@ -1600,8 +1600,8 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
             <div class="adm-field"><label>Ticket Link</label><input type="url" id="ev-ticket" placeholder="https://..."></div>
           </div>
           <div class="adm-btn-row" style="margin-top:12px">
-            <button class="adm-submit" onclick="ADMIN.saveEvent()">Add Show</button>
-            <button class="adm-cancel" onclick="admToggle('ev-add-form')">Cancel</button>
+            <button class="adm-submit" data-act="[&quot;ADMIN.saveEvent&quot;]">Add Show</button>
+            <button class="adm-cancel" data-act="[&quot;admToggle&quot;,&quot;ev-add-form&quot;]">Cancel</button>
           </div>
         </div>
         <table class="adm-table">
@@ -1619,11 +1619,11 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
           <div style="font-family:var(--Anton);font-size:28px;color:var(--g3)" id="adm-bk-count">—</div>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-          <button class="f-btn on" onclick="ADMIN.filterBookings('all',this)">All</button>
-          <button class="f-btn" onclick="ADMIN.filterBookings('pending',this)">Pending</button>
-          <button class="f-btn" onclick="ADMIN.filterBookings('discussing',this)">Discussing</button>
-          <button class="f-btn" onclick="ADMIN.filterBookings('confirmed',this)">Confirmed</button>
-          <button class="f-btn" onclick="ADMIN.filterBookings('declined',this)">Declined</button>
+          <button class="f-btn on" data-act="[&quot;ADMIN.filterBookings&quot;,&quot;all&quot;,&quot;@el&quot;]">All</button>
+          <button class="f-btn" data-act="[&quot;ADMIN.filterBookings&quot;,&quot;pending&quot;,&quot;@el&quot;]">Pending</button>
+          <button class="f-btn" data-act="[&quot;ADMIN.filterBookings&quot;,&quot;discussing&quot;,&quot;@el&quot;]">Discussing</button>
+          <button class="f-btn" data-act="[&quot;ADMIN.filterBookings&quot;,&quot;confirmed&quot;,&quot;@el&quot;]">Confirmed</button>
+          <button class="f-btn" data-act="[&quot;ADMIN.filterBookings&quot;,&quot;declined&quot;,&quot;@el&quot;]">Declined</button>
         </div>
         <div id="adm-bk-container">
           <div style="text-align:center;color:var(--muted);font-family:var(--Mono);font-size:11px;padding:40px">Loading...</div>
@@ -1634,7 +1634,7 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
       <div id="a-promo" class="adm-section" data-min-role="admin">
         <div class="adm-top">
           <div class="adm-h1">PROMOTER <span class="hl">CRM</span></div>
-          <button class="adm-add-btn" onclick="admToggle('promo-form')">+ Add Contact</button>
+          <button class="adm-add-btn" data-act="[&quot;admToggle&quot;,&quot;promo-form&quot;]">+ Add Contact</button>
         </div>
         <div id="promo-form" style="display:none;background:var(--panel);border:1px solid var(--wire);padding:24px;margin-bottom:24px">
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
@@ -1646,8 +1646,8 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
             <div class="adm-field"><label>Notes</label><input type="text" id="promo-notes" placeholder="Notes..."></div>
           </div>
           <div class="adm-btn-row" style="margin-top:12px">
-            <button class="adm-submit" onclick="ADMIN.savePromoter()">Save Contact</button>
-            <button class="adm-cancel" onclick="admToggle('promo-form')">Cancel</button>
+            <button class="adm-submit" data-act="[&quot;ADMIN.savePromoter&quot;]">Save Contact</button>
+            <button class="adm-cancel" data-act="[&quot;admToggle&quot;,&quot;promo-form&quot;]">Cancel</button>
           </div>
         </div>
         <table class="adm-table">
@@ -1716,11 +1716,11 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
         <div class="nl-composer">
           <div style="font-family:var(--Mono);font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px">Quick Templates</div>
           <div class="nl-template-row">
-            <button class="nl-tpl" onclick="loadTpl('release')">New Release</button>
-            <button class="nl-tpl" onclick="loadTpl('event')">Event Announcement</button>
-            <button class="nl-tpl" onclick="loadTpl('monthly')">Monthly Update</button>
-            <button class="nl-tpl" onclick="loadTpl('artist')">Artist Spotlight</button>
-            <button class="nl-tpl" onclick="loadTpl('custom')">Blank</button>
+            <button class="nl-tpl" data-act="[&quot;loadTpl&quot;,&quot;release&quot;]">New Release</button>
+            <button class="nl-tpl" data-act="[&quot;loadTpl&quot;,&quot;event&quot;]">Event Announcement</button>
+            <button class="nl-tpl" data-act="[&quot;loadTpl&quot;,&quot;monthly&quot;]">Monthly Update</button>
+            <button class="nl-tpl" data-act="[&quot;loadTpl&quot;,&quot;artist&quot;]">Artist Spotlight</button>
+            <button class="nl-tpl" data-act="[&quot;loadTpl&quot;,&quot;custom&quot;]">Blank</button>
           </div>
           <div class="adm-field"><label>Subject Line *</label><input type="text" id="nl-subject" placeholder="Newsletter subject..."></div>
           <div class="adm-row">
@@ -1734,9 +1734,9 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
             <p id="nl-prev-body" style="margin-top:8px;white-space:pre-wrap">Your newsletter body will appear here...</p>
           </div>
           <div style="display:flex;gap:10px;margin-top:20px;align-items:center;flex-wrap:wrap">
-            <button class="adm-submit" onclick="sendNl()">Send to All</button>
-            <button class="nl-tpl" onclick="ADMIN.sendNewsletter(true)">Test Send</button>
-            <button class="tbl-btn" style="padding:13px 20px" onclick="previewNl()">Preview</button>
+            <button class="adm-submit" data-act="[&quot;sendNl&quot;]">Send to All</button>
+            <button class="nl-tpl" data-act="[&quot;ADMIN.sendNewsletter&quot;,true]">Test Send</button>
+            <button class="tbl-btn" style="padding:13px 20px" data-act="[&quot;previewNl&quot;]">Preview</button>
             <span style="font-family:var(--Mono);font-size:10px;color:var(--muted)">· <span id="nl-sc-count">—</span> subscribers</span>
           </div>
           <div class="ok-msg" id="nl-send-ok" style="display:none;margin-top:12px">✓ Newsletter sent successfully.</div>
@@ -1753,8 +1753,8 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
           </div>
         </div>
         <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
-          <button class="adm-submit" style="padding:10px 20px" onclick="ADMIN.exportSubscribers()">Export CSV</button>
-          <input type="text" id="subs-search" placeholder="Search subscribers..." oninput="ADMIN.searchSubscribers(this.value)"
+          <button class="adm-submit" style="padding:10px 20px" data-act="[&quot;ADMIN.exportSubscribers&quot;]">Export CSV</button>
+          <input type="text" id="subs-search" placeholder="Search subscribers..." data-act="[&quot;ADMIN.searchSubscribers&quot;,&quot;@value&quot;]" data-act-on="input"
             style="flex:1;max-width:280px;background:rgba(255,255,255,.04);border:1px solid var(--wire2);color:var(--text);font-family:var(--Mono);font-size:12px;padding:10px 15px;outline:none">
         </div>
         <div style="background:var(--panel);border:1px solid var(--wire)">
@@ -1942,6 +1942,10 @@ document.querySelectorAll('.f-btn').forEach(b=>b.addEventListener('click',functi
 }));
 
 /* PORTAL TABS */
+function openArtistRegister(){
+  var tab=document.querySelector('.p-tab:nth-child(2)');
+  if(tab) ptab(tab,'pp-reg');
+}
 function ptab(btn,id){
   document.querySelectorAll('.p-tab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.p-body').forEach(p=>p.classList.remove('on'));
@@ -1979,7 +1983,7 @@ function onUp(inp){
 async function doSub(){
   const c=document.getElementById('agr');
   if(c && !c.checked){c.style.outline='1px solid var(--g3)';return;}
-  const btn=document.querySelector('[onclick="doSub()"]');
+  const btn=document.querySelector('[data-act=\'["doSub"]\']');
   if(btn){btn.disabled=true;btn.textContent='Submitting...';}
   try{
     const fd=new FormData();
@@ -2008,7 +2012,7 @@ async function doCt(){
   const email=document.getElementById('ct-email')?.value||'';
   const message=document.getElementById('ct-message')?.value||'';
   if(!name||!email||!message){alert('Please fill in Name, Email, and Message.');return;}
-  const btn=document.querySelector('[onclick="doCt()"]');
+  const btn=document.querySelector('[data-act=\'["doCt"]\']');
   if(btn){btn.disabled=true;btn.textContent='Sending...';}
   try{
     const r=await fetch('/api/contact',{
@@ -2035,7 +2039,7 @@ async function nlSubscribe(){
   const v=document.getElementById('nl-email');
   const ok=document.getElementById('nl-ok');
   if(!v||!v.value) return;
-  const btn=document.querySelector('[onclick="nlSubscribe()"]');
+  const btn=document.querySelector('[data-act=\'["nlSubscribe"]\']');
   if(btn){btn.disabled=true;}
   try{
     const r=await fetch('/api/newsletter/subscribe',{
@@ -2377,6 +2381,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closeAdmin();});
   });
 })();
 </script>
+<script src="/js/actions.js?v=11"></script>
 <script src="/js/image-resize.js?v=11"></script>
 <script src="/js/app.js?v=11"></script>
 <script src="/js/admin.js?v=11"></script>

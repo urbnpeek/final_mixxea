@@ -115,8 +115,8 @@ ${draft}
 
     <h2 id="cookies">Cookies</h2>
     <p>We use optional cookies from two services. Both stay off until you choose, and you can change that choice at any time from Cookie settings in the footer.</p>
-    <p>Analytics uses Google Analytics 4, provided by Google Ireland Limited, property G-MEVRRCQQ5T. It tells us which pages are visited and whether the site is working. If you accept analytics, Google may store <code>_ga</code> (about two years, to tell browsers apart) and <code>_ga_MEVRRCQQ5T</code> (about two years, to keep a session together).</p>
-    <p>Marketing uses the Meta Pixel, provided by Meta Platforms Ireland Limited, pixel 1331927570650344. It measures visits from Meta ads. The pixel is not loaded unless you accept marketing. If you do, Meta may store <code>_fbp</code> (about three months, to recognise the browser) and, after an ad click, <code>_fbc</code> (about three months, to store that click).</p>
+    <p>Analytics uses Google Analytics 4, provided by Google Ireland Limited, property G-MEVRRCQQ5T. It tells us which pages are visited and whether the site is working. If you accept analytics, Google may store <code>_ga</code> (about two years, to tell browsers apart) and a <code>_ga_*</code> cookie for each Google Analytics measurement ID used by our Google tag (about two years, to keep a session together), including <code>_ga_MEVRRCQQ5T</code> and, where a linked destination is configured, <code>_ga_BQW5PQ4Y99</code>.</p>
+    <p>Marketing uses the Meta Pixel, provided by Meta Platforms Ireland Limited, pixel 1331927570650344. It measures visits from Meta ads. The pixel is not loaded unless you accept marketing. If you do, Meta may store <code>_fbp</code> (about three months, to recognise the browser) and, after an ad click, <code>_fbc</code> (about three months, to store that click). If you accept marketing, Google may also store <code>_gcl_au</code> (about 90 days), the Google Ads conversion linker cookie. It is not set unless you accept marketing.</p>
     <p>Strictly necessary storage is not optional. It is used to keep you signed in, including when an approved DJ uses the DJ pool, and to remember the choice you already made.</p>
     <table class="legal-table">
       <thead><tr><th>Name</th><th>What it is</th><th>How long</th></tr></thead>
@@ -153,6 +153,11 @@ ${draft}
           ['How long', 'About two years'],
         ])}
         ${row([
+          ['Name', '<code>_ga_BQW5PQ4Y99</code>'],
+          ['Who sets it', 'Google Ireland Limited, after you accept analytics. A <code>_ga_*</code> cookie for a Google Analytics measurement ID used by our Google tag when that ID is a linked destination.'],
+          ['How long', 'About two years'],
+        ])}
+        ${row([
           ['Name', '<code>_fbp</code>'],
           ['Who sets it', 'Meta Platforms Ireland Limited, after you accept marketing'],
           ['How long', 'About three months'],
@@ -161,6 +166,11 @@ ${draft}
           ['Name', '<code>_fbc</code>'],
           ['Who sets it', 'Meta Platforms Ireland Limited, after you accept marketing and only following an ad click'],
           ['How long', 'About three months'],
+        ])}
+        ${row([
+          ['Name', '<code>_gcl_au</code>'],
+          ['Who sets it', 'Google Ireland Limited, after you accept marketing. Google Ads conversion linker. Not set unless marketing is accepted.'],
+          ['How long', 'About 90 days'],
         ])}
       </tbody>
     </table>
