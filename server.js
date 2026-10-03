@@ -116,6 +116,25 @@ app.use(helmet({
     preload: false,
   },
 }));
+
+// -- Apex -> www canonical redirect --
+// Vercel's project-domain redirect (mixxea.com -> www) can't carry a custom
+// Strict-Transport-Security header, so the app does it instead. It sits right
+// after helmet so the 308 carries the same HSTS as www:
+// "max-age=63072000; includeSubDomains". Path and query string are kept as-is.
+const APEX_HOST = 'mixxea.com';
+const CANONICAL_ORIGIN = 'https://www.mixxea.com';
+app.use((req, res, next) => {
+  const host = String(req.headers['x-forwarded-host'] || req.headers.host || '')
+    .split(',')[0]
+    .trim()
+    .toLowerCase()
+    .replace(/:\d+$/, '')
+    .replace(/\.$/, '');
+  if (host !== APEX_HOST) return next();
+  res.set('Cache-Control', 'public, max-age=0, must-revalidate');
+  res.redirect(308, CANONICAL_ORIGIN + req.originalUrl);
+});
 app.use(cors());
 // Resend signs the raw body. This route must stay ahead of express.json()
 // so the Svix check sees the exact bytes, not a re-serialized object.
