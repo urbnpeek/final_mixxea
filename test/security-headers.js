@@ -84,7 +84,12 @@ async function main() {
     const applyAt = consent.indexOf('function apply');
     const updateAt = consent.indexOf("gtag('consent', 'update'", applyAt);
     const clearAt = consent.indexOf('clearTracking(choice)', applyAt);
+    const fbqAt = consent.indexOf("fbq('consent', choice.marketing ? 'grant' : 'revoke')", applyAt);
+    const pixelAt = consent.indexOf('mxLoadPixel()', applyAt);
     assert(updateAt !== -1 && clearAt !== -1 && updateAt < clearAt, 'consent update before cookie clear');
+    assert(consent.includes("typeof window.fbq === 'function'"), 'pixel consent guard missing');
+    assert(fbqAt !== -1 && pixelAt !== -1 && fbqAt < pixelAt, 'pixel grant does not run before tracking resumes');
+    assert(home.body.indexOf("fbq('set','autoConfig',false,'1331927570650344')") < home.body.indexOf("fbq('init','1331927570650344')"), 'autoConfig is not disabled before init');
     console.log('ok  disclosure and cookie clear');
   } finally {
     await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));

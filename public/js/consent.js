@@ -81,6 +81,9 @@
         ad_personalization: choice.marketing ? 'granted' : 'denied',
       });
     }
+    if (typeof window.fbq === 'function') {
+      window.fbq('consent', choice.marketing ? 'grant' : 'revoke');
+    }
     clearTracking(choice);
     if (choice.analytics && typeof window.mxLoadAnalytics === 'function') window.mxLoadAnalytics();
     if (choice.marketing && typeof window.mxLoadPixel === 'function') window.mxLoadPixel();
