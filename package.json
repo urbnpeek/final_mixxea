@@ -8,7 +8,7 @@
     "dev": "nodemon --ignore data/** --ignore public/uploads/** server.js",
     "build": "npm run build:css",
     "build:css": "echo 'CSS served as static files'",
-    "test": "node test/admin-env.js && node test/contact-inbox.js && node test/resend-webhook.js && node test/seo-routes.js && node test/editorial.js",
+    "test": "node test/status-routes.js && node test/admin-env.js && node test/contact-inbox.js && node test/resend-webhook.js && node test/seo-routes.js && node test/editorial.js",
     "test:seo": "node test/seo-routes.js",
     "test:editorial": "node test/editorial.js",
     "migrate:content": "node scripts/migrate-content.js",

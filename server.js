@@ -10,6 +10,8 @@ const helmet     = require('helmet');
 const cors       = require('cors');
 const path       = require('path');
 const fs         = require('fs');
+const crypto     = require('crypto');
+const { requireAdmin } = require('./src/api/middleware');
 const { router: seoRouter, generateSitemap } = require('./src/api/seo');
 const db = require('./src/api/db');
 const pages = require('./src/render/publicPages');
@@ -229,43 +231,126 @@ app.use('/api/staff',        require('./src/api/staff'));
 app.use('/api/supabase',     require('./src/api/supabase'));
 app.use('/api/dj-pool',      require('./src/api/djPool'));
 
-// Diagnostic: check Blob storage connectivity
-app.get('/api/blob-status', async (req, res) => {
-  const token = process.env.BLOB_READ_WRITE_TOKEN || '';
-  if (!token) return res.json({ configured: false, reason: 'BLOB_READ_WRITE_TOKEN not set' });
+function blobToken() {
+  return process.env.BLOB_READ_WRITE_TOKEN || '';
+}
+
+// Diagnostic: Blob storage. GET only lists (no writes). POST uploads a probe and deletes it.
+app.get('/api/blob-status', requireAdmin, async (req, res) => {
+  const token = blobToken();
+  if (!token) return res.json({ configured: false });
   try {
-    const { put, del } = require('@vercel/blob');
-    const { url } = await put('__ping__/test.txt', 'ok', { access: 'public', token });
-    await del(url, { token });
-    res.json({ configured: true, tokenStart: token.slice(0, 20) + '...', uploadOk: true });
+    const { list } = require('@vercel/blob');
+    await list({ token, limit: 1, abortSignal: AbortSignal.timeout(4000) });
+    res.json({ configured: true, reachable: true });
   } catch (e) {
-    res.json({ configured: true, tokenStart: token.slice(0, 20) + '...', uploadOk: false, error: e.message });
+    res.json({ configured: true, reachable: false });
   }
 });
 
-// Diagnostic: check Redis/KV connectivity
-app.get('/api/db-status', async (req, res) => {
+app.post('/api/blob-status', requireAdmin, async (req, res) => {
+  const token = blobToken();
+  if (!token) return res.json({ configured: false, writeOk: false });
+  const { put, del } = require('@vercel/blob');
+  const pathname = '__ping__/' + Date.now().toString(36) + '-' + crypto.randomBytes(8).toString('hex') + '.txt';
+  let url = '';
+  let writeOk = false;
+  try {
+    const created = await put(pathname, 'ok', {
+      access: 'public',
+      token,
+      addRandomSuffix: true,
+      abortSignal: AbortSignal.timeout(8000),
+    });
+    url = created && created.url ? created.url : '';
+    writeOk = Boolean(url);
+  } catch (e) {
+    writeOk = false;
+  }
+  if (url) {
+    let removed = false;
+    for (let attempt = 0; attempt < 2 && !removed; attempt++) {
+      try {
+        await del(url, { token, abortSignal: AbortSignal.timeout(8000) });
+        removed = true;
+      } catch (e) { /* retry cleanup once */ }
+    }
+    if (!removed) writeOk = false;
+  }
+  res.json({ configured: true, writeOk });
+});
+
+// Diagnostic: Redis/KV. GET only PINGs. POST writes a short-lived key and deletes it.
+app.get('/api/db-status', requireAdmin, async (req, res) => {
   const { isRedisConfigured, getRedisConfig } = require('./src/api/db');
   const cfg = getRedisConfig();
-  const configured = isRedisConfigured();
-  if (!configured) {
-    return res.json({ configured: false, urlPresent: Boolean(cfg.url), tokenPresent: Boolean(cfg.token) });
+  if (!isRedisConfigured()) {
+    return res.json({
+      configured: false,
+      urlPresent: Boolean(cfg.url),
+      tokenPresent: Boolean(cfg.token),
+    });
   }
   try {
-    const testKey = 'db:__ping__';
+    const pingRes = await fetch(cfg.url, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + cfg.token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(['PING']),
+      signal: AbortSignal.timeout(4000),
+    });
+    let pong = false;
+    try {
+      const json = await pingRes.json();
+      pong = Boolean(json && json.result === 'PONG');
+    } catch (e) {
+      pong = false;
+    }
+    res.json({ configured: true, reachable: Boolean(pingRes.ok && pong) });
+  } catch (e) {
+    res.json({ configured: true, reachable: false });
+  }
+});
+
+app.post('/api/db-status', requireAdmin, async (req, res) => {
+  const { isRedisConfigured, getRedisConfig } = require('./src/api/db');
+  const cfg = getRedisConfig();
+  if (!isRedisConfigured()) return res.json({ configured: false, writeOk: false });
+  const testKey = 'db:__ping__:' + Date.now().toString(36) + ':' + crypto.randomBytes(8).toString('hex');
+  let writeOk = false;
+  try {
     const setRes = await fetch(cfg.url, {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + cfg.token, 'Content-Type': 'application/json' },
-      body: JSON.stringify(['SET', testKey, 'ok'])
+      body: JSON.stringify(['SET', testKey, 'ok', 'EX', '30']),
+      signal: AbortSignal.timeout(4000),
     });
-    const getRes = await fetch(`${cfg.url}/get/${encodeURIComponent(testKey)}`, {
-      headers: { Authorization: 'Bearer ' + cfg.token }
+    const getRes = await fetch(cfg.url + '/get/' + encodeURIComponent(testKey), {
+      headers: { Authorization: 'Bearer ' + cfg.token },
+      signal: AbortSignal.timeout(4000),
     });
-    const getJson = await getRes.json();
-    res.json({ configured: true, setStatus: setRes.status, getStatus: getRes.status, pingResult: getJson.result });
+    let value = null;
+    try {
+      const json = await getRes.json();
+      value = json && json.result;
+    } catch (e) {
+      value = null;
+    }
+    writeOk = Boolean(setRes.ok && getRes.ok && value === 'ok');
   } catch (e) {
-    res.json({ configured: true, error: e.message });
+    writeOk = false;
+  } finally {
+    try {
+      await fetch(cfg.url, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + cfg.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(['DEL', testKey]),
+        signal: AbortSignal.timeout(4000),
+      });
+    } catch (e) {
+      writeOk = false;
+    }
   }
+  res.json({ configured: true, writeOk });
 });
 
 app.use('/api', (req, res) => {
