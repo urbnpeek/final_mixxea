@@ -43,6 +43,31 @@
     if (root && root.parentNode) root.parentNode.removeChild(root);
   }
 
+  function catalogueLink() {
+    var links = document.querySelectorAll('a');
+    for (var i = 0; i < links.length; i++) {
+      if (/Explore the catalogue/.test(links[i].textContent || '')) return links[i];
+    }
+    return null;
+  }
+
+  function fitBanner(root) {
+    if (!root || !root.classList.contains('is-prefs')) {
+      if (root) root.style.maxHeight = '';
+      return;
+    }
+    var cap = window.innerHeight - 24;
+    var link = catalogueLink();
+    var room = cap;
+    if (link && window.innerWidth <= 480) {
+      var rect = link.getBoundingClientRect();
+      if (rect.bottom > 0 && rect.top < window.innerHeight) {
+        room = Math.min(cap, window.innerHeight - rect.bottom - 12);
+      }
+    }
+    root.style.maxHeight = Math.max(1, room) + 'px';
+  }
+
   function button(label, className) {
     var el = document.createElement('button');
     el.type = 'button';
@@ -51,7 +76,10 @@
     return el;
   }
 
+  var onResize = null;
+
   function open(options) {
+    if (onResize) window.removeEventListener('resize', onResize);
     var existing = document.getElementById('cookie-consent');
     if (existing) existing.parentNode.removeChild(existing);
     var root = document.createElement('div');
@@ -94,7 +122,10 @@
 
     var previous = document.activeElement;
     var opener = options && options.returnFocus;
+    onResize = function () { fitBanner(root); };
     function finish() {
+      window.removeEventListener('resize', onResize);
+      onResize = null;
       close(root);
       var target = opener || (previous && previous !== document.body && previous !== document.documentElement ? previous : null);
       if (target && target !== root && typeof target.focus === 'function' && document.contains(target)) target.focus();
@@ -113,6 +144,7 @@
       save.hidden = false;
       preferences.hidden = true;
       root.classList.add('is-prefs');
+      fitBanner(root);
       var box = prefs.querySelector('[data-analytics]');
       if (box) box.focus();
     });
@@ -125,8 +157,12 @@
     });
 
     document.body.appendChild(root);
-    root.tabIndex = -1;
-    if (!opener) root.focus({ preventScroll: true });
+    fitBanner(root);
+    window.addEventListener('resize', onResize);
+    if (opener) {
+      root.tabIndex = -1;
+      root.focus({ preventScroll: true });
+    }
   }
 
   function boot() {
