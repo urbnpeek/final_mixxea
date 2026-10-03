@@ -43,12 +43,11 @@
     if (root && root.parentNode) root.parentNode.removeChild(root);
   }
 
-  function catalogueLink() {
-    var links = document.querySelectorAll('a');
-    for (var i = 0; i < links.length; i++) {
-      if (/Explore the catalogue/.test(links[i].textContent || '')) return links[i];
-    }
-    return null;
+  function preferenceLimit(content, cap, room) {
+    var limit = cap;
+    if (room != null && content <= room) limit = Math.min(cap, room);
+    if (content <= cap) limit = Math.max(limit, content);
+    return limit;
   }
 
   function fitBanner(root) {
@@ -56,16 +55,18 @@
       if (root) root.style.maxHeight = '';
       return;
     }
+    root.style.maxHeight = '';
     var cap = window.innerHeight - 24;
-    var link = catalogueLink();
-    var room = cap;
+    var content = root.scrollHeight;
+    var room = null;
+    var link = document.querySelector('[data-consent-avoid]');
     if (link && window.innerWidth <= 480) {
       var rect = link.getBoundingClientRect();
       if (rect.bottom > 0 && rect.top < window.innerHeight) {
-        room = Math.min(cap, window.innerHeight - rect.bottom - 12);
+        room = window.innerHeight - rect.bottom - 12;
       }
     }
-    root.style.maxHeight = Math.max(1, room) + 'px';
+    root.style.maxHeight = preferenceLimit(content, cap, room) + 'px';
   }
 
   function button(label, className) {

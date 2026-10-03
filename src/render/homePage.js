@@ -137,7 +137,7 @@ function renderHome(bundle) {
           <p class="body-l">Mixxea Records is an independent electronic music label. FreqVault is our agency — booking and artist management for DJs, producers and live acts.</p>
           <div class="hero-ctas">
             <a class="btn acid" href="/booking-agency#inquiry">Book an artist <small>booking@mixxea.com</small></a>
-            <a class="btn" href="/releases">Explore the catalogue →</a>
+            <a class="btn" href="/releases" data-consent-avoid>Explore the catalogue →</a>
           </div>
         </div>
         <figure class="hero-portrait">
