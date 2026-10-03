@@ -1,0 +1,10 @@
+[
+  {
+    "id": "demo-public",
+    "file": "https://example.public.blob.vercel-storage.com/audio/track.wav"
+  },
+  {
+    "id": "demo-private",
+    "file": "private:audio/already.wav"
+  }
+]

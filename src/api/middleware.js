@@ -2,8 +2,9 @@
  * middleware.js — Shared Express middleware
  */
 const crypto = require('crypto');
+const { sessionSecret } = require('../lib/sessionSecret');
 
-const SECRET = () => process.env.SESSION_SECRET || 'mixxea-dev-secret';
+const SECRET = () => sessionSecret();
 
 function getCookie(req, name) {
   const header = req.headers.cookie || '';

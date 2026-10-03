@@ -2,6 +2,7 @@ const express = require('express');
 const { v4: uuid } = require('uuid');
 const db = require('./db');
 const mailer = require('./mailer');
+const { addSubscriber } = require('../lib/newsletterList');
 const { getAppUrl } = require('./appUrl');
 const router = express.Router();
 
@@ -40,10 +41,8 @@ router.post('/', async (req, res) => {
     const normalized = normalizeEmail(email);
     if (normalized && normalized.includes('@')) {
       const newsletter = await db.get('newsletter');
-      if (!newsletter.subscribers.find((s) => s.email === normalized)) {
-        newsletter.subscribers.push({ email: normalized, joinedAt: new Date().toISOString(), source: 'contact-form' });
-        await db.set('newsletter', newsletter);
-      }
+      const added = addSubscriber(newsletter, { email: normalized, source: 'contact-form' });
+      if (added.status === 'added') await db.set('newsletter', added.newsletter);
     }
   }
 

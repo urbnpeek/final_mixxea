@@ -177,7 +177,7 @@ async function loadArtists() {
       const name = escHtml(a.name);
       const where = [a.country, a.city].filter(Boolean).map(escHtml).join(' / ');
       const photo = /^(https?:\/\/|\/(?!\/))/.test(String(a.photo || '')) ? escHtml(a.photo) : '';
-      const bookable = String(a.type || '').trim().toLowerCase() !== 'label';
+      const bookable = a.bookable === true;
       return `
       <div class="a-tile">
         <div class="at-bg" style="color:${COLORS[i % COLORS.length]}">

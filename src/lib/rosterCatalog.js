@@ -6,6 +6,9 @@
  * do not hide it. Nothing here adds bios, venues, or claims.
  */
 
+const { applyReleaseFixes } = require('./redesignData');
+const { scrubConfirm } = require('./scrubConfirm');
+
 const BRAND_WORDS = new Set([
   'mixxea',
   'records',
@@ -61,13 +64,20 @@ function rosterIds(artists) {
   return ids;
 }
 
+function primaryCredit(value) {
+  return String(value || '').split(/\b(?:feat\.?|ft\.?|featuring)\b/i)[0];
+}
+
 function creditsOk(record, artists) {
+  const names = rosterNames(artists);
+  const listed = Array.isArray(record && record.artists) ? record.artists.map((name) => String(name).trim().toLowerCase()).filter(Boolean) : [];
+  if (listed.length) return listed.some((name) => names.has(name));
   const ids = Array.isArray(record && record.artistIds) ? record.artistIds.filter(Boolean) : [];
   if (ids.length) {
     const known = rosterIds(artists);
     return ids.every((id) => known.has(id));
   }
-  return creditedToRoster(record && record.artist, rosterNames(artists));
+  return creditedToRoster(primaryCredit(record && record.artist), names);
 }
 
 function releaseHiddenReason(release, artists) {
@@ -110,22 +120,26 @@ function newsHiddenReason(item, artists) {
 }
 
 function visibleReleases(releases, artists) {
-  return (Array.isArray(releases) ? releases : []).filter((release) => !releaseHiddenReason(release, artists));
+  return (Array.isArray(releases) ? releases : [])
+    .map((release) => applyReleaseFixes(release))
+    .filter((release) => !releaseHiddenReason(release, artists));
 }
 
 function visibleEvents(events, artists) {
   const names = rosterNames(artists);
-  return (Array.isArray(events) ? events : []).filter((event) => {
+  return scrubConfirm((Array.isArray(events) ? events : []).filter((event) => {
     if (!event) return false;
     const status = String(event.status || '').toLowerCase();
     if (status === 'cancelled' || status === 'hidden') return false;
     if (!creditedToRoster(event.artist, names)) return false;
     return !shoutedOffRoster(`${event.venue || ''} ${event.artist || ''}`, names);
-  });
+  }));
 }
 
 function visibleNews(news, artists) {
-  return (Array.isArray(news) ? news : []).filter((item) => !newsHiddenReason(item, artists));
+  return (Array.isArray(news) ? news : [])
+    .map((item) => scrubConfirm(item))
+    .filter((item) => !newsHiddenReason(item, artists));
 }
 
 function visibleTracks(tracks, artists) {

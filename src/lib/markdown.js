@@ -3,8 +3,10 @@
  * is applied: headings, bold, italic, links, lists, quotes, and images.
  */
 
+const { scrubConfirm } = require('./scrubConfirm');
+
 function escapeHtml(value) {
-  return String(value ?? '')
+  return scrubConfirm(String(value ?? ''))
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')

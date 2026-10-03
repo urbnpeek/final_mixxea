@@ -214,7 +214,10 @@ async function main() {
     const old = await request(port, 'GET', '/news/techno-night-notes');
     assert(old.status === 301, 'old slug ' + old.status);
     assert(old.headers.location.endsWith('/news/techno-notes'), old.headers.location);
-    const category = await request(port, 'GET', '/news/category/label-news');
+    const legacyCategory = await request(port, 'GET', '/news/category/label-news');
+    assert(legacyCategory.status === 301, 'legacy category ' + legacyCategory.status);
+    assert(String(legacyCategory.headers.location || '').endsWith('/news/category/label'), legacyCategory.headers.location);
+    const category = await request(port, 'GET', '/news/category/label');
     assert(category.status === 200, 'category ' + category.status);
     assert(category.body.includes('Techno night notes'), 'category missing post');
     const unknown = await request(port, 'GET', '/news/category/not-a-category');

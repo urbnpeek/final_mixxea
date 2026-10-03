@@ -112,7 +112,7 @@ async function getRaw(collection) {
 
 const INDEXED = { releases: 'release', news: 'post' };
 
-async function get(collection) {
+async function readCollection(collection) {
   const kind = INDEXED[collection];
   if (kind) {
     try {
@@ -127,6 +127,26 @@ async function get(collection) {
   return getRaw(collection);
 }
 
+async function peek(collection) {
+  if (isRedisConfigured()) {
+    try { return await redisGet(collection); }
+    catch (e) { return null; }
+  }
+  const file = path.join(DATA_DIR, `${collection}.json`);
+  if (!fs.existsSync(file)) return null;
+  try { return JSON.parse(fs.readFileSync(file, 'utf8')); }
+  catch (e) { return null; }
+}
+
+const PREVIEW_COLLECTIONS = new Set(['artists', 'releases', 'news', 'events', 'categories']);
+
+async function get(collection) {
+  const data = await readCollection(collection);
+  if (process.env.VERCEL_ENV !== 'preview' || !PREVIEW_COLLECTIONS.has(collection)) return data;
+  const { transformCollection } = require('../lib/redesignData');
+  return transformCollection(collection, data);
+}
+
 async function set(collection, data) {
   if (isRedisConfigured()) {
     try {
@@ -139,4 +159,4 @@ async function set(collection, data) {
   localSet(collection, data);
 }
 
-module.exports = { get, getRaw, set, isRedisConfigured, getRedisConfig };
+module.exports = { get, getRaw, peek, set, isRedisConfigured, getRedisConfig };

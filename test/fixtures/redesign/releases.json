@@ -1,0 +1,44 @@
+[
+  {
+    "id": "mxa004",
+    "title": "Grind System EP",
+    "artist": "VEXR",
+    "catNo": "MXA004",
+    "status": "out",
+    "date": "2024-01-01"
+  },
+  {
+    "id": "mxa005-drafted",
+    "title": "Void Protocol",
+    "artist": "LYDA",
+    "catNo": "MXA005",
+    "status": "draft",
+    "date": "2024-02-01"
+  },
+  {
+    "id": "rel-love",
+    "title": "Love & Fake",
+    "artist": "David Hopperman feat. Jayy Dee",
+    "slug": "david-hopperman-love-fake",
+    "catNo": "MXX-052",
+    "genre": "Dance / Pop",
+    "date": "2019-07-01",
+    "status": "out",
+    "spotify": "https://open.spotify.com/track/should-be-cleared",
+    "beatport": "https://www.beatport.com/track/love-fake/1",
+    "rev": 3
+  },
+  {
+    "id": "rel-naka",
+    "title": "Naka",
+    "artist": "S1NCE",
+    "catNo": "MXX-092",
+    "date": "2025-07-01",
+    "status": "published",
+    "genre": "Afro House",
+    "artwork": "https://example.public.blob.vercel-storage.com/naka.png",
+    "spotify": "https://open.spotify.com/track/4ltsIrgI1ohN3NPDQ4O4ZH",
+    "apple": "https://music.apple.com/album/unconfirmed",
+    "rev": 2
+  }
+]

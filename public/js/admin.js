@@ -136,6 +136,7 @@ function admClearRel() {
 function admClearArt() {
   ['art-edit-id','art-name','art-realname','art-country','art-city','art-bio','art-instagram','art-soundcloud','art-bookingemail'].forEach(id=>setVal(id,''));
   setVal('art-genre','Techno'); setVal('art-type','both'); setVal('art-status','signed');
+  const bookable=document.getElementById('art-bookable'); if(bookable) bookable.checked=false;
   setText('art-form-title','NEW ARTIST');
 }
 function admClearNews() {
@@ -426,7 +427,7 @@ const ADMIN = {
   async saveArtist() {
     const name=val('art-name'); if(!name){toast('Artist name is required','error');return;}
     const id=val('art-edit-id');
-    const payload={name,realName:val('art-realname'),country:val('art-country'),city:val('art-city'),genre:val('art-genre'),type:val('art-type'),status:val('art-status'),bio:val('art-bio'),instagram:val('art-instagram'),soundcloud:val('art-soundcloud'),bookingEmail:val('art-bookingemail')};
+    const payload={name,realName:val('art-realname'),country:val('art-country'),city:val('art-city'),genre:val('art-genre'),type:val('art-type'),status:val('art-status'),bio:val('art-bio'),instagram:val('art-instagram'),soundcloud:val('art-soundcloud'),bookingEmail:val('art-bookingemail'),bookable:document.getElementById('art-bookable')?.checked===true};
     const fd=new FormData(); Object.entries(payload).forEach(([k,v])=>fd.append(k,v));
     const ph=document.getElementById('art-photo'); if(ph?.files[0]) fd.append('photo',ph.files[0]);
     if(id){
@@ -448,6 +449,7 @@ const ADMIN = {
     setVal('art-country',a.country); setVal('art-city',a.city); setVal('art-genre',a.genre);
     setVal('art-type',a.type); setVal('art-status',a.status); setVal('art-bio',a.bio||'');
     setVal('art-instagram',a.instagram||''); setVal('art-soundcloud',a.soundcloud||''); setVal('art-bookingemail',a.bookingEmail||'');
+    const bookable=document.getElementById('art-bookable'); if(bookable) bookable.checked=a.bookable===true;
     setText('art-form-title','EDIT ARTIST');
     const f=document.getElementById('art-form'); f.style.display='block'; f.scrollIntoView({behavior:'smooth'});
   },
@@ -477,7 +479,7 @@ const ADMIN = {
         <td><div class="tbl-name">${d.artistName}</div><div class="tbl-sub">${d.email||''}</div></td>
         <td><div class="tbl-name">${d.trackTitle}</div><div class="tbl-sub" style="color:var(--muted2)">${d.version||'Original Mix'}</div></td>
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${d.genre||'—'}<br><span style="color:var(--muted2)">${d.bpm?d.bpm+' BPM':''}</span></td>
-        <td>${d.downloadLink?`<a href="${d.downloadLink}" target="_blank" class="tbl-btn" style="display:inline-block;font-size:9px">DL ↗</a>`:d.file?`<a href="${d.file}" target="_blank" class="tbl-btn" style="display:inline-block;font-size:9px">File ↗</a>`:'<span style="color:var(--muted2);font-size:10px;font-family:var(--Mono)">—</span>'}</td>
+        <td>${d.downloadLink?`<a href="${d.downloadLink}" target="_blank" class="tbl-btn" style="display:inline-block;font-size:9px">DL ↗</a>`:d.file?`<a href="/api/demos/${d.id}/file" target="_blank" class="tbl-btn" style="display:inline-block;font-size:9px">File ↗</a>`:'<span style="color:var(--muted2);font-size:10px;font-family:var(--Mono)">—</span>'}</td>
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(d.submittedAt)}</td>
         <td>${badge(d.status,sc[d.status]||'ab-draft')}</td>
         <td><div class="tbl-actions">
@@ -566,6 +568,7 @@ const ADMIN = {
         cell('Format',d.fileFormat||'—')
       )+
       `<div style="margin-bottom:18px">${lbl('Download link')}<div style="font-size:12px;font-family:var(--Mono);word-break:break-all">${d.downloadLink?`<a href="${d.downloadLink}" target="_blank" style="color:#c8b8ff">${d.downloadLink}</a>`:'—'}</div></div>`+
+      (d.file?`<div style="margin-bottom:18px">${lbl('Audio')}<a href="/api/demos/${d.id}/file" target="_blank" style="color:#c8b8ff">Open private file</a></div>`:'')+
       (d.description||d.notes?`<div style="background:rgba(255,255,255,.04);border:0.5px solid rgba(255,255,255,.08);padding:14px;border-radius:6px;margin-bottom:18px">${lbl('Description')}<div style="font-size:13px;line-height:1.65;margin-top:4px">${(d.description||d.notes).replace(/\n/g,'<br>')}</div></div>`:'')+
       hr+
       grid2(
@@ -604,7 +607,7 @@ const ADMIN = {
         <td style="font-family:var(--Mono);font-size:10px;color:${urgent?'var(--g5)':'var(--muted)'}">${fmtDate(c.expiresAt)}${urgent?` <small style="font-size:9px">(${days}d left)</small>`:''}</td>
         <td>${badge(c.status,c.status==='active'?'ab-signed':'ab-draft')}</td>
         <td><div class="tbl-actions">
-          ${c.file?`<a href="${c.file}" target="_blank" class="tbl-btn" style="display:inline-block">Open</a>`:''}
+          ${c.file?`<a href="/api/contracts/${c.id}/file" target="_blank" class="tbl-btn" style="display:inline-block">Open</a>`:''}
           <button class="tbl-btn del" onclick="ADMIN.deleteContract('${c.id}','${c.artist}')">Remove</button>
         </div></td>
       </tr>`;}).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;font-family:var(--Mono);font-size:11px">No contracts yet</td></tr>');

@@ -16,6 +16,7 @@ const { router: seoRouter, generateSitemap } = require('./src/api/seo');
 const db = require('./src/api/db');
 const pages = require('./src/render/publicPages');
 const { publicDetailPath } = require('./src/lib/publicDetail');
+const { versionHtml } = require('./src/lib/assetVersion');
 
 // -- Ensure upload directories exist (silently skip if read-only, e.g. Vercel) --
 const uploadDirs = ['public/uploads/audio','public/uploads/artwork','public/uploads/news','public/uploads/contracts'];
@@ -37,28 +38,68 @@ if (isProduction) {
 
 const cspDirectives = {
   defaultSrc: ["'self'"],
-  scriptSrc: ["'self'", "'unsafe-inline'"],
+  scriptSrc: [
+    "'self'",
+    (req, res) => `'nonce-${res.locals.cspNonce}'`,
+    'https://www.googletagmanager.com',
+    'https://connect.facebook.net',
+    'https://cdnjs.cloudflare.com',
+  ],
   scriptSrcAttr: ["'unsafe-inline'"],
   styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
   fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
-  imgSrc: ["'self'", 'data:', 'https:', 'https://*.public.blob.vercel-storage.com'],
+  imgSrc: [
+    "'self'",
+    'data:',
+    'https://*.public.blob.vercel-storage.com',
+    'https://*.google-analytics.com',
+    'https://*.googletagmanager.com',
+    'https://www.facebook.com',
+  ],
   mediaSrc: ["'self'", 'blob:', 'data:', 'https:'],
-  connectSrc: ["'self'"],
+  connectSrc: [
+    "'self'",
+    'https://*.google-analytics.com',
+    'https://*.analytics.google.com',
+    'https://analytics.google.com',
+    'https://*.googletagmanager.com',
+    'https://www.google.com',
+    'https://stats.g.doubleclick.net',
+    'https://www.facebook.com',
+  ],
+  frameSrc: ['https://open.spotify.com', 'https://w.soundcloud.com', 'https://www.youtube-nocookie.com'],
   objectSrc: ["'none'"],
   baseUri: ["'self'"],
   formAction: ["'self'"],
   frameAncestors: ["'self'"],
 };
 
-if (isProduction) {
-  cspDirectives.upgradeInsecureRequests = [];
+// Helmet's default CSP turns this on. Keep it for production, and leave HTTP
+// local servers alone so a browser check can load the page.
+cspDirectives.upgradeInsecureRequests = isProduction ? [] : null;
+
+// Preview deployments inject the Vercel Toolbar. Production keeps the §7
+// policy plus the analytics hosts already listed above.
+if (process.env.VERCEL_ENV === 'preview') {
+  cspDirectives.scriptSrc.push('https://vercel.live');
+  cspDirectives.styleSrc.push('https://vercel.live');
+  cspDirectives.fontSrc.push('https://vercel.live', 'https://assets.vercel.com');
+  cspDirectives.connectSrc.push('https://vercel.live', 'wss://ws-us3.pusher.com');
+  cspDirectives.imgSrc.push('https://vercel.live', 'https://vercel.com', 'blob:');
+  cspDirectives.frameSrc.push('https://vercel.live');
 }
+
+app.use((req, res, next) => {
+  res.locals.cspNonce = crypto.randomBytes(16).toString('base64');
+  next();
+});
 
 // -- Security & middleware --
 app.use(helmet({
   contentSecurityPolicy: {
     directives: cspDirectives,
   },
+  strictTransportSecurity: isProduction ? undefined : false,
 }));
 app.use(cors());
 // Resend signs the raw body. This route must stay ahead of express.json()
@@ -90,18 +131,33 @@ app.get('/sitemap.xml', async (req, res) => {
 // -- SEO API (schema.json endpoints) --
 app.use('/api/seo', seoRouter);
 
+function stampHtml(res, html) {
+  const nonce = res.locals.cspNonce || '';
+  const versioned = versionHtml(String(html)).replace(/__CSP_NONCE__/g, nonce);
+  return versioned.replace(/<script\b([^>]*)>/gi, (match, attrs) => {
+    if (/\bsrc\s*=/i.test(attrs) || /\bnonce\s*=/i.test(attrs)) return match;
+    return `<script${attrs} nonce="${nonce}">`;
+  });
+}
+
 function sendHtml(res, status, html, cacheControl) {
   res.status(status);
   res.set('Cache-Control', cacheControl || 'no-store, no-cache, must-revalidate');
   if (status === 404 || status === 410) {
     res.set('X-Robots-Tag', 'noindex, nofollow');
   }
-  res.type('html').send(html);
+  res.type('html').send(stampHtml(res, html));
 }
 
 function redirectTo(res, location) {
   res.redirect(301, location);
 }
+
+app.get(['/cookies', '/cookie-policy'], (req, res) => {
+  res.status(301);
+  res.set('Location', '/privacy#cookies');
+  res.end();
+});
 
 app.get(['/booking', '/agency', '/freqvault'], (req, res) => {
   const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
@@ -124,9 +180,7 @@ app.get('/', async (req, res, next) => {
       db.get('events'),
       db.get('news'),
     ]);
-    const html = pages.injectHome(fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8'), {
-      artists, releases, events, news,
-    });
+    const html = require('./src/render/homePage').renderHome({ artists, releases, events, news });
     sendHtml(res, 200, html, 'public, s-maxage=300, stale-while-revalidate=86400');
   } catch (e) {
     console.error('[pages] home', e);
@@ -138,11 +192,11 @@ app.get('/booking-agency', async (req, res) => {
   try {
     const artists = await db.get('artists');
     const selected = Array.isArray(req.query.artist) ? req.query.artist[0] : req.query.artist;
-    const html = pages.injectBooking(
+    const html = pages.applyChrome(pages.injectBooking(
       fs.readFileSync(path.join(__dirname, 'public', 'booking-agency.html'), 'utf8'),
       artists,
       selected
-    );
+    ), '/booking-agency');
     sendHtml(res, 200, html);
   } catch (e) {
     console.error('[pages] booking', e);
@@ -153,10 +207,10 @@ app.get('/booking-agency', async (req, res) => {
 app.get('/electronic-music-artists', async (req, res) => {
   try {
     const artists = await db.get('artists');
-    const html = pages.injectRoster(
+    const html = pages.applyChrome(pages.injectRoster(
       fs.readFileSync(path.join(__dirname, 'public', 'electronic-music-artists.html'), 'utf8'),
       artists
-    );
+    ), '/electronic-music-artists');
     sendHtml(res, 200, html);
   } catch (e) {
     console.error('[pages] roster', e);
@@ -188,6 +242,18 @@ app.get('/artists/:slug', async (req, res) => {
   }
 });
 
+app.get('/index.html', (req, res) => {
+  res.redirect(301, '/');
+});
+
+app.get('/admin', (req, res) => {
+  const file = path.join(__dirname, 'public', 'index.html');
+  const html = fs.readFileSync(file, 'utf8')
+    .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="noindex, nofollow">');
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  sendHtml(res, 200, html, 'no-store');
+});
+
 // JS files: never cache so updates deploy immediately
 app.use('/js', express.static(path.join(__dirname, 'public', 'js'), { maxAge: 0, etag: false }));
 app.use(express.static(path.join(__dirname, 'public'), {
@@ -202,7 +268,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
 // -- Sessions --
 app.use(session({
   name: 'mixxea.sid',
-  secret: process.env.SESSION_SECRET || 'mixxea-dev-secret',
+  secret: require('./src/lib/sessionSecret').sessionSecret(),
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -235,7 +301,7 @@ function blobToken() {
   return process.env.BLOB_READ_WRITE_TOKEN || '';
 }
 
-// Diagnostic: Blob storage. GET only lists (no writes). POST uploads a probe and deletes it.
+// Diagnostic: Blob storage. GET only lists. POST uploads a probe and deletes it. Both stay admin-only.
 app.get('/api/blob-status', requireAdmin, async (req, res) => {
   const token = blobToken();
   if (!token) return res.json({ configured: false });
@@ -280,16 +346,12 @@ app.post('/api/blob-status', requireAdmin, async (req, res) => {
   res.json({ configured: true, writeOk });
 });
 
-// Diagnostic: Redis/KV. GET only PINGs. POST writes a short-lived key and deletes it.
+// Diagnostic: Redis/KV. GET only PINGs. POST writes a short-lived key and deletes it. Both stay admin-only.
 app.get('/api/db-status', requireAdmin, async (req, res) => {
   const { isRedisConfigured, getRedisConfig } = require('./src/api/db');
   const cfg = getRedisConfig();
   if (!isRedisConfigured()) {
-    return res.json({
-      configured: false,
-      urlPresent: Boolean(cfg.url),
-      tokenPresent: Boolean(cfg.token),
-    });
+    return res.json({ configured: false, urlPresent: Boolean(cfg.url), tokenPresent: Boolean(cfg.token) });
   }
   try {
     const pingRes = await fetch(cfg.url, {
@@ -367,8 +429,61 @@ const seoPageRoutes = new Map([
 
 seoPageRoutes.forEach((fileName, routePath) => {
   app.get(routePath, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', fileName));
+    const html = pages.applyChrome(fs.readFileSync(path.join(__dirname, 'public', fileName), 'utf8'), routePath);
+    sendHtml(res, 200, html);
   });
+});
+
+app.get('/portal', (req, res) => {
+  sendHtml(res, 200, require('./src/render/catalogPages').renderPortal());
+});
+
+app.get('/privacy', (req, res) => {
+  const preview = process.env.VERCEL_ENV === 'preview';
+  if (preview) res.set('X-Robots-Tag', 'noindex, nofollow');
+  const cache = preview ? 'no-store' : PUBLIC_PAGE_CACHE;
+  sendHtml(res, 200, require('./src/render/privacyPage').renderPrivacyPage({ preview }), cache);
+});
+
+app.get('/unsubscribe', (req, res) => {
+  const { verifyUnsubscribeToken } = require('./src/lib/unsubscribeToken');
+  const { renderUnsubscribePage } = require('./src/render/unsubscribePage');
+  const preview = process.env.VERCEL_ENV === 'preview';
+  const token = String(req.query.token || '');
+  const email = verifyUnsubscribeToken(token);
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  res.set('Cache-Control', 'no-store');
+  sendHtml(res, email ? 200 : 400, renderUnsubscribePage({
+    preview,
+    token,
+    email,
+    invalid: !email,
+  }), 'no-store');
+});
+
+app.post('/unsubscribe', async (req, res) => {
+  const { verifyUnsubscribeToken } = require('./src/lib/unsubscribeToken');
+  const { unsubscribeEmail } = require('./src/lib/newsletterList');
+  const { renderUnsubscribePage } = require('./src/render/unsubscribePage');
+  const db = require('./src/api/db');
+  const token = String((req.query && req.query.token) || (req.body && req.body.token) || '');
+  const email = verifyUnsubscribeToken(token);
+  const oneClick = String((req.body && (req.body['List-Unsubscribe'] || req.body.listUnsubscribe)) || '') === 'One-Click';
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  res.set('Cache-Control', 'no-store');
+  if (!email) {
+    if (oneClick) return res.status(400).json({ error: 'Invalid token' });
+    return sendHtml(res, 400, renderUnsubscribePage({ preview: process.env.VERCEL_ENV === 'preview', invalid: true }), 'no-store');
+  }
+  const current = await db.get('newsletter');
+  const result = unsubscribeEmail(current, email);
+  await db.set('newsletter', result.newsletter);
+  if (oneClick) return res.status(200).json({ success: true });
+  sendHtml(res, 200, renderUnsubscribePage({
+    preview: process.env.VERCEL_ENV === 'preview',
+    done: true,
+    email,
+  }), 'no-store');
 });
 
 const serveSeoDetail = (folder) => (req, res) => {
@@ -386,7 +501,7 @@ const catalog = require('./src/render/catalogPages');
 const contentStore = require('./src/lib/contentStore');
 const { releaseHiddenReason, newsHiddenReason, visibleReleases, visibleNews } = require('./src/lib/rosterCatalog');
 const { verifyPreviewToken } = require('./src/api/middleware');
-const { categoryByInput } = require('./src/lib/categories');
+const { publicCategory } = require('./src/lib/categories');
 
 async function locateRecord(kind, slug, list) {
   const indexed = await contentStore.getBySlug(kind, slug);
@@ -432,10 +547,13 @@ app.get('/releases/:slug', async (req, res) => {
     const relatedNews = visibleNews(news, artists).filter((post) =>
       Array.isArray(post.relatedReleaseIds) && post.relatedReleaseIds.includes(found.doc.id)
     ).slice(0, 3);
+    const catalogue = visibleReleases(releases, artists).filter((item) => pages.releaseSlug(item) !== pages.releaseSlug(found.doc));
+    const sameArtist = catalogue.filter((item) => String(item.artist || '').toLowerCase() === String(found.doc.artist || '').toLowerCase());
+    const relatedReleases = sameArtist.concat(catalogue.filter((item) => !sameArtist.includes(item))).slice(0, 4);
     sendHtml(
       res,
       200,
-      catalog.renderReleasePage(found.doc, artists, { preview: Boolean(preview), relatedNews }),
+      catalog.renderReleasePage(found.doc, artists, { preview: Boolean(preview), relatedNews, relatedReleases }),
       preview || hidden ? 'no-store' : PUBLIC_PAGE_CACHE
     );
   } catch (e) {
@@ -456,14 +574,22 @@ app.get('/news', async (req, res) => {
 
 app.get('/news/category/:cat', async (req, res) => {
   try {
-    const category = categoryByInput(req.params.cat);
-    if (!category || category.slug !== req.params.cat) {
+    const category = publicCategory(req.params.cat);
+    if (!category) {
       sendHtml(res, 404, pages.renderNotFound());
       return;
     }
+    if (category.slug !== String(req.params.cat).toLowerCase()) {
+      res.redirect(301, `/news/category/${category.slug}`);
+      return;
+    }
     const [news, artists] = await Promise.all([db.get('news'), db.get('artists')]);
-    const posts = visibleNews(news, artists).filter((item) => categoryByInput(item.category) && categoryByInput(item.category).slug === category.slug);
-    sendHtml(res, 200, catalog.renderNewsCategory(category, posts, req.query), PUBLIC_PAGE_CACHE);
+    const published = visibleNews(news, artists);
+    const posts = published.filter((item) => {
+      const cat = publicCategory(item.category);
+      return cat && cat.slug === category.slug;
+    });
+    sendHtml(res, 200, catalog.renderNewsCategory(category, posts, req.query, published), PUBLIC_PAGE_CACHE);
   } catch (e) {
     console.error('[pages] news category', e);
     sendHtml(res, 500, pages.renderNotFound());
@@ -471,8 +597,8 @@ app.get('/news/category/:cat', async (req, res) => {
 });
 
 app.get('/dj-pool*', (req, res) => {
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-  res.sendFile(path.join(__dirname, 'public', 'dj-pool.html'));
+  const html = fs.readFileSync(path.join(__dirname, 'public', 'dj-pool.html'), 'utf8');
+  sendHtml(res, 200, html, 'no-store, no-cache, must-revalidate');
 });
 
 // -- Google Search Console HTML file verification --
