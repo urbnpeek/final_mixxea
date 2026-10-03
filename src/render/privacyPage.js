@@ -1,10 +1,9 @@
 /**
- * Draft privacy and cookie notice. Facts come from the routes that store data.
- * Product questions still open are marked [CONFIRM-PRODUCT].
+ * Privacy and cookie notice. Facts come from the routes that store data.
  */
 const { siteNav, siteFooter, pageShell } = require('./publicPages');
 
-const LAST_UPDATED = '2 October 2026';
+const LAST_UPDATED = '3 October 2026';
 
 function cell(label, text) {
   return `<td data-label="${label}">${text}</td>`;
@@ -29,7 +28,7 @@ ${draft}
 
     <h2>Who we are</h2>
     <p>The controller is Freq Grup SRL, CUI 52133484, Trade Reg. No. J2025050803009, EUID ROONRC.J2025050803009, Intr. Gheorghe Simionescu 19, Ap. B26, 014155 București (Sector 1), România.</p>
-    <p>No data protection officer is appointed. Privacy requests go to <a href="mailto:hello@mixxea.com">hello@mixxea.com</a>. [CONFIRM-PRODUCT]</p>
+    <p>No data protection officer is appointed. Privacy requests go to <a href="mailto:hello@mixxea.com">hello@mixxea.com</a>.</p>
 
     <h2>Contact messages</h2>
     <p>The booking page at <a href="/booking-agency">/booking-agency</a> posts to <code>/api/contact</code>. The fields sent are your name, email, inquiry type, and message. If you fill them in, the message also includes the artist, venue, city, and date. The link field is sent empty. Inquiry types on that form are Booking Request, A&amp;R / Demo Submission, Artist Management, Brand / Partnership, Press / Media, and General.</p>
@@ -58,24 +57,24 @@ ${draft}
     <p>Retention: the address stays on the list until you unsubscribe, and it is then deleted. A minimal suppression record (the address and the time) is kept so a bulk import does not add you again. Subscribing yourself later is a new consent and clears that record.</p>
 
     <h2>Booking enquiries</h2>
-    <p>The booking page uses the contact endpoint described above. A second public endpoint, <code>POST /api/bookings/inquire</code>, stores the JSON body plus a status of “pending” and the time it was sent. The confirmation email reads artist, venue, contact, email, date, city, country, fee, and notes when those fields are present. No page in this site calls that endpoint. [CONFIRM-PRODUCT] whether it is still in use.</p>
+    <p>Booking requests use the contact form described above. Admins can still read the booking records that form creates, and any booking records already on file.</p>
     <p>Purpose: to handle a booking request.</p>
     <p>Lawful basis: steps before a contract, or the contract once a booking is signed.</p>
     <p>Retention: an enquiry that did not become a booking is kept for 24 months. A signed booking is kept for as long as Romanian accounting and tax law requires.</p>
 
     <h2>Artist portal</h2>
     <p><a href="/portal">/portal</a> is a login form. It sends email and password to <code>/api/auth/artist/login</code>. The password is checked against a bcrypt hash. It is not stored in plain text. A successful login puts the artist id and artist name on the session cookie <code>mixxea.sid</code>. There is no separate artist cookie.</p>
-    <p><code>POST /api/auth/artist/register</code> still accepts artist name, legal name, email, country, genre, password (stored as a bcrypt hash), and a SoundCloud URL, and sets status to “unsigned”. The redesign login page does not show a registration form. Registration is wired in the admin application script. [CONFIRM-PRODUCT] whether public registration is still offered.</p>
+    <p>Artist accounts are by invitation only. An admin creates the account. Public self-registration is not available. The stored fields are artist name, legal name, email, country, genre, a SoundCloud URL, and a password stored as a bcrypt hash. Status starts as “unsigned”.</p>
     <p>A signed-in artist can load <code>/api/royalties/my</code>. Royalty rows are entered by an admin and can include the payee name, amounts, the statement period, and payment details if those were entered. A signed-in artist can also open a contract file stored in their name. Other people cannot.</p>
     <p>Purpose: to give an artist access to the portal, their royalty rows, and their own contract.</p>
     <p>Lawful basis: steps before a contract, or the contract once it is signed. Contracts and royalties are also kept where Romanian accounting and tax law requires it.</p>
     <p>Retention: the account is kept for 12 months after it is closed. Contracts and royalties are kept for as long as Romanian accounting and tax law requires.</p>
 
     <h2>DJ pool</h2>
-    <p>There is no separate DJ-pool signup in this code. The first DJ-pool request creates a guest id (<code>g-</code> plus eight characters) on <code>mixxea.sid</code> if the browser has no artist id and no admin email. Hearts, crates, download logs, and subscriptions are stored under that id, or under the artist id or admin email when one of those is on the session. [CONFIRM-PRODUCT] whether the DJ pool is offered to the public.</p>
-    <p>Hearts store the visitor id and a track id. Crates store the visitor id, a crate name, and track ids. A download stores the visitor id, the track id, and the time. A subscription requires an artist login and stores a tier name (Starter, Pro DJ, or Elite), status, start time, download limit, and downloads used. This code does not collect a card number. [CONFIRM-PRODUCT] whether a tier is paid for somewhere else.</p>
-    <p>Purpose: to provide the DJ-pool service the account is using.</p>
-    <p>Lawful basis: contract, for the service the person signed up for. [CONFIRM-PRODUCT]</p>
+    <p>The DJ pool is an invitation-only service for approved DJs. It is not offered to the public, and nobody pays for it. The site does not collect a card number or any other payment detail for the DJ pool.</p>
+    <p>Hearts store a visitor id and a track id. Crates store a visitor id, a crate name, and track ids. A download stores a visitor id, the track id, and the time. A subscription record, when one exists, stores a tier name, status, start time, download limit, and downloads used. That record is not a payment.</p>
+    <p>Purpose: to provide the DJ-pool service to an approved DJ.</p>
+    <p>Lawful basis: contract.</p>
     <p>Retention: these rows are kept until the account is closed, then for 12 months. The session cookie itself expires after 24 hours.</p>
 
     <h2>Admin and staff sign-in</h2>
@@ -118,13 +117,13 @@ ${draft}
     <p>We use optional cookies from two services. Both stay off until you choose, and you can change that choice at any time from Cookie settings in the footer.</p>
     <p>Analytics uses Google Analytics 4, provided by Google Ireland Limited, property G-MEVRRCQQ5T. It tells us which pages are visited and whether the site is working. If you accept analytics, Google may store <code>_ga</code> (about two years, to tell browsers apart) and <code>_ga_MEVRRCQQ5T</code> (about two years, to keep a session together).</p>
     <p>Marketing uses the Meta Pixel, provided by Meta Platforms Ireland Limited, pixel 1331927570650344. It measures visits from Meta ads. The pixel is not loaded unless you accept marketing. If you do, Meta may store <code>_fbp</code> (about three months, to recognise the browser) and, after an ad click, <code>_fbc</code> (about three months, to store that click).</p>
-    <p>Strictly necessary storage is not optional. It is used to keep you signed in or to remember a DJ-pool guest id, and to remember the choice you already made.</p>
+    <p>Strictly necessary storage is not optional. It is used to keep you signed in, including when an approved DJ uses the DJ pool, and to remember the choice you already made.</p>
     <table class="legal-table">
       <thead><tr><th>Name</th><th>What it is</th><th>How long</th></tr></thead>
       <tbody>
         ${row([
           ['Name', '<code>mixxea.sid</code>'],
-          ['What it is', 'Session cookie. Set when an admin signs in, an artist signs in, or the DJ pool creates a guest id. httpOnly, SameSite Lax, and Secure in production. It holds a session id. It does not hold your password.'],
+          ['What it is', 'Session cookie. Set when an admin signs in, an artist signs in, or an approved DJ uses the DJ pool. httpOnly, SameSite Lax, and Secure in production. It holds a session id. It does not hold your password.'],
           ['How long', '24 hours'],
         ])}
         ${row([

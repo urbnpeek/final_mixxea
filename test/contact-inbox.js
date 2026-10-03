@@ -100,10 +100,18 @@ function assertNoLeak(res) {
   const results = [];
   const check = async (name, fn) => { await fn(); results.push(name); console.log('ok -', name); };
   try {
+    const bcrypt = require('bcryptjs');
+    await db.set('artistPortalUsers', [{
+      id: 'artist-inbox',
+      artistName: 'Inbox Tester',
+      email: 'inbox-artist@example.test',
+      passwordHash: await bcrypt.hash('artist-pw', 10),
+      status: 'unsigned',
+    }]);
     const artist = await request(port, {
       method: 'POST',
-      path: '/api/auth/artist/register',
-      body: { artistName: 'Inbox Tester', email: 'inbox-artist@example.test', password: 'artist-pw' },
+      path: '/api/auth/artist/login',
+      body: { email: 'inbox-artist@example.test', password: 'artist-pw' },
     });
     assert.strictEqual(artist.status, 200);
     const artistCookie = artist.cookie;

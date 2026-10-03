@@ -8,6 +8,12 @@
  *
  *   node scripts/migrate-private-blobs.js --fixtures test/fixtures/private-blobs
  *   node scripts/migrate-private-blobs.js --apply
+ *   node scripts/migrate-private-blobs.js --restore data/backups/private-blobs-<stamp>.json
+ *
+ * --apply needs KV_REST_API_URL and KV_REST_API_TOKEN (or UPSTASH_REDIS_REST_*)
+ * plus BLOB_READ_WRITE_TOKEN.
+ * --restore writes the demos and contracts arrays from the backup back to KV.
+ * It needs the KV variables. It does not recreate public blobs that were deleted.
  *
  * Do not run --apply until go-live. --fixtures never contacts Redis or Blob.
  */
@@ -130,9 +136,38 @@ async function applyLive(data, plan) {
   console.log('applied ' + plan.length + ' file(s)');
 }
 
+async function restoreLive(file) {
+  const backup = readJson(file, null);
+  if (!backup || !Array.isArray(backup.demos) || !Array.isArray(backup.contracts)) {
+    throw new Error('Backup must contain demos and contracts arrays');
+  }
+  require('dotenv').config();
+  const db = require('../src/api/db');
+  await db.set('demos', backup.demos);
+  await db.set('contracts', backup.contracts);
+  console.log('restored demos and contracts from ' + file);
+  console.log('Public blob files deleted during apply are not recreated. Private copies are left in place.');
+}
+
 async function main() {
   const apply = process.argv.includes('--apply');
   const fixtures = argValue('--fixtures');
+  const restore = argValue('--restore');
+  if (restore) {
+    if (apply || fixtures) {
+      console.error('Use --restore alone. It writes KV and does not take --apply or --fixtures.');
+      process.exitCode = 1;
+      return;
+    }
+    const file = path.resolve(restore);
+    if (!fs.existsSync(file)) {
+      console.error('Backup not found: ' + file);
+      process.exitCode = 1;
+      return;
+    }
+    await restoreLive(file);
+    return;
+  }
   if (apply && fixtures) {
     console.error('Refusing --apply with --fixtures. Fixtures never write Redis or Blob.');
     process.exitCode = 1;

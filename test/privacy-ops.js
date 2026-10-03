@@ -205,19 +205,32 @@ async function main() {
     assert(audio.status === 200, 'admin demo ' + audio.status);
     assert(audio.body === 'demo-bytes', audio.body);
 
-    const ada = await request(port, 'POST', '/api/auth/artist/register', {
+    const openRegister = await request(port, 'POST', '/api/auth/artist/register', {
       body: { artistName: 'Ada', email: 'ada@example.test', password: 'artist-pass-1' },
     });
-    assert(ada.status === 200, ada.body);
-    const adaCookie = cookieFrom(ada, 'mixxea.sid');
+    assert(openRegister.status === 403, 'public register ' + openRegister.status);
+    const created = await request(port, 'POST', '/api/auth/artist/register', {
+      cookie: adminCookie,
+      body: { artistName: 'Ada', email: 'ada@example.test', password: 'artist-pass-1' },
+    });
+    assert(created.status === 200, created.body);
+    const adaLogin = await request(port, 'POST', '/api/auth/artist/login', {
+      body: { email: 'ada@example.test', password: 'artist-pass-1' },
+    });
+    assert(adaLogin.status === 200, adaLogin.body);
+    const adaCookie = cookieFrom(adaLogin, 'mixxea.sid');
     const own = await request(port, 'GET', '/api/contracts/contract-priv/file', { cookie: adaCookie });
     assert(own.status === 200 && own.body.includes('%PDF'), 'artist contract ' + own.status + ' ' + own.body);
 
-    const ned = await request(port, 'POST', '/api/auth/artist/register', {
+    const nedCreated = await request(port, 'POST', '/api/auth/artist/register', {
+      cookie: adminCookie,
       body: { artistName: 'Ned', email: 'ned@example.test', password: 'artist-pass-1' },
     });
-    assert(ned.status === 200, ned.body);
-    const nedCookie = cookieFrom(ned, 'mixxea.sid');
+    assert(nedCreated.status === 200, nedCreated.body);
+    const nedLogin = await request(port, 'POST', '/api/auth/artist/login', {
+      body: { email: 'ned@example.test', password: 'artist-pass-1' },
+    });
+    const nedCookie = cookieFrom(nedLogin, 'mixxea.sid');
     const other = await request(port, 'GET', '/api/contracts/contract-priv/file', { cookie: nedCookie });
     assert(other.status === 403, 'other artist ' + other.status);
   });

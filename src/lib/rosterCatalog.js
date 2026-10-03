@@ -6,6 +6,9 @@
  * do not hide it. Nothing here adds bios, venues, or claims.
  */
 
+const { applyReleaseFixes } = require('./redesignData');
+const { scrubConfirm } = require('./scrubConfirm');
+
 const BRAND_WORDS = new Set([
   'mixxea',
   'records',
@@ -117,22 +120,26 @@ function newsHiddenReason(item, artists) {
 }
 
 function visibleReleases(releases, artists) {
-  return (Array.isArray(releases) ? releases : []).filter((release) => !releaseHiddenReason(release, artists));
+  return (Array.isArray(releases) ? releases : [])
+    .map((release) => applyReleaseFixes(release))
+    .filter((release) => !releaseHiddenReason(release, artists));
 }
 
 function visibleEvents(events, artists) {
   const names = rosterNames(artists);
-  return (Array.isArray(events) ? events : []).filter((event) => {
+  return scrubConfirm((Array.isArray(events) ? events : []).filter((event) => {
     if (!event) return false;
     const status = String(event.status || '').toLowerCase();
     if (status === 'cancelled' || status === 'hidden') return false;
     if (!creditedToRoster(event.artist, names)) return false;
     return !shoutedOffRoster(`${event.venue || ''} ${event.artist || ''}`, names);
-  });
+  }));
 }
 
 function visibleNews(news, artists) {
-  return (Array.isArray(news) ? news : []).filter((item) => !newsHiddenReason(item, artists));
+  return (Array.isArray(news) ? news : [])
+    .map((item) => scrubConfirm(item))
+    .filter((item) => !newsHiddenReason(item, artists));
 }
 
 function visibleTracks(tracks, artists) {

@@ -7,11 +7,15 @@
  *
  *   node scripts/migrate-redesign-data.js --fixtures test/fixtures/redesign
  *   node scripts/migrate-redesign-data.js --apply
+ *   node scripts/migrate-redesign-data.js --restore data/backups/redesign-<stamp>.json
+ *
+ * --restore writes the touched records from that backup back to KV.
+ * It needs KV_REST_API_URL and KV_REST_API_TOKEN (or the UPSTASH_REDIS_REST_* pair).
  */
 
 const fs = require('fs');
 const path = require('path');
-const { transform, diffPlan, touchedRecords } = require('../src/lib/redesignData');
+const { transform, diffPlan, touchedRecords, restoreCollections } = require('../src/lib/redesignData');
 
 function argValue(flag) {
   const index = process.argv.indexOf(flag);
@@ -82,18 +86,9 @@ function writeBackup(file, payload) {
   fs.writeFileSync(file, JSON.stringify(payload, null, 2));
 }
 
-async function applyLive(before, after, plan) {
+async function writeLive(before, after) {
   const db = require('../src/api/db');
   const store = require('../src/lib/contentStore');
-  const file = backupPath();
-  writeBackup(file, {
-    createdAt: new Date().toISOString(),
-    source: before.source,
-    plan,
-    touched: touchedRecords(before, after, plan),
-  });
-  console.log('backup: ' + file);
-
   await db.set('artists', after.artists);
   await db.set('events', after.events);
   await db.set('categories', after.categories);
@@ -103,8 +98,56 @@ async function applyLive(before, after, plan) {
 
   if (before.indexed.post) await syncIndexed('post', before.news, after.news, store);
   else await db.set('news', after.news);
+}
 
+async function applyLive(before, after, plan) {
+  const file = backupPath();
+  writeBackup(file, {
+    createdAt: new Date().toISOString(),
+    source: before.source,
+    plan,
+    touched: touchedRecords(before, after, plan),
+  });
+  console.log('backup: ' + file);
+  await writeLive(before, after);
   console.log('applied');
+}
+
+async function restoreLive(file) {
+  const backup = readJson(file, null);
+  if (!backup || !backup.touched) {
+    throw new Error('Backup must contain touched records');
+  }
+  const current = await loadLive();
+  const restored = backup.full
+    ? {
+      artists: backup.touched.artists || [],
+      releases: backup.touched.releases || [],
+      news: backup.touched.news || [],
+      events: backup.touched.events || [],
+      categories: backup.touched.categories || [],
+    }
+    : restoreCollections(current, backup);
+  if (!backup.full && !Array.isArray(backup.plan)) {
+    throw new Error('Backup must contain plan and touched records');
+  }
+  const safety = path.join(__dirname, '../data/backups', 'redesign-prerestore-' + new Date().toISOString().replace(/[:.]/g, '-') + '.json');
+  writeBackup(safety, {
+    createdAt: new Date().toISOString(),
+    source: current.source,
+    plan: [],
+    touched: {
+      artists: current.artists,
+      releases: current.releases,
+      news: current.news,
+      events: current.events,
+      categories: current.categories,
+    },
+    full: true,
+  });
+  console.log('pre-restore snapshot: ' + safety);
+  await writeLive(current, restored);
+  console.log('restored ' + file);
 }
 
 async function syncIndexed(kind, beforeList, afterList, store) {
@@ -138,6 +181,22 @@ function applyFixtures(dir, before, after, plan) {
 async function main() {
   const apply = process.argv.includes('--apply');
   const fixtures = argValue('--fixtures');
+  const restore = argValue('--restore');
+  if (restore) {
+    if (apply || fixtures) {
+      console.error('Use --restore alone. It writes KV and does not take --apply or --fixtures.');
+      process.exitCode = 1;
+      return;
+    }
+    const file = path.resolve(restore);
+    if (!fs.existsSync(file)) {
+      console.error('Backup not found: ' + file);
+      process.exitCode = 1;
+      return;
+    }
+    await restoreLive(file);
+    return;
+  }
   const before = fixtures ? loadFixtures(path.resolve(fixtures)) : await loadLive();
   const after = transform(before);
   const plan = diffPlan(before, after);
@@ -161,4 +220,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { loadFixtures, printPlan };
+module.exports = { loadFixtures, printPlan, restoreCollections };

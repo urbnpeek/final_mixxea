@@ -272,14 +272,25 @@ button,input,select,textarea{font:inherit;color:inherit}
 .nl button{min-height:44px;flex:0 0 auto}
 .ft-base{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:var(--s-7);padding-top:var(--s-4);border-top:1px solid var(--mx-line);color:var(--mx-mute);font-size:14px}
 .ft-base .linkish{background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer}
-.consent{position:fixed;z-index:40;left:16px;right:16px;bottom:16px;width:min(420px,calc(100% - 32px));margin-left:auto;background:var(--mx-ink);color:var(--mx-paper);border:1px solid var(--mx-line-2);padding:16px;font-family:var(--f-ui);font-size:14px;line-height:1.4}
+.consent{position:fixed;z-index:40;left:16px;right:16px;bottom:16px;width:min(440px,calc(100% - 32px));margin-left:auto;background:var(--mx-ink);color:var(--mx-paper);border:1px solid var(--mx-line-2);padding:16px;font-family:var(--f-ui);font-size:14px;line-height:1.4}
 .consent [hidden]{display:none !important}
 .consent p{margin:0 0 12px}
-.consent a{color:var(--mx-acid)}
+.consent a{color:var(--mx-acid);text-decoration:underline;text-underline-offset:2px}
 .consent-row{display:flex;flex-wrap:wrap;gap:8px}
 .consent-row .btn{min-height:44px}
 .consent-prefs{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
 .consent-prefs label{display:flex;align-items:center;gap:8px;min-height:44px}
+.consent-prefs input{width:20px;height:20px;accent-color:var(--mx-acid)}
+@media (max-width:390px){
+  .consent{bottom:0;left:0;right:0;width:auto}
+  .consent.is-prefs{display:flex;flex-direction:column;max-height:268px;overflow:auto}
+  .consent.is-prefs .consent-row{position:sticky;bottom:0;background:var(--mx-ink);padding-top:8px}
+  .consent-row{flex-direction:column}
+  .consent-row .btn{width:100%}
+}
+@media (min-width:1024px){
+  body:has(#cookie-consent) .hero-cap{transform:translateY(-108px)}
+}
 @media (max-width:1023px){.ft-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:767px){.ft-grid{grid-template-columns:minmax(0,1fr)}}
 

@@ -80,28 +80,39 @@
     var row = document.createElement('div');
     row.className = 'consent-row';
     var accept = button('Accept all', 'btn acid');
-    var reject = button('Reject all', 'btn');
+    var reject = button('Reject all', 'btn acid');
     var preferences = button('Preferences', 'btn');
     var save = button('Save', 'btn acid');
     save.hidden = prefs.hidden;
+    preferences.hidden = !prefs.hidden;
+    if (!prefs.hidden) root.classList.add('is-prefs');
     row.appendChild(accept);
     row.appendChild(reject);
     row.appendChild(preferences);
     row.appendChild(save);
     root.appendChild(row);
 
+    var previous = document.activeElement;
+    var opener = options && options.returnFocus;
+    function finish() {
+      close(root);
+      var target = opener || (previous && previous !== document.body && previous !== document.documentElement ? previous : null);
+      if (target && target !== root && typeof target.focus === 'function' && document.contains(target)) target.focus();
+    }
+
     accept.addEventListener('click', function () {
       apply(write({ analytics: true, marketing: true }));
-      close(root);
+      finish();
     });
     reject.addEventListener('click', function () {
       apply(write({ analytics: false, marketing: false }));
-      close(root);
+      finish();
     });
     preferences.addEventListener('click', function () {
       prefs.hidden = false;
       save.hidden = false;
       preferences.hidden = true;
+      root.classList.add('is-prefs');
       var box = prefs.querySelector('[data-analytics]');
       if (box) box.focus();
     });
@@ -110,11 +121,12 @@
         analytics: prefs.querySelector('[data-analytics]').checked,
         marketing: prefs.querySelector('[data-marketing]').checked,
       }));
-      close(root);
+      finish();
     });
 
     document.body.appendChild(root);
-    accept.focus();
+    root.tabIndex = -1;
+    if (!opener) root.focus({ preventScroll: true });
   }
 
   function boot() {
@@ -123,7 +135,7 @@
       var opener = event.target.closest('[data-cookie-settings]');
       if (!opener) return;
       event.preventDefault();
-      open({ preferences: true });
+      open({ preferences: true, returnFocus: opener });
     });
   }
 

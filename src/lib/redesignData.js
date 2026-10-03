@@ -5,6 +5,7 @@
  */
 
 const slugify = require('../utils/slugify');
+const { scrubConfirm } = require('./scrubConfirm');
 
 const BOOKING_EMAIL = 'booking@mixxea.com';
 const NAKA_SPOTIFY = 'https://open.spotify.com/track/4ltsIrgI1ohN3NPDQ4O4ZH';
@@ -289,12 +290,17 @@ function applyReleaseFixes(release) {
     if (!next.genre) next.genre = 'Afro House';
     if (!next.date) next.date = cat === 'MXX-092' ? '2025-07-01' : '2025-03-07';
   }
+  if (DRAFT_CATS.has(cat)) {
+    const year = String(next.date || next.releaseDate || '').match(/\d{4}/);
+    next.date = year ? year[0] : '';
+    next.releaseDate = next.date;
+  }
   const spotify = next.spotify || (next.links && next.links.spotify) || '';
   if (!next.embed && spotify) {
     const id = spotifyEmbedId(spotify);
     if (id) next.embed = { provider: 'spotify', id };
   }
-  return next;
+  return scrubConfirm(next);
 }
 
 function matchesProfile(artist, profile) {
@@ -341,7 +347,13 @@ function transformArtists(artists) {
     const exists = list.some((artist) => artistKey(artist) === label.slug || String(artist.name || '').trim().toLowerCase() === label.name.toLowerCase());
     if (!exists) list.push({ ...label });
   }
-  return list;
+  const roster = new Set(ROSTER_PROFILES.map((profile) => profile.slug));
+  for (const artist of list) {
+    if (!roster.has(artistKey(artist)) && !ROSTER_PROFILES.some((profile) => matchesProfile(artist, profile))) {
+      artist.bookable = false;
+    }
+  }
+  return list.map(scrubConfirm);
 }
 
 function transformReleases(releases) {
@@ -389,13 +401,38 @@ function transformCategories(categories) {
 
 function transform(data) {
   const source = data || {};
-  return {
+  return scrubConfirm({
     artists: transformArtists(clone(source.artists)),
     releases: transformReleases(clone(source.releases)),
     news: transformNews(clone(source.news)),
     events: transformEvents(clone(source.events)),
     categories: transformCategories(clone(source.categories)),
+  });
+}
+
+function restoreCollections(current, backup) {
+  const next = {
+    artists: asList(current.artists).map(clone),
+    releases: asList(current.releases).map(clone),
+    news: asList(current.news).map(clone),
+    events: asList(current.events).map(clone),
+    categories: asList(current.categories).map(clone),
   };
+  const touched = (backup && backup.touched) || {};
+  for (const row of asList(backup && backup.plan)) {
+    const list = next[row.collection];
+    if (!list) continue;
+    const saved = asList(touched[row.collection]).find((item) => recordId(item, row.collection) === row.id);
+    const index = list.findIndex((item) => recordId(item, row.collection) === row.id);
+    if (row.action === 'add') {
+      if (index !== -1) list.splice(index, 1);
+      continue;
+    }
+    if (!saved) continue;
+    if (index === -1) list.push(clone(saved));
+    else list[index] = clone(saved);
+  }
+  return next;
 }
 
 function transformCollection(name, records) {
@@ -479,8 +516,10 @@ module.exports = {
   canonicalCategorySlug,
   transform,
   transformCollection,
+  applyReleaseFixes,
   diffPlan,
   touchedRecords,
+  restoreCollections,
   isFakeArtist,
   isFakeRelease,
   creditNames,

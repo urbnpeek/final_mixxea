@@ -10,6 +10,7 @@ const { canonicalOrigin } = require('../lib/siteUrl');
 const { publicDetailExists } = require('../lib/publicDetail');
 const { renderMarkdown, markdownToText } = require('../lib/markdown');
 const { categoryLabel, publicCategory, categoryAccent } = require('../lib/categories');
+const { scrubConfirm } = require('../lib/scrubConfirm');
 
 const BASE = canonicalOrigin();
 const BOOKING_EMAIL = 'booking@mixxea.com';
@@ -25,7 +26,7 @@ const TILE_COLORS = [
 ];
 
 function esc(value) {
-  return String(value ?? '')
+  return scrubConfirm(String(value ?? ''))
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -211,7 +212,10 @@ function formatNewsDate(value) {
 
 function formatCatalogueDate(value) {
   if (!value) return '';
-  const date = new Date(value);
+  const raw = scrubConfirm(String(value));
+  if (!raw) return '';
+  if (/^\d{4}$/.test(raw)) return raw;
+  const date = new Date(raw);
   if (Number.isNaN(date.getTime())) return '';
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
@@ -433,7 +437,17 @@ gtag('consent','default',{
 window.mxLoadAnalytics=function(){
   if(window.__mxGa)return;
   window.__mxGa=true;
-  gtag('consent','update',{analytics_storage:'granted'});
+  var marketing=false;
+  try{
+    var stored=JSON.parse(localStorage.getItem('mx-consent')||'null');
+    if(stored&&stored.v===1)marketing=!!stored.marketing;
+  }catch(e){}
+  gtag('consent','update',{
+    analytics_storage:'granted',
+    ad_storage:marketing?'granted':'denied',
+    ad_user_data:marketing?'granted':'denied',
+    ad_personalization:marketing?'granted':'denied'
+  });
   var s=document.createElement('script');
   s.async=true;
   s.src='https://www.googletagmanager.com/gtag/js?id=G-MEVRRCQQ5T';

@@ -122,7 +122,7 @@ function canDownload(track, sub) {
 
 function signUrl(track, uid) {
   const exp = Date.now() + 15 * 60 * 1000;
-  const sig = crypto.createHmac('sha256', process.env.SESSION_SECRET || 'dev-secret')
+  const sig = crypto.createHmac('sha256', require('../lib/sessionSecret').sessionSecret())
     .update(`${track.id}:${uid}:${exp}`).digest('hex');
   const base = track.audio_url || `/uploads/audio/${track.id}.mp3`;
   return `${base}${base.includes('?') ? '&' : '?'}dl=1&exp=${exp}&sig=${sig}`;

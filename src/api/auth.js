@@ -5,7 +5,7 @@ const express  = require('express');
 const bcrypt   = require('bcryptjs');
 const { v4: uuid } = require('uuid');
 const db       = require('./db');
-const { buildAdminToken, buildStaffToken, resolveActor } = require('./middleware');
+const { buildAdminToken, buildStaffToken, resolveActor, requireAdmin } = require('./middleware');
 const { getAdminLoginEmail } = require('./adminEnv');
 const router   = express.Router();
 
@@ -91,7 +91,8 @@ router.get('/admin/check', async (req, res) => {
 });
 
 // ── Artist Portal: Register ────────────────────────────────────────
-router.post('/artist/register', async (req, res) => {
+// Accounts are invitation-only. There is no public invite token, so only an admin can create one.
+router.post('/artist/register', requireAdmin, async (req, res) => {
   try {
     const { artistName, realName, email, country, genre, password, soundcloud } = req.body;
     if (!artistName || !email || !password) {
@@ -105,8 +106,6 @@ router.post('/artist/register', async (req, res) => {
     const user = { id: uuid(), artistName, realName, email, country, genre, soundcloud, passwordHash: hash, status: 'unsigned', createdAt: new Date().toISOString() };
     users.push(user);
     await db.set('artistPortalUsers', users);
-    req.session.artistId = user.id;
-    req.session.artistName = user.artistName;
     res.json({ success: true, artist: { id: user.id, artistName: user.artistName, status: user.status } });
   } catch (e) {
     res.status(500).json({ error: e.message });

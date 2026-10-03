@@ -4,7 +4,8 @@
  */
 const { spawnSync } = require('child_process');
 const path = require('path');
-const { transform, creditNames } = require('../src/lib/redesignData');
+const { transform, creditNames, restoreCollections } = require('../src/lib/redesignData');
+const { formatCatalogueDate } = require('../src/render/publicPages');
 const { releaseHiddenReason } = require('../src/lib/rosterCatalog');
 const { renderHome } = require('../src/render/homePage');
 
@@ -22,13 +23,14 @@ function fixture() {
       { id: 'david-hopperman', name: 'David Hopperman', slug: 'david-hopperman', bookingEmail: 'booking@mixxea,com', type: 'booking', status: 'signed' },
       { id: 'wally-lopez', name: 'Wally Lopez', slug: 'wally-lopez', country: 'SP', status: 'signed' },
       { id: 'eddie-bitar', name: 'Eddie Bitar', slug: 'eddie-bitar', status: 'signed' },
+      { id: 'other-artist', name: 'Other Artist', slug: 'other-artist', bookable: true, status: 'signed' },
       { id: 'vexr', name: 'VEXR', slug: 'vexr', status: 'signed' },
       { id: 'lyda', name: 'LYDA', slug: 'lyda', status: 'signed' },
     ],
     releases: [
       { id: 'mxa004', title: 'Grind System EP', artist: 'VEXR', catNo: 'MXA004', status: 'draft' },
       { id: 'mxa005', title: 'Void Protocol', artist: 'LYDA', catNo: 'MXA005', status: 'out' },
-      { id: 'love', title: 'Love & Fake', artist: 'David Hopperman feat. Jayy Dee', catNo: 'MXX-052', status: 'out', date: '2019-07-01', spotify: 'https://open.spotify.com/track/secret', beatport: 'https://www.beatport.com/track/x/1' },
+      { id: 'love', title: 'Love & Fake [CONFIRM]', artist: 'David Hopperman feat. Jayy Dee', catNo: 'MXX-052', status: 'out', date: '2019-07-01 [CONFIRM]', spotify: 'https://open.spotify.com/track/secret', beatport: 'https://www.beatport.com/track/x/1' },
       { id: 'fixed-mail-release', title: 'Gotta Be the One', artist: 'David Hopperman feat. The Subject', catNo: 'MXX-007', status: 'draft', date: '2017-08-07', beatport: 'https://www.beatport.com/track/y/1', spotify: '' },
     ],
     news: [
@@ -55,8 +57,13 @@ function main() {
   assert(!once.releases.some((release) => /MXA00[45]/.test(release.catNo)), 'fake releases remain');
   const love = once.releases.find((release) => release.catNo === 'MXX-052');
   assert(love.status === 'draft', 'unconfirmed date still public');
+  assert(love.date === '2019' && love.releaseDate === '2019', 'unconfirmed date not year-only: ' + love.date);
+  assert(formatCatalogueDate(love.date) === '2019', 'year renders as a full date');
   assert(!love.spotify, 'unconfirmed spotify still set');
   assert(love.beatport, 'confirmed beatport cleared');
+  assert(!love.title.includes('[CONFIRM]'), 'confirm marker kept in title');
+  assert(once.artists.find((artist) => artist.slug === 'other-artist').bookable === false, 'other artist bookable');
+  assert(!JSON.stringify(once).includes('[CONFIRM]'), 'confirm marker would be written');
   assert(creditNames(love).includes('David Hopperman') && creditNames(love).includes('Jayy Dee'), 'feat split');
   const naka = once.releases.find((release) => release.catNo === 'MXX-092');
   const corazon = once.releases.find((release) => release.catNo === 'MXX-087');
@@ -108,6 +115,32 @@ function main() {
   }
   assert(html.includes('booking@mixxea.com'), 'booking address missing');
   assert(html.includes('Since 2013'), 'founding line missing');
+  assert(!html.includes('[CONFIRM'), 'homepage renders a confirm marker');
+
+  const backup = {
+    plan: [
+      { action: 'change', collection: 'artists', id: 'david-hopperman' },
+      { action: 'add', collection: 'artists', id: 's1nce' },
+    ],
+    touched: {
+      artists: [
+        { id: 'david-hopperman', name: 'David Hopperman', bookable: false },
+        { id: 's1nce', name: 'S1NCE' },
+      ],
+    },
+  };
+  const rolled = restoreCollections({
+    artists: [
+      { id: 'david-hopperman', name: 'David Hopperman', bookable: true },
+      { id: 's1nce', name: 'S1NCE' },
+    ],
+    releases: [],
+    news: [],
+    events: [],
+    categories: [],
+  }, backup);
+  assert(rolled.artists.find((artist) => artist.id === 'david-hopperman').bookable === false, 'restore did not revert');
+  assert(!rolled.artists.some((artist) => artist.id === 's1nce'), 'restore kept an added record');
   assert(html.includes('/booking-agency?artist=david-hopperman'), 'hopperman book link');
   assert(html.includes('/booking-agency?artist=wally-lopez'), 'wally book link');
   assert(html.includes('/booking-agency?artist=eddie-bitar'), 'eddie book link');

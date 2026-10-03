@@ -91,20 +91,38 @@ Signed-out admin API checks are in the PR report. Writes return 403. Catalogue r
 
 ## Go-live order
 
-Do not run either migration with `--apply` until Fuad signs off and these land in this order:
+Merge PR #10 into `main` first. Then retarget PR #11 onto `main` and merge it. Merging #11 by itself does not update `main`, because #11 targets the #10 branch.
 
-1. Merge PR #10.
-2. Merge PR #11.
-3. `node scripts/migrate-redesign-data.js --apply`
-4. `node scripts/migrate-private-blobs.js --apply`
+Run the migrations only after both merges, from a shell that has the production env vars. Neither script was run with `--apply` here.
 
-`--apply` on the private-blob script copies each public demo and contract blob to private storage, updates the KV record, and deletes the public copy only after the private copy is verified. It writes a JSON backup under `data/backups/` first. It was not run here.
+3. Catalogue migration. Needs `KV_REST_API_URL` and `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`).
 
-Set `UNSUBSCRIBE_SECRET` before newsletter mail is sent. Private Blob uses the existing `BLOB_READ_WRITE_TOKEN` with `access: 'private'`. No extra Blob env var.
+```
+node scripts/migrate-redesign-data.js --apply
+```
 
-## Still blocked on confirmation
+The backup is `data/backups/redesign-<stamp>.json`. Roll back with:
 
-Unconfirmed dates stay `draft`. Unconfirmed links stay empty.
+```
+node scripts/migrate-redesign-data.js --restore data/backups/redesign-<stamp>.json
+```
 
-- Dates: MXX-052 (01 Jul 2019 on file), MXX-007 (07 Aug 2017 on file), MXX-054, MXX-055, MXX-057 (no date on file).
-- Links: Apple Music and Beatport for MXX-092 and MXX-087. Spotify for MXX-052 and MXX-007. Every platform link for MXX-054, MXX-055, and MXX-057. Corazon Spotify is confirmed and is no longer on this list.
+4. Private demo and contract files. Needs the same KV variables plus `BLOB_READ_WRITE_TOKEN`.
+
+```
+node scripts/migrate-private-blobs.js --apply
+```
+
+The backup is `data/backups/private-blobs-<stamp>.json`. Roll back the KV records with:
+
+```
+node scripts/migrate-private-blobs.js --restore data/backups/private-blobs-<stamp>.json
+```
+
+That puts the previous file URLs back on the records. It does not recreate a public blob that `--apply` already deleted. The private copies stay.
+
+`UNSUBSCRIBE_SECRET` is set. `SESSION_SECRET` must be set before the production merge. Setting it signs cookies with that value and logs out sessions that were signed with the old fallback. Private Blob uses the existing `BLOB_READ_WRITE_TOKEN`.
+
+## Catalogue dates and links
+
+Unconfirmed releases stay `draft`, so they are not on the public site. Their stored date is the year only: MXX-052 is 2019, MXX-007 is 2017, and MXX-054, MXX-055, and MXX-057 have no date. Apple Music and Beatport stay empty on MXX-092 and MXX-087. Spotify stays empty on MXX-052 and MXX-007. MXX-054, MXX-055, and MXX-057 keep no platform links. The migration strips `[CONFIRM]` markers before it writes.

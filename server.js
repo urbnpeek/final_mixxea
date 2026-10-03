@@ -268,7 +268,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
 // -- Sessions --
 app.use(session({
   name: 'mixxea.sid',
-  secret: process.env.SESSION_SECRET || 'mixxea-dev-secret',
+  secret: require('./src/lib/sessionSecret').sessionSecret(),
   resave: false,
   saveUninitialized: false,
   cookie: {

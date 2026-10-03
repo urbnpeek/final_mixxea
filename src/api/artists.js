@@ -7,16 +7,17 @@ const { v4: uuid } = require('uuid');
 const db      = require('./db');
 const { uploadFile } = require('./upload');
 const { requireAdmin } = require('./middleware');
+const { scrubConfirm } = require('../lib/scrubConfirm');
 const router  = express.Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.get('/', async (req, res) => res.json(await db.get('artists')));
+router.get('/', async (req, res) => res.json(scrubConfirm(await db.get('artists'))));
 
 router.get('/:id', async (req, res) => {
   const a = (await db.get('artists')).find(x => x.id === req.params.id);
   if (!a) return res.status(404).json({ error: 'Not found' });
-  res.json(a);
+  res.json(scrubConfirm(a));
 });
 
 function coerceBookable(body, previous) {

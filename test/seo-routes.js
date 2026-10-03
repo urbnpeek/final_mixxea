@@ -218,6 +218,9 @@ async function main() {
     assert(home.body.includes('booking@mixxea.com'), 'booking email changed');
     assert(!home.body.includes('GTM-KCNCSXM7'), 'GTM still present');
     assert(home.body.includes('G-MEVRRCQQ5T'), 'GA4 id missing');
+    const adUpdate = home.body.indexOf("ad_storage:marketing?'granted':'denied'");
+    const gaConfig = home.body.indexOf("gtag('config','G-MEVRRCQQ5T')");
+    assert(adUpdate !== -1 && gaConfig !== -1 && adUpdate < gaConfig, 'stored ad consent runs before config');
     assert(home.body.includes('data-cookie-settings'), 'cookie settings missing');
     assert(home.body.includes('/css/site.css?v='), 'css is not versioned');
     assert(home.body.includes('href="/news/nera-joins-the-roster"'), 'news card is not linked');
@@ -234,17 +237,20 @@ async function main() {
     assert(page.body.includes('data-cookie-settings'), 'cookie settings control missing');
     assert(page.body.includes('Change cookie settings'), 'change settings label missing');
     assert(page.body.includes('href="/privacy"'), 'footer privacy link missing');
-    assert(page.body.includes('[CONFIRM-PRODUCT]'), 'product questions missing');
-    assert(!/\[CONFIRM\](?!-PRODUCT)/.test(page.body), 'unresolved CONFIRM marker');
-    assert(!page.body.includes('[CONFIRM-SMTP]'), 'smtp marker should be gone');
+    assert(!page.body.includes('[CONFIRM'), 'confirm marker rendered');
+    assert(!page.body.includes('/api/bookings/inquire'), 'removed inquire route described');
+    assert(page.body.includes('invitation only'), 'artist accounts wording');
+    assert(page.body.includes('invitation-only service for approved DJs'), 'dj pool wording');
+    assert(page.body.includes('Lawful basis: contract.'), 'dj pool basis');
     assert(page.body.includes('Resend is the only email provider'), 'resend wording');
     assert(page.body.includes('The minimum age is 16'), 'age missing');
     assert(page.body.includes('stored privately'), 'private files wording');
     assert(page.body.includes('unsubscribe link'), 'unsubscribe missing');
-    assert(page.body.includes('Last updated 2 October 2026'), 'date missing');
+    assert(page.body.includes('Last updated 3 October 2026'), 'date missing');
     assert(/name="robots" content="index,follow"/.test(page.body), 'production robots');
     assert(!page.body.includes('Draft for approval'), 'draft banner leaked outside preview');
     assert(!/noindex/i.test(page.headers['x-robots-tag'] || ''), 'preview robots header leaked');
+    assert(String(page.headers['cache-control'] || '').includes('s-maxage=300'), 'production cache');
 
     process.env.VERCEL_ENV = 'preview';
     try {
@@ -252,6 +258,7 @@ async function main() {
       assert(draft.body.includes('Draft for approval'), 'draft banner missing on preview');
       assert(/name="robots" content="noindex, nofollow"/.test(draft.body), 'preview noindex meta');
       assert(/noindex/i.test(draft.headers['x-robots-tag'] || ''), 'preview X-Robots-Tag');
+      assert(String(draft.headers['cache-control'] || '').includes('no-store'), 'preview cache');
     } finally {
       delete process.env.VERCEL_ENV;
     }
