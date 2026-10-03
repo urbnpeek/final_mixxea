@@ -273,6 +273,40 @@ async function main() {
     assert(sitemap.body.includes('https://www.mixxea.com/privacy</loc>'), 'sitemap privacy url');
   });
 
+  await check('landing heroes keep the redesign grid and drop SEO notes', async () => {
+    const css = fs.readFileSync(path.join(__dirname, '../public/css/site.css'), 'utf8');
+    assert(css.includes('.hero-grid:has(> .hero-card)'), 'shared landing hero grid rule missing');
+    assert(css.includes('.landing-hero h1'), 'landing hero type missing');
+    const banned = [
+      'Primary keyword target',
+      'What This Page Covers',
+      'Questions Searchers Ask',
+      'AI-Readable Structure',
+      'Entity Clarity',
+      'Conversion Path',
+      'crawl paths',
+      'submission-intent',
+      'hidden homepage topic',
+      'Answer-first blocks',
+      'Explore Main Platform',
+      'Use Contact Flow',
+    ];
+    for (const urlPath of ['/booking-agency', '/submit-demo', '/record-label', '/artist-management', '/electronic-music-artists']) {
+      const res = await request(port, urlPath);
+      assert(res.status === 200, urlPath + ' status ' + res.status);
+      assert(res.body.includes('landing-hero'), urlPath + ' missing landing-hero');
+      assert(res.body.includes('hero-copy'), urlPath + ' missing hero-copy');
+      assert(res.body.includes('hero-card'), urlPath + ' missing hero-card');
+      for (const phrase of banned) {
+        assert(!res.body.includes(phrase), urlPath + ' still has: ' + phrase);
+      }
+    }
+    const demo = await request(port, '/submit-demo');
+    assert(demo.body.includes('href="/submit.html"'), 'demo form link missing');
+    assert(demo.body.includes('<strong>Demos</strong>'), 'demos card title missing');
+    assert(demo.body.includes('Submit a Demo to Mixxea'), 'demo H1 keyword changed');
+  });
+
   await check('api collection still responds', async () => {
     const res = await request(port, '/api/artists');
     assert(res.status === 200, 'status ' + res.status);
