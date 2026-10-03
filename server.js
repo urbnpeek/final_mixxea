@@ -301,7 +301,7 @@ function blobToken() {
   return process.env.BLOB_READ_WRITE_TOKEN || '';
 }
 
-// Diagnostic: Blob storage. GET only lists. POST is the write probe and stays admin-only.
+// Diagnostic: Blob storage. GET only lists. POST uploads a probe and deletes it. Both stay admin-only.
 app.get('/api/blob-status', requireAdmin, async (req, res) => {
   const token = blobToken();
   if (!token) return res.json({ configured: false });
@@ -346,6 +346,7 @@ app.post('/api/blob-status', requireAdmin, async (req, res) => {
   res.json({ configured: true, writeOk });
 });
 
+// Diagnostic: Redis/KV. GET only PINGs. POST writes a short-lived key and deletes it. Both stay admin-only.
 app.get('/api/db-status', requireAdmin, async (req, res) => {
   const { isRedisConfigured, getRedisConfig } = require('./src/api/db');
   const cfg = getRedisConfig();
