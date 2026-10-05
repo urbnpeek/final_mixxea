@@ -22,6 +22,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Syne:wght@400;500;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/seo-pages.css">
+<link rel="stylesheet" href="/css/form-guard.css">
 <!--ARTIST_JSONLD-->
 <script type="application/ld+json">{
   "@context": "https://schema.org",
@@ -170,8 +171,14 @@
       </div>
       <label>Date<input name="eventDate" type="text" placeholder="Date or date range"></label>
       <label>Message<textarea name="message" required placeholder="Set length, fee offer, and anything else the desk should know."></textarea></label>
+      <div class="mx-hp" aria-hidden="true">
+        <label>Company URL<input type="text" name="company_url" tabindex="-1" autocomplete="off" value=""></label>
+      </div>
+      <input type="hidden" name="form_started_at" value="">
+      <div class="turnstile-slot" data-turnstile></div>
+      <p class="field-note">This form uses Cloudflare Turnstile.</p>
       <button class="btn btn-primary" type="submit">Send booking request</button>
-      <p class="field-note">Or email <a href="mailto:booking@mixxea.com">booking@mixxea.com</a>. The homepage contact form also defaults to Booking Request.</p>
+      <p class="field-note">Or email <a href="mailto:booking@mixxea.com">booking@mixxea.com</a>.</p>
       <p class="status-msg" id="booking-status" role="status"></p>
     </form>
     <p class="signature">Jack / FreqVault · Mixxea Records / <a href="mailto:booking@mixxea.com">booking@mixxea.com</a> / <a href="https://www.mixxea.com">mixxea.com</a></p>
@@ -199,12 +206,13 @@
       <a href="/artist-management"><strong>Artist Management</strong>Management support alongside bookings.</a>
       <a href="/submit-demo"><strong>Submit Demo</strong>A&amp;R submissions for artists.</a>
       <a href="/#roster"><strong>Homepage roster</strong>The interactive roster on the main page.</a>
-      <a href="/#contact"><strong>Contact</strong>Homepage inquiry, set to Booking Request.</a>
+      <a href="/#book"><strong>Homepage</strong>The homepage booking button opens this form.</a>
     </div>
   </div>
 </section>
 </main>
 <footer class="footer"><div class="footer-inner"><div><div>Jack / FreqVault · Mixxea Records</div><div><a href="mailto:booking@mixxea.com">booking@mixxea.com</a> · <a href="https://www.mixxea.com">mixxea.com</a></div></div><div><a href="/">Home</a> · <a href="/record-label">Label</a> · <a href="/booking-agency">Booking</a> · <a href="/electronic-music-artists">Roster</a></div></div></footer>
+<script src="/js/form-guard.js"></script>
 <script src="/js/booking-inquiry.js"></script>
 </body>
 </html>

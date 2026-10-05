@@ -246,7 +246,7 @@ async function main() {
     assert(page.body.includes('The minimum age is 16'), 'age missing');
     assert(page.body.includes('stored privately'), 'private files wording');
     assert(page.body.includes('unsubscribe link'), 'unsubscribe missing');
-    assert(page.body.includes('Last updated 3 October 2026'), 'date missing');
+    assert(page.body.includes('Last updated 5 October 2026'), 'date missing');
     assert(/name="robots" content="index,follow"/.test(page.body), 'production robots');
     assert(!page.body.includes('Draft for approval'), 'draft banner leaked outside preview');
     assert(!/noindex/i.test(page.headers['x-robots-tag'] || ''), 'preview robots header leaked');

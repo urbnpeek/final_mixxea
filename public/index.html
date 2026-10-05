@@ -28,6 +28,7 @@
 <meta name="twitter:image" content="https://www.mixxea.com/og/mixxea-og.svg">
 <!-- Favicon -->
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/form-guard.css">
 <link rel="shortcut icon" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/favicon.svg">
 <!-- PWA Manifest -->
@@ -1090,6 +1091,12 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
           <p>Response time: <strong style="color:var(--text)">4–6 weeks</strong>. Only successful submissions will receive a reply.</p>
           <label class="chk"><input type="checkbox" id="agr"><span>I own the rights to this track and agree to <strong>Mixxea's submission terms</strong>.</span></label>
         </div>
+        <div class="mx-hp" aria-hidden="true">
+          <label>Company URL<input type="text" name="company_url" tabindex="-1" autocomplete="off" value=""></label>
+        </div>
+        <input type="hidden" name="form_started_at" value="">
+        <div class="turnstile-slot" data-turnstile></div>
+        <p class="field-note" style="margin:0 0 12px;font-size:12px;opacity:.7">This form uses Cloudflare Turnstile.</p>
         <button class="sub-full" style="margin-top:20px" data-act="[&quot;doSub&quot;]">Submit to Mixxea A&R →</button>
         <div class="ok-msg" id="sub-ok">✓ Submission received. We'll be in touch within 4–6 weeks if there's a fit.</div>
       </div></div>
@@ -1116,8 +1123,13 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
             </div>
             <div id="ds-new" class="d-sec">
               <div class="drop-zone"><span class="drop-ico">♪</span><h4>Upload new track</h4><p>WAV · AIFF · MP3</p></div>
-              <div class="row2"><div class="field"><label>Track Title</label><input type="text"></div><div class="field"><label>Genre</label><select><option>Techno</option><option>House</option><option>Minimal</option><option>Ambient</option></select></div></div>
+              <div class="row2"><div class="field"><label>Track Title</label><input type="text" id="ds-track-title"></div><div class="field"><label>Genre</label><select><option>Techno</option><option>House</option><option>Minimal</option><option>Ambient</option></select></div></div>
               <div class="field"><label>Notes</label><textarea></textarea></div>
+              <div class="mx-hp" aria-hidden="true">
+                <label>Company URL<input type="text" name="company_url" tabindex="-1" autocomplete="off" value=""></label>
+              </div>
+              <input type="hidden" name="form_started_at" value="">
+              <div class="turnstile-slot" data-turnstile></div>
               <button class="sub-full" style="max-width:280px">Submit Track →</button>
             </div>
             <div id="ds-ct" class="d-sec">
@@ -1162,6 +1174,12 @@ footer{border-top:1px solid var(--wire);padding:80px 48px 48px;margin-bottom:72p
         <div class="field"><label>SoundCloud / Private Link</label><input type="url" id="ct-link" placeholder="https://..."></div>
         <div class="field"><label>Message</label><textarea id="ct-message" placeholder="Artist, date, city, venue, and the details of the request."></textarea></div>
         <label class="chk" style="margin-bottom:18px"><input type="checkbox" id="ct-newsletter-opt-in"><span>Subscribe me to Mixxea updates as well.</span></label>
+        <div class="mx-hp" aria-hidden="true">
+          <label>Company URL<input type="text" name="company_url" tabindex="-1" autocomplete="off" value=""></label>
+        </div>
+        <input type="hidden" name="form_started_at" value="">
+        <div class="turnstile-slot" data-turnstile></div>
+        <p class="field-note" style="margin:0 0 12px;font-size:12px;opacity:.7">This form uses Cloudflare Turnstile.</p>
         <button class="sub-full" data-act="[&quot;doCt&quot;]">Send Message →</button>
         <div class="ok-msg" id="ct-ok">✓ Message received. We'll be in touch soon.</div>
       </div>
@@ -1996,6 +2014,9 @@ async function doSub(){
     fd.append('soundcloudLink', document.getElementById('sub-link')?.value||'');
     const fUp=document.getElementById('fUp');
     if(fUp&&fUp.files[0]) fd.append('track', fUp.files[0]);
+    const guard=window.MixxeaGuard?window.MixxeaGuard.collect(document.getElementById('pp-sub')):{};
+    if(!guard['cf-turnstile-response']){alert('Complete the verification and try again.');return;}
+    Object.keys(guard).forEach(function(key){fd.append(key, guard[key]==null?'':String(guard[key]));});
     const r=await fetch('/api/demos/submit',{method:'POST',body:fd});
     const d=await r.json();
     if(d.success||r.ok){
@@ -2018,12 +2039,12 @@ async function doCt(){
     const r=await fetch('/api/contact',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
+      body:JSON.stringify(Object.assign({
         name,email,message,
         inquiryType: document.getElementById('ct-type')?.value||'General',
         link: document.getElementById('ct-link')?.value||'',
         newsletterOptIn: document.getElementById('ct-newsletter-opt-in')?.checked||false
-      })
+      }, window.MixxeaGuard?window.MixxeaGuard.collect(document.getElementById('contact')):{}))
     });
     const d=await r.json();
     if(d.success||r.ok){
@@ -2381,6 +2402,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape') closeAdmin();});
   });
 })();
 </script>
+<script src="/js/form-guard.js?v=11"></script>
 <script src="/js/actions.js?v=11"></script>
 <script src="/js/image-resize.js?v=11"></script>
 <script src="/js/app.js?v=11"></script>

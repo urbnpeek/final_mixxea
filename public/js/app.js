@@ -263,19 +263,39 @@ async function nlSubscribe() {
 /* ─────────────────────────────────────────────────────
    CONTACT FORM — live submit
 ───────────────────────────────────────────────────── */
+function botFields(root) {
+  if (window.MixxeaGuard) return window.MixxeaGuard.collect(root);
+  const hp = root?.querySelector('[name="company_url"]');
+  const started = root?.querySelector('[name="form_started_at"]');
+  return {
+    company_url: hp ? hp.value : '',
+    form_started_at: started && started.value ? Number(started.value) : '',
+    'cf-turnstile-response': '',
+  };
+}
+
 async function doCt() {
+  const root = document.getElementById('contact');
+  const guard = botFields(root);
   const form = {
-    name:        document.querySelector('#contact input[type=text]')?.value?.trim(),
-    email:       document.querySelector('#contact input[type=email]')?.value?.trim(),
-    inquiryType: document.querySelector('#contact select')?.value,
-    link:        document.querySelector('#contact input[type=url]')?.value?.trim(),
-    message:     document.querySelector('#contact textarea')?.value?.trim(),
+    name:        document.getElementById('ct-name')?.value?.trim(),
+    email:       document.getElementById('ct-email')?.value?.trim(),
+    inquiryType: document.getElementById('ct-type')?.value,
+    link:        document.getElementById('ct-link')?.value?.trim(),
+    message:     document.getElementById('ct-message')?.value?.trim(),
     newsletterOptIn: !!document.getElementById('ct-newsletter-opt-in')?.checked,
+    company_url: guard.company_url,
+    form_started_at: guard.form_started_at,
+    'cf-turnstile-response': guard['cf-turnstile-response'],
   };
   const button = document.querySelector('#contact .sub-full');
 
   if (!form.name || !form.email || !form.inquiryType || !form.message) {
     showMessage('ct-ok', 'Name, email, inquiry type, and message are required.', 'error');
+    return;
+  }
+  if (!form['cf-turnstile-response']) {
+    showMessage('ct-ok', 'Complete the verification and try again.', 'error');
     return;
   }
 
@@ -322,6 +342,12 @@ async function doSub() {
   }
 
   Object.entries(fields).forEach(([k, v]) => formData.append(k, v || ''));
+  const guard = botFields(section);
+  if (!guard['cf-turnstile-response']) {
+    showMessage('sub-ok', 'Complete the verification and try again.', 'error');
+    return;
+  }
+  Object.entries(guard).forEach(([k, v]) => formData.append(k, v == null ? '' : String(v)));
 
   const fileInput = document.getElementById('fUp');
   if (fileInput?.files[0]) formData.append('track', fileInput.files[0]);
@@ -439,7 +465,8 @@ async function dashSubmitTrack() {
   const btn = form.querySelector('.sub-full') || form.querySelector('button[type=submit]');
   const formData = new FormData();
   const artistName = _artistSession.artistName || _artistSession.name || '';
-  const trackTitle = getInputValue(form, 'input[placeholder="Track title"]') ||
+  const trackTitle = getInputValue(form, '#ds-track-title') ||
+                     getInputValue(form, 'input[placeholder="Track title"]') ||
                      getInputValue(form, 'input[type=text]');
   const genre = form.querySelector('select')?.value || '';
   const bpm   = getInputValue(form, 'input[type=number]');
@@ -456,6 +483,12 @@ async function dashSubmitTrack() {
   formData.append('genre', genre);
   formData.append('bpm', bpm);
   formData.append('notes', notes);
+  const guard = botFields(form);
+  if (!guard['cf-turnstile-response']) {
+    showPortalError('ds-new-err', 'Complete the verification and try again.');
+    return;
+  }
+  Object.entries(guard).forEach(([k, v]) => formData.append(k, v == null ? '' : String(v)));
   if (file) formData.append('track', file);
 
   try {

@@ -12,6 +12,7 @@ const { resolveActor } = require('./middleware');
 const mailer  = require('./mailer');
 const { requireAdmin } = require('./middleware');
 const { getAppUrl }    = require('./appUrl');
+const { guardSubmission } = require('../lib/formGuard');
 const router  = express.Router();
 
 function escapeHtml(value) {
@@ -38,6 +39,7 @@ function maybeUpload(req, res, next) {
 // ── Submit (public, no auth) ──────────────────────────────────────────────────
 router.post('/submit', maybeUpload, async (req, res) => {
   try {
+    if (!(await guardSubmission(req, res, 'demos'))) return;
     const demos = await db.get('demos');
     const demo = {
       id:           uuid(),
