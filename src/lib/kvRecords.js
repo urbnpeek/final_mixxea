@@ -146,10 +146,18 @@ async function compareAndSet(key, expectedRev, nextDoc) {
   return { ok: true };
 }
 
+async function redisEval(script, keys, args) {
+  if (!isRedisConfigured()) throw new Error('Redis is not configured');
+  const keyList = Array.isArray(keys) ? keys : [keys];
+  const argList = (Array.isArray(args) ? args : [args]).map((value) => String(value));
+  return redisCommand(['EVAL', script, String(keyList.length), ...keyList, ...argList]);
+}
+
 module.exports = {
   isRedisConfigured,
   getKey,
   setKey,
   delKey,
   compareAndSet,
+  redisEval,
 };

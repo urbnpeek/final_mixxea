@@ -44,6 +44,7 @@ const cspDirectives = {
     ...SCRIPT_HASHES,
     'https://www.googletagmanager.com',
     'https://connect.facebook.net',
+    'https://challenges.cloudflare.com',
   ],
   scriptSrcAttr: ["'none'"],
   styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
@@ -58,6 +59,7 @@ const cspDirectives = {
     'https://pagead2.googlesyndication.com',
     'https://www.googleadservices.com',
     'https://googleads.g.doubleclick.net',
+    'https://challenges.cloudflare.com',
   ],
   mediaSrc: ["'self'", 'blob:', 'data:', 'https:'],
   connectSrc: [
@@ -72,12 +74,14 @@ const cspDirectives = {
     'https://pagead2.googlesyndication.com',
     'https://www.googleadservices.com',
     'https://googleads.g.doubleclick.net',
+    'https://challenges.cloudflare.com',
   ],
   frameSrc: [
     'https://open.spotify.com',
     'https://w.soundcloud.com',
     'https://www.youtube-nocookie.com',
     'https://www.facebook.com',
+    'https://challenges.cloudflare.com',
   ],
   objectSrc: ["'none'"],
   baseUri: ["'self'"],
@@ -316,6 +320,7 @@ app.use('/api/demos',        require('./src/api/demos'));
 app.use('/api/bookings',     require('./src/api/bookings'));
 app.use('/api/newsletter',   require('./src/api/newsletter'));
 app.use('/api/contact',      require('./src/api/contact'));
+app.use('/api/turnstile',    require('./src/api/turnstile'));
 app.use('/api/inbox',        require('./src/api/inbox'));
 app.use('/api/events',       require('./src/api/events'));
 app.use('/api/royalties',    require('./src/api/royalties'));

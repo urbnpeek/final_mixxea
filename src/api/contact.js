@@ -4,6 +4,7 @@ const db = require('./db');
 const mailer = require('./mailer');
 const { addSubscriber } = require('../lib/newsletterList');
 const { getAppUrl } = require('./appUrl');
+const { guardSubmission } = require('../lib/formGuard');
 const router = express.Router();
 
 function escapeHtml(value) {
@@ -20,6 +21,8 @@ function normalizeEmail(value) {
 }
 
 router.post('/', async (req, res) => {
+  if (!(await guardSubmission(req, res, 'contact'))) return;
+
   const name         = String(req.body.name || req.body.artistName || '').trim();
   const email        = normalizeEmail(req.body.email);
   const inquiryType  = String(req.body.inquiryType || 'General').trim();

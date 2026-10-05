@@ -3,7 +3,7 @@
  */
 const { siteNav, siteFooter, pageShell } = require('./publicPages');
 
-const LAST_UPDATED = '3 October 2026';
+const LAST_UPDATED = '5 October 2026';
 
 function cell(label, text) {
   return `<td data-label="${label}">${text}</td>`;
@@ -32,9 +32,10 @@ ${draft}
 
     <h2>Contact messages</h2>
     <p>The booking page at <a href="/booking-agency">/booking-agency</a> posts to <code>/api/contact</code>. The fields sent are your name, email, inquiry type, and message. If you fill them in, the message also includes the artist, venue, city, and date. The link field is sent empty. Inquiry types on that form are Booking Request, A&amp;R / Demo Submission, Artist Management, Brand / Partnership, Press / Media, and General.</p>
-    <p>The admin site at <a href="/admin">/admin</a> has a separate contact form that posts the same endpoint with name, email, message, inquiry type, an optional link, and a newsletter opt-in checkbox. The public homepage does not have its own contact form.</p>
+    <p>The admin site at <a href="/admin">/admin</a> has a separate contact form that posts the same endpoint with name, email, message, inquiry type, an optional link, and a newsletter opt-in checkbox. Homepage booking buttons link to <a href="/booking-agency#inquiry">/booking-agency#inquiry</a>. The homepage does not post its own contact form.</p>
     <p>Each message is stored with an id and the time it was sent. If the inquiry type contains the word “booking” (the booking page’s “Booking Request” does), a second record is stored as a booking. On that record the venue and contact are set to your name, the notes are the message, and artist, date, city, country, and fee are left empty. The artist, venue, city, and date you typed stay inside the message text.</p>
     <p>The site then emails an admin notification and a confirmation to the address you entered, through Resend.</p>
+    <p>The booking form, the demo form, and the contact form on /admin use Cloudflare Turnstile.</p>
     <p>Purpose: to read and reply to the message, and to keep a booking record when the inquiry is a booking request.</p>
     <p>Lawful basis: legitimate interests in answering a general message and running the site. A booking enquiry is steps before a contract, or the contract once a booking is signed.</p>
     <p>Retention: contact messages are kept for 24 months. A booking enquiry that did not become a booking is kept for 24 months. A signed booking is kept for as long as Romanian accounting and tax law requires.</p>
@@ -107,6 +108,7 @@ ${draft}
       <li>Vercel provides hosting. When Blob storage is configured, demo audio and contract files are stored there as private blobs. They are not served from a public URL.</li>
       <li>Upstash provides the Redis database for the records above when it is configured. If it is not, the server falls back to files on the machine running it.</li>
       <li>Resend is the only email provider. It sends contact, booking, demo, newsletter, and bounce-alert email. Resend can call back with the delivery events described above.</li>
+      <li>Cloudflare Turnstile checks the booking form, the demo form, and the contact form on /admin. Cloudflare receives the verification token and the IP address for that check. The message text is not sent to Cloudflare.</li>
       <li>Google Analytics 4 is provided by Google Ireland Limited. It loads only after you accept analytics. See Cookies.</li>
       <li>The Meta Pixel is provided by Meta Platforms Ireland Limited. It loads only after you accept marketing. See Cookies.</li>
     </ul>
