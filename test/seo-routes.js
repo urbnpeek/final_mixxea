@@ -58,6 +58,37 @@ function canonicals(html) {
   return html.match(/<link rel="canonical"[^>]*>/g) || [];
 }
 
+function robotsGroups(body) {
+  const groups = [];
+  let current = null;
+  for (const raw of body.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const match = line.match(/^([^:]+):\s*(.*)$/);
+    if (!match) continue;
+    const key = match[1].toLowerCase();
+    const value = match[2].trim();
+    if (key === 'user-agent') {
+      if (!current || current.rules.length) {
+        current = { agents: [], rules: [] };
+        groups.push(current);
+      }
+      current.agents.push(value);
+    } else if (current) {
+      current.rules.push({ key, value });
+    }
+  }
+  return groups;
+}
+
+function groupFor(groups, agent) {
+  return groups.find((group) => group.agents.includes(agent));
+}
+
+function hasRule(group, key, value) {
+  return group.rules.some((rule) => rule.key === key && rule.value === value);
+}
+
 async function main() {
   writeCollection('artists.json', [
     { id: 'nera', name: 'Nera', slug: 'nera', status: 'signed', genre: 'Techno', type: 'both' },
@@ -168,6 +199,32 @@ async function main() {
     assert(res.status === 200, 'status ' + res.status);
     assert(res.body.includes('Sitemap: https://www.mixxea.com/sitemap.xml'), res.body);
     assert(res.body.includes('Disallow: /*?preview='), 'preview urls should stay out of the index');
+    assert(!res.body.includes('Claude-Web'), 'deprecated Claude-Web should be removed');
+
+    const groups = robotsGroups(res.body);
+    const answerBots = [
+      'ChatGPT-User',
+      'OAI-SearchBot',
+      'Claude-User',
+      'Claude-SearchBot',
+      'PerplexityBot',
+      'Perplexity-User',
+    ];
+    for (const agent of answerBots) {
+      const group = groupFor(groups, agent);
+      assert(group, agent + ' missing');
+      assert(hasRule(group, 'allow', '/'), agent + ' should be allowed');
+      assert(!hasRule(group, 'disallow', '/'), agent + ' should not block the site');
+      assert(hasRule(group, 'disallow', '/api/'), agent + ' should disallow /api/');
+      assert(hasRule(group, 'disallow', '/admin'), agent + ' should disallow /admin');
+    }
+
+    for (const agent of ['GPTBot', 'CCBot', 'anthropic-ai', 'Google-Extended', 'Bytespider']) {
+      const group = groupFor(groups, agent);
+      assert(group, agent + ' missing');
+      assert(hasRule(group, 'disallow', '/'), agent + ' should be disallowed');
+      assert(!hasRule(group, 'allow', '/'), agent + ' should not be allowed');
+    }
   });
 
   await check('news article SSR has self canonical and article H1', async () => {
