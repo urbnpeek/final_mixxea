@@ -1,10 +1,28 @@
 /**
  * Public catalog rules.
  * A release, show, or pool track is public only when every credited name
- * is on the current artist roster. News is public when it is published.
- * Optional artist tags must point at the roster. All-caps words in a post
- * do not hide it. Nothing here adds bios, venues, or claims.
+ * is on the current artist roster, unless that release is catalogueOnly.
+ * catalogueOnly is a per-release flag for label catalogue titles whose
+ * artist is not on the roster (KENTA, Bennyhews, and the same kind of
+ * credit later). A public catalogueOnly release is listed with the
+ * catalogue. It does not create an artist profile, an /artists/<slug>
+ * page, or a sitemap artist URL.
+ * News is public when it is published. Optional artist tags must point at
+ * the roster. All-caps words in a post do not hide it. Nothing here adds
+ * bios, venues, or claims.
+ *
+ * All-caps heuristic (releases, shows, and pool tracks — not news):
+ * An ALL-CAPS word of 4 or more letters hides the record when it is not a
+ * roster name and not a brand word (see BRAND_WORDS). It keeps leftover
+ * placeholder or off-roster shouty names off public pages — the fake acts
+ * removed from this catalogue, such as VEXR and LYDA — even when the main
+ * credit field looks clean. Title case such as "Dirty Circuit" is not a
+ * shout. A catalogueOnly release's own artist name is allowed, so KENTA
+ * in that release's title or description does not hide it. Any other
+ * unknown ALL-CAPS word still does.
  */
+
+const slugify = require('../utils/slugify');
 
 const { applyReleaseFixes } = require('./redesignData');
 const { scrubConfirm } = require('./scrubConfirm');
@@ -45,12 +63,44 @@ function creditedToRoster(value, names) {
   return tokens.every((token) => names.has(token));
 }
 
-function shoutedOffRoster(text, names) {
+function shoutedOffRoster(text, names, extraAllowed) {
   const tokens = String(text || '').match(/\b[A-Z]{4,}\b/g) || [];
   return tokens.some((token) => {
     const key = token.toLowerCase();
-    return !names.has(key) && !BRAND_WORDS.has(key);
+    if (names && names.has(key)) return false;
+    if (BRAND_WORDS.has(key)) return false;
+    if (extraAllowed && extraAllowed.has(key)) return false;
+    return true;
   });
+}
+
+function isCatalogueOnly(release) {
+  const value = release && release.catalogueOnly;
+  return value === true || value === 'true' || value === 1 || value === '1' || value === 'on';
+}
+
+function catalogueArtistWords(release) {
+  const allowed = new Set();
+  const words = String(primaryCredit(release && release.artist) || '').match(/[A-Za-z0-9]+/g) || [];
+  for (const word of words) {
+    if (word.length >= 4) allowed.add(word.toLowerCase());
+  }
+  return allowed;
+}
+
+function catalogueOnlyArtistSlugs(releases, artists) {
+  const names = rosterNames(artists);
+  const slugs = new Set();
+  for (const release of Array.isArray(releases) ? releases : []) {
+    if (!isCatalogueOnly(release)) continue;
+    const credit = String(primaryCredit(release && release.artist) || '').trim();
+    if (!credit) continue;
+    const tokens = nameTokens(credit);
+    if (tokens.length && tokens.every((token) => names.has(token))) continue;
+    const slug = slugify(credit);
+    if (slug) slugs.add(slug);
+  }
+  return slugs;
 }
 
 const PUBLIC_RELEASE_STATUSES = new Set(['published', 'scheduled', 'soon', 'pre', 'out']);
@@ -93,8 +143,10 @@ function releaseHiddenReason(release, artists) {
   if (status === 'scheduled' && release.publishedAt && Date.parse(release.publishedAt) > Date.now()) {
     return 'scheduled';
   }
-  if (!creditsOk(release, artists)) return 'artist is not on the roster';
-  if (shoutedOffRoster(`${release.title || ''} ${release.description || ''}`, rosterNames(artists))) {
+  const catalogueOnly = isCatalogueOnly(release);
+  if (!catalogueOnly && !creditsOk(release, artists)) return 'artist is not on the roster';
+  const allowed = catalogueOnly ? catalogueArtistWords(release) : null;
+  if (shoutedOffRoster(`${release.title || ''} ${release.description || ''}`, rosterNames(artists), allowed)) {
     return 'title or description uses an all-caps name that is not on the roster';
   }
   return '';
@@ -155,6 +207,8 @@ module.exports = {
   rosterNames,
   nameTokens,
   creditedToRoster,
+  isCatalogueOnly,
+  catalogueOnlyArtistSlugs,
   releaseHiddenReason,
   newsHiddenReason,
   visibleReleases,

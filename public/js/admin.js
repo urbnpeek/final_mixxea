@@ -129,9 +129,14 @@ function admToggle(id) {
   if(el.style.display==='block') el.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
+function setChecked(id, on) {
+  const el = document.getElementById(id);
+  if (el) el.checked = !!on;
+}
 function admClearRel() {
   ['rel-edit-id','rel-rev','rel-title','rel-artist','rel-slug','rel-catno','rel-bpm','rel-key','rel-desc','rel-tracks','rel-spotify','rel-beatport','rel-apple','rel-soundcloud','rel-bandcamp','rel-youtube','rel-seo-title','rel-seo-desc','rel-cover-alt','rel-slug-touched'].forEach(id=>setVal(id,''));
   setVal('rel-genre','Techno'); setVal('rel-type','single'); setVal('rel-featured','');
+  setChecked('rel-catalogue-only', false);
   setText('rel-form-title','NEW RELEASE');
   const link = document.getElementById('rel-preview-wrap'); if (link) link.style.display = 'none';
   renderArtistChecks('rel-artists', []);
@@ -316,7 +321,7 @@ const ADMIN = {
           <div class="tbl-thumb">${(r.cover&&r.cover.thumbUrl)||r.artwork?`<img src="${esc((r.cover&&r.cover.thumbUrl)||r.artwork)}" alt="" style="width:36px;height:36px;object-fit:cover">`:(r.catNo||'???').slice(-3)}</div>
           <div><div class="tbl-name">${esc(r.title)}</div><div class="tbl-sub">${esc(r.slug||r.catNo||'')}</div>${hiddenNote(r.hiddenReason)}</div>
         </div></td>
-        <td style="font-family:var(--Mono);font-size:11px">${esc(r.artist)}</td>
+        <td style="font-family:var(--Mono);font-size:11px">${esc(r.artist)}${r.catalogueOnly ? '<div class="tbl-sub">Label catalogue</div>' : ''}</td>
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${esc(r.genre)}</td>
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(r.date||r.releaseDate)}</td>
         <td>${relBadge(r.status)}</td>
@@ -353,6 +358,7 @@ const ADMIN = {
       seoTitle: val('rel-seo-title'), seoDescription: val('rel-seo-desc'),
       coverAlt: val('rel-cover-alt'),
       artistIds: JSON.stringify(selectedIds('rel-artists')),
+      catalogueOnly: document.getElementById('rel-catalogue-only')?.checked ? 'true' : 'false',
       rev: val('rel-rev')
     };
     Object.entries(payload).forEach(([k,v]) => fd.append(k, v == null ? '' : v));
@@ -381,6 +387,7 @@ const ADMIN = {
     setVal('rel-type', r.type || 'single');
     setVal('rel-catno',r.catNo); setVal('rel-bpm',r.bpm); setVal('rel-key', r.key || ''); setVal('rel-genre',r.genre);
     setVal('rel-date',r.date || r.releaseDate); setVal('rel-featured', r.featured ? 'true' : '');
+    setChecked('rel-catalogue-only', r.catalogueOnly === true || r.catalogueOnly === 'true' || r.catalogueOnly === 1 || r.catalogueOnly === '1');
     setVal('rel-desc',r.description||'');
     setVal('rel-tracks', (r.tracks || []).map(t => [t.title, t.artist, t.duration, t.isrc].filter(Boolean).join(' | ')).join('\n'));
     setVal('rel-spotify',r.spotify||''); setVal('rel-beatport',r.beatport||'');

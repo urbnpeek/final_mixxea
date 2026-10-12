@@ -44,11 +44,17 @@ function pager(path, query, current, pagesCount) {
   return { html: `<div class="pager">${links.join('')}</div>`, extra };
 }
 
+function releaseByArtist(release) {
+  // Plain name. Catalogue-only artists have no /artists/<slug> page, and
+  // release structured data does not link the credit to a profile.
+  return { '@type': 'MusicGroup', name: (release && release.artist) || 'Mixxea' };
+}
+
 function releaseJsonLd(release) {
   const slug = pages.releaseSlug(release);
   const url = `${BASE}/releases/${slug}`;
   const image = pages.absoluteAsset(pages.coverUrl(release, false) || release.artwork || release.ogImage) || `${BASE}/og/mixxea-og.jpg`;
-  const byArtist = { '@type': 'MusicGroup', name: release.artist || 'Mixxea' };
+  const byArtist = releaseByArtist(release);
   const sameAs = blocks.filledPlatforms(release).map((item) => item.href);
   const description = markdownToText((release.seo && release.seo.description) || release.description || '').slice(0, 160);
   const format = String(release.format || release.type || '').toLowerCase();
@@ -130,7 +136,7 @@ function renderReleasePage(release, artists, options = {}) {
     <div class="release-info">
       <p class="meta acid">${pages.esc(release.catNo || '')} · ${pages.esc(release.status || '')}</p>
       <h1 class="d-l">${pages.esc(title)}</h1>
-      <p class="h3" style="font-size:36px;margin-top:12px">${pages.esc(release.artist || '')}</p>
+      <p class="h3 release-artist" style="font-size:36px;margin-top:12px">${pages.esc(release.artist || '')}</p>
       <dl class="dl">${facts.map(([label, value]) => `<dt>${pages.esc(label)}</dt><dd>${pages.esc(value)}</dd>`).join('')}</dl>
       <div class="platforms">${buttons}</div>
       ${blocks.embedBlock(release)}

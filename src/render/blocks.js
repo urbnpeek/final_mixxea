@@ -55,6 +55,7 @@ function coverPreload(release, sizes = '(min-width:1024px) 640px, 100vw') {
 }
 
 function releaseCard(release) {
+  // Artist credit is plain text. Catalogue-only artists have no /artists/<slug> page.
   const href = pages.releaseHref(release);
   const when = pages.formatCatalogueDate(release.date || release.releaseDate);
   const platforms = filledPlatforms(release);

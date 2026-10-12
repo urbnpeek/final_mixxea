@@ -11,7 +11,7 @@
 const express = require('express');
 const db      = require('./db');
 const slugify = require('../utils/slugify');
-const { visibleReleases, visibleEvents, visibleNews } = require('../lib/rosterCatalog');
+const { visibleReleases, visibleEvents, visibleNews, catalogueOnlyArtistSlugs } = require('../lib/rosterCatalog');
 const { canonicalOrigin } = require('../lib/siteUrl');
 const { publicDetailExists } = require('../lib/publicDetail');
 const { publicCategory } = require('../lib/categories');
@@ -66,6 +66,7 @@ async function generateSitemap() {
   })));
   const publicReleases = visibleReleases(releases, artists);
   const publicEvents = visibleEvents(events, artists);
+  const catalogueArtists = catalogueOnlyArtistSlugs(releases, artists);
 
   const newsUrls = publicNews
     .map(n => ({
@@ -93,7 +94,7 @@ async function generateSitemap() {
   const artistUrls = (Array.isArray(artists) ? artists : [])
     .map(a => {
       const slug = slugify((a && (a.slug || a.name)) || '');
-      if (!slug || !String(a && a.name || '').trim()) return null;
+      if (!slug || !String(a && a.name || '').trim() || catalogueArtists.has(slug)) return null;
       return {
         loc: `${BASE}/artists/${slug}`,
         lastmod: today,
@@ -195,6 +196,7 @@ router.get('/schema.json', async (req, res) => {
         ...liveReleases.map(r => ({
           '@type': 'MusicAlbum',
           'name': r.title,
+          // byArtist is a name only. Catalogue-only artists have no profile URL.
           'byArtist': { '@type': 'MusicGroup', 'name': r.artist },
           'url': `${BASE}/releases/${releaseSlug(r)}`,
           ...(r.artwork      ? { 'image': r.artwork }       : {}),
