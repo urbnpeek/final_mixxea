@@ -99,6 +99,16 @@ function formatLabel(value) {
   return labels[key] || value;
 }
 
+function formatFact(release) {
+  const hasType = !!(release && Object.prototype.hasOwnProperty.call(release, 'type'));
+  const type = String((release && release.type) || '').trim();
+  const format = String((release && release.format) || '').trim();
+  if (hasType && !type) return null;
+  const shown = type || format;
+  if (!shown) return null;
+  return ['Format', formatLabel(shown)];
+}
+
 function renderReleasePage(release, artists, options = {}) {
   const slug = pages.releaseSlug(release);
   const title = release.title || 'Release';
@@ -113,7 +123,7 @@ function renderReleasePage(release, artists, options = {}) {
     ['Genre', release.genre],
     ['Label', release.label || 'Mixxea Records'],
     ['Cat. no.', release.catNo],
-    (release.format || release.type) ? ['Format', formatLabel(release.format || release.type)] : null,
+    formatFact(release),
   ].filter((row) => row && row[1]);
   const related = pages.sortReleases((options.relatedReleases || [])).slice(0, 4);
   const jsonLd = {

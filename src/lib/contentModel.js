@@ -8,6 +8,17 @@ const slugify = require('../utils/slugify');
 const { categoryByInput } = require('./categories');
 
 const RELEASE_TYPES = new Set(['single', 'ep', 'album', 'compilation', 'remix']);
+const RELEASE_GENRES = Object.freeze([
+  'Techno',
+  'Deep House',
+  'Minimal',
+  'Ambient',
+  'Bass',
+  'Industrial',
+  'Melodic House',
+  'Experimental',
+  'Tech House',
+]);
 const PUBLIC_RELEASE_STATUSES = new Set(['published', 'scheduled', 'soon', 'pre', 'out']);
 const RELEASE_STATUSES = new Set(['draft', 'published', 'unpublished', 'scheduled', 'soon', 'pre', 'out', 'archived', 'hidden', 'cancelled']);
 const POST_STATUSES = new Set(['draft', 'published', 'unpublished', 'scheduled']);
@@ -95,6 +106,27 @@ function actorName(actor) {
 
 function releaseSlug(artist, title) {
   return cleanSlug(`${artist || 'release'}-${title || 'untitled'}`) || 'release';
+}
+
+function nextReleaseType(source, previous) {
+  const hasType = !!source && Object.prototype.hasOwnProperty.call(source, 'type');
+  if (hasType) {
+    const raw = String(source.type == null ? '' : source.type).trim().toLowerCase();
+    if (!raw) return '';
+    if (RELEASE_TYPES.has(raw)) return raw;
+  }
+  if (previous && String(previous.type || '').trim()) return String(previous.type).trim();
+  if (hasType) return 'single';
+  return '';
+}
+
+function nextReleaseGenre(source, previous) {
+  if (source && source.genre != null) {
+    const text = clip(source.genre, 80);
+    const known = RELEASE_GENRES.find((name) => name.toLowerCase() === text.toLowerCase());
+    return known || text;
+  }
+  return clip(previous && previous.genre, 80);
 }
 
 function nextReleaseStatus(body, previous) {
@@ -221,12 +253,10 @@ function normalizeRelease(body, previous, actor, uploads) {
     title,
     artist,
     artistIds: cleanIdList(source.artistIds != null ? source.artistIds : (previous && previous.artistIds)),
-    type: RELEASE_TYPES.has(String(source.type || '').toLowerCase())
-      ? String(source.type).toLowerCase()
-      : ((previous && previous.type) || 'single'),
+    type: nextReleaseType(source, previous),
     catNo: source.catNo != null ? clip(source.catNo, 40) : clip(previous && previous.catNo, 40),
     label: clip(source.label || (previous && previous.label) || 'Mixxea Records', 80),
-    genre: source.genre != null ? clip(source.genre, 80) : clip(previous && previous.genre, 80),
+    genre: nextReleaseGenre(source, previous),
     bpm: asInt(source.bpm != null && source.bpm !== '' ? source.bpm : (previous && previous.bpm)),
     key: source.key != null ? clip(source.key, 16) : clip(previous && previous.key, 16),
     releaseDate: date,
@@ -419,6 +449,7 @@ function reloadMessage(info) {
 
 module.exports = {
   PUBLIC_RELEASE_STATUSES,
+  RELEASE_GENRES,
   normalizeRelease,
   normalizePost,
   legacyRelease,

@@ -344,7 +344,7 @@ const ADMIN = {
       action: action || 'draft',
       title, artist,
       slug: val('rel-slug'),
-      type: val('rel-type') || 'single',
+      type: val('rel-type'),
       genre: val('rel-genre'),
       bpm: val('rel-bpm'),
       key: val('rel-key'),
@@ -376,7 +376,7 @@ const ADMIN = {
     const result = id ? await api('PUT', `/releases/${id}`, fd) : await api('POST', '/releases', fd);
     if (!result) return;
     toast(action === 'publish' ? 'Release published' : action === 'unpublish' ? 'Release unpublished' : 'Draft saved');
-    admToggle('rel-form'); admClearRel(); this.loadReleases();
+    admToggle('rel-form'); admClearRel(); ADMIN.loadReleases();
   },
 
   async editRelease(id) {
@@ -384,7 +384,7 @@ const ADMIN = {
     const r=await api('GET',`/releases/${id}`)||STORE.releases.find(x=>x.id===id); if(!r)return;
     setVal('rel-edit-id',r.id); setVal('rel-rev', r.rev || 1); setVal('rel-title',r.title); setVal('rel-artist',r.artist);
     setVal('rel-slug', r.slug || ''); setVal('rel-slug-touched','1');
-    setVal('rel-type', r.type || 'single');
+    setVal('rel-type', r.type || '');
     setVal('rel-catno',r.catNo); setVal('rel-bpm',r.bpm); setVal('rel-key', r.key || ''); setVal('rel-genre',r.genre);
     setVal('rel-date',r.date || r.releaseDate); setVal('rel-featured', r.featured ? 'true' : '');
     setChecked('rel-catalogue-only', r.catalogueOnly === true || r.catalogueOnly === 'true' || r.catalogueOnly === 1 || r.catalogueOnly === '1');
@@ -411,7 +411,7 @@ const ADMIN = {
     const result=await api('DELETE',`/releases/${id}`);
     if(!result)return;
     STORE.releases=STORE.releases.filter(r=>r.id!==id);
-    toast('Release deleted'); this.loadReleases();
+    toast('Release deleted'); ADMIN.loadReleases();
   },
 
   /* ══ ARTISTS ════════════════════════════════════════════ */
