@@ -15,6 +15,8 @@ const { requireAdmin } = require('./src/api/middleware');
 const { router: seoRouter, generateSitemap } = require('./src/api/seo');
 const db = require('./src/api/db');
 const pages = require('./src/render/publicPages');
+const slugify = require('./src/utils/slugify');
+const { catalogueOnlyArtistSlugs } = require('./src/lib/rosterCatalog');
 const { publicDetailPath } = require('./src/lib/publicDetail');
 const { versionHtml } = require('./src/lib/assetVersion');
 const { SCRIPT_HASHES } = require('./src/lib/scriptHashes');
@@ -255,7 +257,8 @@ app.get('/artists/:slug', async (req, res) => {
       db.get('events'),
     ]);
     const artist = pages.findArtist(artists, req.params.slug);
-    if (!artist) {
+    const catalogueArtists = catalogueOnlyArtistSlugs(releases, artists);
+    if (!artist || catalogueArtists.has(slugify(req.params.slug)) || catalogueArtists.has(pages.artistSlug(artist))) {
       sendHtml(res, 404, pages.renderArtistNotFound());
       return;
     }
