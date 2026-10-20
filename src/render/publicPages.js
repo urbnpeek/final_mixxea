@@ -112,7 +112,7 @@ function itemList(artists) {
 function nameTokens(value) {
   return String(value || '')
     .toLowerCase()
-    .split(/[,/&+]|\band\b/)
+    .split(/[,;/&+]|\band\b/)
     .map((part) => part.trim())
     .filter(Boolean);
 }

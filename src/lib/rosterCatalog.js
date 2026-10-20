@@ -24,7 +24,7 @@
 
 const slugify = require('../utils/slugify');
 
-const { applyReleaseFixes } = require('./redesignData');
+const { applyReleaseFixes, ensureConfirmedReleases } = require('./redesignData');
 const { scrubConfirm } = require('./scrubConfirm');
 
 const BRAND_WORDS = new Set([
@@ -52,7 +52,7 @@ function rosterNames(artists) {
 function nameTokens(value) {
   return String(value || '')
     .toLowerCase()
-    .split(/[,/&+]|\band\b/)
+    .split(/[,;/&+]|\band\b/)
     .map((part) => part.trim())
     .filter(Boolean);
 }
@@ -172,7 +172,7 @@ function newsHiddenReason(item, artists) {
 }
 
 function visibleReleases(releases, artists) {
-  return (Array.isArray(releases) ? releases : [])
+  return ensureConfirmedReleases(releases)
     .map((release) => applyReleaseFixes(release))
     .filter((release) => !releaseHiddenReason(release, artists));
 }

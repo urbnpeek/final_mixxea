@@ -54,6 +54,7 @@ const cspDirectives = {
     "'self'",
     'data:',
     'https://*.public.blob.vercel-storage.com',
+    'https://geo-media.beatport.com',
     'https://*.google-analytics.com',
     'https://*.googletagmanager.com',
     'https://www.facebook.com',
@@ -560,7 +561,8 @@ app.get('/releases', async (req, res) => {
 app.get('/releases/:slug', async (req, res) => {
   try {
     const [releases, artists, news] = await Promise.all([db.get('releases'), db.get('artists'), db.get('news')]);
-    const found = await locateRecord('release', req.params.slug, releases);
+    const catalogue = visibleReleases(releases, artists);
+    const found = await locateRecord('release', req.params.slug, catalogue);
     if (!found) {
       sendHtml(res, 404, pages.renderNotFound());
       return;
@@ -579,9 +581,9 @@ app.get('/releases/:slug', async (req, res) => {
     const relatedNews = visibleNews(news, artists).filter((post) =>
       Array.isArray(post.relatedReleaseIds) && post.relatedReleaseIds.includes(found.doc.id)
     ).slice(0, 3);
-    const catalogue = visibleReleases(releases, artists).filter((item) => pages.releaseSlug(item) !== pages.releaseSlug(found.doc));
-    const sameArtist = catalogue.filter((item) => String(item.artist || '').toLowerCase() === String(found.doc.artist || '').toLowerCase());
-    const relatedReleases = sameArtist.concat(catalogue.filter((item) => !sameArtist.includes(item))).slice(0, 4);
+    const relatedPool = catalogue.filter((item) => pages.releaseSlug(item) !== pages.releaseSlug(found.doc));
+    const sameArtist = relatedPool.filter((item) => String(item.artist || '').toLowerCase() === String(found.doc.artist || '').toLowerCase());
+    const relatedReleases = sameArtist.concat(relatedPool.filter((item) => !sameArtist.includes(item))).slice(0, 4);
     sendHtml(
       res,
       200,
