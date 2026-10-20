@@ -32,6 +32,8 @@ function fixture() {
       { id: 'mxa005', title: 'Void Protocol', artist: 'LYDA', catNo: 'MXA005', status: 'out' },
       { id: 'love', title: 'Love & Fake [CONFIRM]', artist: 'David Hopperman feat. Jayy Dee', catNo: 'MXX-052', status: 'out', date: '2019-07-01 [CONFIRM]', spotify: 'https://open.spotify.com/track/secret', beatport: 'https://www.beatport.com/track/x/1' },
       { id: 'fixed-mail-release', title: 'Gotta Be the One', artist: 'David Hopperman feat. The Subject', catNo: 'MXX-007', status: 'draft', date: '2017-08-07', beatport: 'https://www.beatport.com/track/y/1', spotify: '' },
+      { id: 'hold-icon', title: 'American Icon', artist: 'Ray Sam & Wally Lopez', catNo: 'MXX-055', status: 'out', date: '2018-08-06', beatport: 'https://www.beatport.com/release/american-icon/2350827' },
+      { id: 'hold-054', title: 'Untitled', artist: 'David Hopperman', catNo: 'MXX-054', status: 'out', date: '2018-01-01' },
     ],
     news: [
       { id: 'n-vexr', title: 'Night with VEXR', status: 'published', body: 'VEXR played.' },
@@ -55,13 +57,34 @@ function main() {
   assert(wally.country === 'ES' && wally.bookable === true, 'wally');
   assert(once.artists.find((artist) => artist.slug === 'eddie-bitar').bookable === true, 'eddie');
   assert(!once.releases.some((release) => /MXA00[45]/.test(release.catNo)), 'fake releases remain');
-  const love = once.releases.find((release) => release.catNo === 'MXX-052');
-  assert(love.status === 'draft', 'unconfirmed date still public');
-  assert(love.date === '2019' && love.releaseDate === '2019', 'unconfirmed date not year-only: ' + love.date);
-  assert(formatCatalogueDate(love.date) === '2019', 'year renders as a full date');
-  assert(!love.spotify, 'unconfirmed spotify still set');
-  assert(love.beatport, 'confirmed beatport cleared');
+  const love = once.releases.find((release) => release.title === 'Love & Fake');
+  assert(love.catNo === 'MXR010', 'love cat ' + love.catNo);
+  assert(love.status === 'out', 'confirmed love still draft');
+  assert(love.date === '2019-07-01' && love.releaseDate === '2019-07-01', 'love date ' + love.date);
+  assert(formatCatalogueDate(love.date) === '01 Jul 2019', 'love date render');
+  assert(love.label === 'Mixxea Records', 'love label');
+  assert(love.artist === 'David Hopperman; Jayy Dee', 'love artist ' + love.artist);
+  assert(!love.spotify && !(love.links && love.links.spotify), 'unknown spotify still set');
+  assert(!love.apple && !(love.links && love.links.apple), 'unknown apple still set');
+  assert(love.beatport === 'https://www.beatport.com/release/love-fake/2629699', 'love beatport ' + love.beatport);
+  assert(love.artwork === 'https://geo-media.beatport.com/image_size/1400x1400/4d239b09-e750-4c67-9151-ac33e6b6c055.jpg', 'love artwork');
   assert(!love.title.includes('[CONFIRM]'), 'confirm marker kept in title');
+  const gotta = once.releases.find((release) => release.title === 'Gotta Be the One');
+  assert(gotta.catNo === 'AJR007' && gotta.status === 'out', 'gotta ' + gotta.catNo + ' ' + gotta.status);
+  assert(gotta.date === '2017-08-07', 'gotta date ' + gotta.date);
+  assert(gotta.artist === 'David Hopperman; The Subject', 'gotta artist ' + gotta.artist);
+  assert(gotta.beatport === 'https://www.beatport.com/release/gotta-be-the-one/6841378', 'gotta beatport');
+  assert(!gotta.spotify, 'gotta spotify invented');
+  const remix = once.releases.find((release) => release.title === 'American Icon (Remixes)');
+  assert(remix && remix.catNo === 'FSR004' && remix.status === 'out', 'remix missing');
+  assert(remix.artist === 'Wally Lopez' && remix.date === '2018-09-03', 'remix credit');
+  assert(remix.beatport === 'https://www.beatport.com/release/american-icon-remixes/6844691', 'remix beatport');
+  assert(remix.artwork.includes('ba21e77a-34d7-48c0-bfe2-c8cec75823f4'), 'remix artwork');
+  const heldIcon = once.releases.find((release) => release.id === 'hold-icon');
+  const held054 = once.releases.find((release) => release.id === 'hold-054');
+  assert(heldIcon.status === 'draft' && heldIcon.catNo === 'MXX-055' && heldIcon.title === 'American Icon', 'held icon published');
+  assert(held054.status === 'draft' && held054.catNo === 'MXX-054', 'held 054 published');
+  assert(!once.releases.some((release) => release.catNo === 'FSR001'), 'original american icon added');
   assert(once.artists.find((artist) => artist.slug === 'other-artist').bookable === false, 'other artist bookable');
   assert(!JSON.stringify(once).includes('[CONFIRM]'), 'confirm marker would be written');
   assert(creditNames(love).includes('David Hopperman') && creditNames(love).includes('Jayy Dee'), 'feat split');
@@ -76,7 +99,27 @@ function main() {
   assert(once.categories.some((item) => item.slug === 'label'), 'categories');
 
   const hidden = releaseHiddenReason(love, once.artists);
-  assert(hidden === 'draft', 'draft love release is public: ' + hidden);
+  assert(!hidden, 'confirmed love release is hidden: ' + hidden);
+  assert(releaseHiddenReason(heldIcon, once.artists) === 'draft', 'held icon is public');
+  assert(releaseHiddenReason(held054, once.artists) === 'draft', 'held 054 is public');
+  const { visibleReleases } = require('../src/lib/rosterCatalog');
+  const { renderReleaseIndex, renderReleasePage } = require('../src/render/catalogPages');
+  const shown = visibleReleases(once.releases, once.artists);
+  assert(shown.some((release) => release.catNo === 'MXR010'), 'love not public');
+  assert(shown.some((release) => release.catNo === 'AJR007'), 'gotta not public');
+  assert(shown.some((release) => release.catNo === 'FSR004'), 'remix not public');
+  assert(!shown.some((release) => release.catNo === 'MXX-054' || release.catNo === 'MXX-055' || release.title === 'American Icon'), 'held release is public');
+  const index = renderReleaseIndex(shown, {});
+  for (const cat of ['MXR010', 'AJR007', 'FSR004']) assert(index.includes('>' + cat + '<') || index.includes('>' + cat + '</'), 'index cat ' + cat);
+  assert(index.includes('>MXR010<') && index.includes('>AJR007<') && index.includes('>FSR004<'), 'catalogue numbers missing');
+  assert(!index.includes('MXX-052') && !index.includes('MXX-007') && !index.includes('MXX-057') && !index.includes('MXX-054') && !index.includes('MXX-055'), 'old cat rendered');
+  assert(!index.includes('american-icon/2350827'), 'held beatport link rendered');
+  const lovePage = renderReleasePage(love, once.artists, { relatedReleases: [] });
+  assert(lovePage.includes('>MXR010<'), 'love page cat');
+  assert(lovePage.includes('https://www.beatport.com/release/love-fake/2629699'), 'love page link');
+  assert(!lovePage.includes('open.spotify.com/track'), 'love page invented spotify');
+  assert(!lovePage.includes('music.apple.com'), 'love page invented apple');
+  assert(!lovePage.includes('Ray Sam'), 'ray sam credit');
   const nakaHidden = releaseHiddenReason(naka, once.artists);
   assert(!nakaHidden, 'naka hidden: ' + nakaHidden);
 

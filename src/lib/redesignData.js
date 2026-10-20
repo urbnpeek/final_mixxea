@@ -84,7 +84,48 @@ const CATEGORIES = [
   { slug: 'artists', name: 'Artists', description: '', accent: 'label' },
 ];
 
-const DRAFT_CATS = new Set(['MXX-052', 'MXX-007', 'MXX-054', 'MXX-055', 'MXX-057']);
+const DRAFT_CATS = new Set(['MXX-007', 'MXX-054', 'MXX-055', 'MXX-057']);
+
+// Confirmed on the 20 Oct 2026 Beatport sheet. catNo is the Beatport catalogue
+// number. Spotify, Apple Music, and Deezer are unknown and stay empty.
+const CONFIRMED_RELEASES = [
+  {
+    id: 'fsr004',
+    slug: 'wally-lopez-american-icon-remixes',
+    title: 'American Icon (Remixes)',
+    artist: 'Wally Lopez',
+    label: 'Mixxea Records',
+    date: '2018-09-03',
+    catNo: 'FSR004',
+    beatport: 'https://www.beatport.com/release/american-icon-remixes/6844691',
+    artwork: 'https://geo-media.beatport.com/image_size/1400x1400/ba21e77a-34d7-48c0-bfe2-c8cec75823f4.jpg',
+    aliases: ['MXX-057', 'FSR004'],
+  },
+  {
+    id: 'ajr007',
+    slug: 'david-hopperman-gotta-be-the-one',
+    title: 'Gotta Be the One',
+    artist: 'David Hopperman; The Subject',
+    label: 'Mixxea Records',
+    date: '2017-08-07',
+    catNo: 'AJR007',
+    beatport: 'https://www.beatport.com/release/gotta-be-the-one/6841378',
+    artwork: 'https://geo-media.beatport.com/image_size/1400x1400/934f516a-cdce-4a30-a3c7-8c96b6c7bdc3.jpg',
+    aliases: ['MXX-007', 'AJR007'],
+  },
+  {
+    id: 'mxr010',
+    slug: 'david-hopperman-love-fake',
+    title: 'Love & Fake',
+    artist: 'David Hopperman; Jayy Dee',
+    label: 'Mixxea Records',
+    date: '2019-07-01',
+    catNo: 'MXR010',
+    beatport: 'https://www.beatport.com/release/love-fake/2629699',
+    artwork: 'https://geo-media.beatport.com/image_size/1400x1400/4d239b09-e750-4c67-9151-ac33e6b6c055.jpg',
+    aliases: ['MXX-052', 'MXR010'],
+  },
+];
 
 const UNCONFIRMED_LINKS = {
   'MXX-092': ['apple', 'beatport', 'soundcloud', 'bandcamp'],
@@ -150,7 +191,7 @@ function creditNames(release) {
   const raw = String(release && release.artist || '');
   const names = [];
   for (const part of raw.split(/\s+(?:feat\.?|ft\.?|featuring)\s+/i)) {
-    for (const name of part.split(/\s*(?:,|\/|&|\+)\s*|\s+\band\b\s+/i)) {
+    for (const name of part.split(/\s*(?:;|,|\/|&|\+)\s*|\s+\band\b\s+/i)) {
       const trimmed = name.trim();
       if (trimmed) names.push(trimmed);
     }
@@ -161,6 +202,66 @@ function creditNames(release) {
 function spotifyEmbedId(url) {
   const match = String(url || '').match(/open\.spotify\.com\/(?:embed\/)?(?:track|album)\/([A-Za-z0-9]+)/);
   return match ? match[1] : '';
+}
+
+function plainTitle(value) {
+  return scrubConfirm(String(value || '')).trim().toLowerCase();
+}
+
+function matchesConfirmed(release, spec) {
+  if (!release || !spec) return false;
+  if (plainTitle(release.title) === spec.title.toLowerCase()) return true;
+  return spec.aliases.includes(catLabel(release));
+}
+
+function confirmedRecord(spec) {
+  const links = {
+    spotify: '',
+    apple: '',
+    beatport: spec.beatport,
+    soundcloud: '',
+    bandcamp: '',
+    youtube: '',
+  };
+  return {
+    id: spec.id,
+    slug: spec.slug,
+    title: spec.title,
+    artist: spec.artist,
+    artists: creditNames({ artist: spec.artist }),
+    label: spec.label,
+    date: spec.date,
+    releaseDate: spec.date,
+    catNo: spec.catNo,
+    status: 'out',
+    description: '',
+    artwork: spec.artwork,
+    artworkThumb: spec.artwork,
+    cover: {
+      url: spec.artwork,
+      thumbUrl: spec.artwork,
+      alt: `${spec.title} by ${spec.artist}, cover artwork`,
+    },
+    ...links,
+    links,
+    embed: null,
+  };
+}
+
+function applyConfirmedRelease(release) {
+  const spec = CONFIRMED_RELEASES.find((item) => matchesConfirmed(release, item));
+  if (!spec) return null;
+  const next = confirmedRecord(spec);
+  if (release && release.id) next.id = release.id;
+  return scrubConfirm(next);
+}
+
+function ensureConfirmedReleases(releases) {
+  const list = asList(releases).filter(Boolean).map(clone);
+  for (const spec of CONFIRMED_RELEASES) {
+    if (!list.some((release) => matchesConfirmed(release, spec))) list.push(confirmedRecord(spec));
+  }
+  return list;
 }
 
 function emptyLinks(release, keys) {
@@ -252,6 +353,8 @@ function artworkMissing(release) {
 }
 
 function applyReleaseFixes(release) {
+  const confirmed = applyConfirmedRelease(release);
+  if (confirmed) return confirmed;
   const next = { ...release };
   const label = catLabel(next);
   if (label) next.catNo = label;
@@ -357,7 +460,7 @@ function transformArtists(artists) {
 }
 
 function transformReleases(releases) {
-  const list = asList(releases).filter((release) => release && !isFakeRelease(release)).map(applyReleaseFixes);
+  const list = ensureConfirmedReleases(asList(releases).filter((release) => release && !isFakeRelease(release))).map(applyReleaseFixes);
   for (const launch of LAUNCH) {
     const index = list.findIndex((release) => catLabel(release) === launch.catNo);
     if (index === -1) {
@@ -517,6 +620,7 @@ module.exports = {
   transform,
   transformCollection,
   applyReleaseFixes,
+  ensureConfirmedReleases,
   diffPlan,
   touchedRecords,
   restoreCollections,

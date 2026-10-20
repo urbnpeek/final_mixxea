@@ -130,7 +130,9 @@ async function main() {
     assert(releaseHiddenReason({ ...kenta, title: 'KENTA — Dirty Circuit' }, ROSTER) === '', 'artist name in the title hid the release');
     const visible = visibleReleases([kenta, benny], ROSTER);
     assert(visible.some((item) => item.slug === 'kenta-dirty-circuit'), 'flagged release dropped');
-    assert(visible.length === 1, 'unflagged release leaked: ' + visible.map((item) => item.artist).join(','));
+    assert(!visible.some((item) => item.slug === 'bennyhews-something-else'), 'unflagged release leaked: ' + visible.map((item) => item.artist).join(','));
+    assert(visible.some((item) => item.catNo === 'FSR004'), 'confirmed remix missing');
+    assert(!visible.some((item) => item.title === 'American Icon' || item.catNo === 'MXX-054' || item.catNo === 'MXX-055'), 'held release leaked');
   });
 
   await check('non-roster release without the flag stays hidden', async () => {
