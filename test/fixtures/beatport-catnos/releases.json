@@ -1,0 +1,156 @@
+[
+  {
+    "id": "be8234db-c362-4634-9431-0278d837cd54",
+    "slug": "kenta-dirty-circuit",
+    "title": "Dirty Circuit",
+    "artist": "KENTA",
+    "catNo": "MXX-091",
+    "catalogueOnly": true,
+    "status": "published",
+    "label": "Mixxea Records",
+    "date": "2025-06-30",
+    "genre": "Tech House",
+    "type": "single",
+    "artwork": "https://zirwxbdwhxlhzqwo.public.blob.vercel-storage.com/artwork/46336b45-5b97-41ca-b88f-9db3172a515c.webp",
+    "cover": {
+      "url": "https://zirwxbdwhxlhzqwo.public.blob.vercel-storage.com/artwork/46336b45-5b97-41ca-b88f-9db3172a515c.webp",
+      "thumbUrl": "https://zirwxbdwhxlhzqwo.public.blob.vercel-storage.com/artwork/e8d747e0-8291-4ed2-a31a-e1379ab95308.webp",
+      "alt": "Dirty Circuit by KENTA, cover artwork",
+      "w": 1600,
+      "h": 1600
+    },
+    "spotify": "https://open.spotify.com/track/2KlYubUf1bfOgQcjYetjUm",
+    "beatport": "https://www.beatport.com/release/dirty-circuit/6851284",
+    "links": {
+      "spotify": "https://open.spotify.com/track/2KlYubUf1bfOgQcjYetjUm",
+      "apple": "",
+      "beatport": "https://www.beatport.com/release/dirty-circuit/6851284",
+      "soundcloud": "",
+      "bandcamp": "",
+      "youtube": ""
+    }
+  },
+  {
+    "id": "ac9dee70-a013-413c-a3d3-f30948efbf28",
+    "slug": "bennyhews-something-else",
+    "title": "Something Else",
+    "artist": "Bennyhews",
+    "catNo": "",
+    "catalogueOnly": true,
+    "status": "published",
+    "label": "Mixxea Records",
+    "date": "2025-06-30",
+    "genre": "Tech House",
+    "type": "single",
+    "artwork": "https://zirwxbdwhxlhzqwo.public.blob.vercel-storage.com/artwork/d87e70af-519d-439e-9965-a61498852df6.webp",
+    "cover": {
+      "url": "https://zirwxbdwhxlhzqwo.public.blob.vercel-storage.com/artwork/d87e70af-519d-439e-9965-a61498852df6.webp",
+      "thumbUrl": "https://zirwxbdwhxlhzqwo.public.blob.vercel-storage.com/artwork/047e066c-8c74-4fc7-9ff5-ee0956d8c14f.webp",
+      "alt": "Something Else by Bennyhews, cover artwork",
+      "w": 1600,
+      "h": 1600
+    },
+    "spotify": "https://open.spotify.com/album/0l1BIKCEKaC5xOmsxTT6L4",
+    "beatport": "https://www.beatport.com/release/something-else/6779285",
+    "links": {
+      "spotify": "https://open.spotify.com/album/0l1BIKCEKaC5xOmsxTT6L4",
+      "apple": "",
+      "beatport": "https://www.beatport.com/release/something-else/6779285",
+      "soundcloud": "",
+      "bandcamp": "",
+      "youtube": ""
+    }
+  },
+  {
+    "id": "mxx-092",
+    "slug": "s1nce-naka",
+    "title": "Naka",
+    "artist": "S1NCE",
+    "catNo": "MXX-092",
+    "status": "out",
+    "label": "Mixxea Records",
+    "date": "2025-07-01",
+    "genre": "Afro House",
+    "type": "single",
+    "artwork": "/img/covers/MXX-092_1600.webp",
+    "artworkThumb": "/img/covers/MXX-092_600.webp",
+    "cover": {
+      "url": "/img/covers/MXX-092_1600.webp",
+      "thumbUrl": "/img/covers/MXX-092_600.webp",
+      "alt": "Naka by S1NCE, cover artwork",
+      "w": 1600,
+      "h": 1600
+    },
+    "spotify": "https://open.spotify.com/track/4ltsIrgI1ohN3NPDQ4O4ZH",
+    "beatport": "",
+    "apple": "https://music.apple.com/album/unconfirmed",
+    "ogImage": "/og/og-release-mxx-092.jpg",
+    "links": {
+      "spotify": "https://open.spotify.com/track/4ltsIrgI1ohN3NPDQ4O4ZH",
+      "apple": "https://music.apple.com/album/unconfirmed",
+      "beatport": "",
+      "soundcloud": "",
+      "bandcamp": "",
+      "youtube": ""
+    }
+  },
+  {
+    "id": "mxx-087",
+    "slug": "fl3x-corazon",
+    "title": "Corazon",
+    "artist": "FL3X",
+    "catNo": "MXX-087",
+    "status": "out",
+    "label": "Mixxea Records",
+    "date": "2025-03-07",
+    "genre": "Afro House",
+    "type": "single",
+    "artwork": "/img/covers/MXX-087_1600.webp",
+    "artworkThumb": "/img/covers/MXX-087_600.webp",
+    "cover": {
+      "url": "/img/covers/MXX-087_1600.webp",
+      "thumbUrl": "/img/covers/MXX-087_600.webp",
+      "alt": "Corazon by FL3X, cover artwork",
+      "w": 1600,
+      "h": 1600
+    },
+    "spotify": "https://open.spotify.com/track/0McK0zrgqBM0xx8scNhegq",
+    "beatport": "https://www.beatport.com/release/corazon/4946866",
+    "links": {
+      "spotify": "https://open.spotify.com/track/0McK0zrgqBM0xx8scNhegq",
+      "apple": "",
+      "beatport": "https://www.beatport.com/release/corazon/4946866",
+      "soundcloud": "",
+      "bandcamp": "",
+      "youtube": ""
+    }
+  },
+  {
+    "id": "rel-love",
+    "title": "Love & Fake",
+    "artist": "David Hopperman feat. Jayy Dee",
+    "slug": "david-hopperman-love-fake",
+    "catNo": "MXX-052",
+    "date": "2019-07-01",
+    "status": "out",
+    "spotify": "https://open.spotify.com/track/should-be-cleared",
+    "beatport": "https://www.beatport.com/track/love-fake/1"
+  },
+  {
+    "id": "rel-gotta",
+    "title": "Gotta Be the One",
+    "artist": "David Hopperman feat. The Subject",
+    "catNo": "MXX-007",
+    "status": "draft",
+    "date": "2017-08-07",
+    "spotify": "https://open.spotify.com/track/should-stay-empty"
+  },
+  {
+    "id": "rel-icon",
+    "title": "American Icon (Remixes)",
+    "artist": "Wally Lopez",
+    "catNo": "MXX-057",
+    "status": "draft",
+    "date": "2018-09-03"
+  }
+]

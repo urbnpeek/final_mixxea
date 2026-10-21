@@ -1,0 +1,69 @@
+beatport catalogue correction (dry-run)
+source: fixtures:test/fixtures/beatport-catnos
+redis: not contacted
+  add  artists  david-hopperman  David Hopperman
+  add  artists  wally-lopez  Wally Lopez
+  add  artists  eddie-bitar  Eddie Bitar
+  add  artists  s1nce  S1NCE
+  add  artists  fl3x  FL3X
+  change  releases  be8234db-c362-4634-9431-0278d837cd54  Dirty Circuit  [apple, artists, artworkThumb, bandcamp, catNo, embed, format, releaseDate, soundcloud, youtube]
+  change  releases  ac9dee70-a013-413c-a3d3-f30948efbf28  Something Else  [apple, artists, artworkThumb, bandcamp, catNo, embed, format, releaseDate, soundcloud, youtube]
+  change  releases  mxx-092  Naka  [apple, artists, bandcamp, beatport, catNo, description, embed, format, links, releaseDate, soundcloud, youtube]
+  change  releases  mxx-087  Corazon  [apple, artists, bandcamp, beatport, catNo, description, embed, format, links, ogImage, releaseDate, soundcloud, youtube]
+  change  releases  rel-love  Love & Fake  [apple, artist, artists, artwork, artworkThumb, bandcamp, beatport, catNo, cover, description, embed, label, links, releaseDate, soundcloud, spotify, youtube]
+  change  releases  rel-gotta  Gotta Be the One  [apple, artist, artists, artwork, artworkThumb, bandcamp, beatport, catNo, cover, description, embed, label, links, releaseDate, slug, soundcloud, spotify, status, youtube]
+  change  releases  rel-icon  American Icon (Remixes)  [apple, artists, artwork, artworkThumb, bandcamp, beatport, catNo, cover, description, embed, label, links, releaseDate, slug, soundcloud, spotify, status, youtube]
+  add  categories  label  Label
+  add  categories  agency  Agency
+  add  categories  releases  Releases
+  add  categories  artists  Artists
+16 difference(s)
+release pages:
+  FSR43  Dirty Circuit  KENTA
+    beatport: https://www.beatport.com/release/dirty-circuit/6851284
+    artwork: stored https://zirwxbdwhxlhzqwo.public.blob.vercel-storage.com/artwork/46336b45-5b97-41ca-b88f-9db3172a515c.webp
+    spotify: stored https://open.spotify.com/track/2KlYubUf1bfOgQcjYetjUm
+    catalogueOnly: true
+    label: Mixxea Records
+  FSR42  Something Else  Bennyhews
+    beatport: https://www.beatport.com/release/something-else/6779285
+    artwork: stored https://zirwxbdwhxlhzqwo.public.blob.vercel-storage.com/artwork/d87e70af-519d-439e-9965-a61498852df6.webp
+    spotify: stored https://open.spotify.com/album/0l1BIKCEKaC5xOmsxTT6L4
+    catalogueOnly: true
+    label: Mixxea Records
+  FSR40  Naka  S1NCE
+    beatport: https://www.beatport.com/release/naka/6851275
+    artwork: repo file /img/covers/MXX-092_1600.webp
+    spotify: stored https://open.spotify.com/track/4ltsIrgI1ohN3NPDQ4O4ZH
+    catalogueOnly: false
+    label: Mixxea Records
+  FSR037  Corazon  FL3X
+    beatport: https://www.beatport.com/release/corazon/6851269
+    artwork: repo file /img/covers/MXX-087_1600.webp
+    spotify: stored https://open.spotify.com/track/0McK0zrgqBM0xx8scNhegq
+    catalogueOnly: false
+    label: Mixxea Records
+  FSR004  American Icon (Remixes)  Wally Lopez
+    beatport: https://www.beatport.com/release/american-icon-remixes/6844691
+    artwork: stored https://geo-media.beatport.com/image_size/1400x1400/ba21e77a-34d7-48c0-bfe2-c8cec75823f4.jpg
+    spotify: MISSING — link hidden
+    catalogueOnly: false
+    label: Mixxea Records
+  AJR007  Gotta Be the One  David Hopperman; The Subject
+    beatport: https://www.beatport.com/release/gotta-be-the-one/6841378
+    artwork: stored https://geo-media.beatport.com/image_size/1400x1400/934f516a-cdce-4a30-a3c7-8c96b6c7bdc3.jpg
+    spotify: MISSING — link hidden
+    catalogueOnly: false
+    label: Mixxea Records
+  MXR010  Love & Fake  David Hopperman; Jayy Dee
+    beatport: https://www.beatport.com/release/love-fake/2629699
+    artwork: stored https://geo-media.beatport.com/image_size/1400x1400/4d239b09-e750-4c67-9151-ac33e6b6c055.jpg
+    spotify: MISSING — link hidden
+    catalogueOnly: false
+    label: Mixxea Records
+not stored, not used:
+  Dirty Circuit Beatport image fcf98fad — not in repo or fixture
+  Something Else Beatport image ea44b5e0-c4b7-4033-befc-8d6c6b8b2326 — not in repo or fixture
+  Naka Beatport image 611d1eb0 — not in repo or fixture
+second pass: no further differences
+no changes written
