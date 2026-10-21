@@ -562,7 +562,17 @@ app.get('/releases/:slug', async (req, res) => {
   try {
     const [releases, artists, news] = await Promise.all([db.get('releases'), db.get('artists'), db.get('news')]);
     const catalogue = visibleReleases(releases, artists);
-    const found = await locateRecord('release', req.params.slug, catalogue);
+    // The slug index returns the raw KV row and skips per-release corrections.
+    // Prefer the corrected catalogue row for this slug so one release cannot
+    // render another release's cover or Spotify URL.
+    const corrected = (Array.isArray(catalogue) ? catalogue : []).find((item) => {
+      if (!item) return false;
+      if (pages.releaseSlug(item) === req.params.slug) return true;
+      return Array.isArray(item.previousSlugs) && item.previousSlugs.includes(req.params.slug);
+    });
+    const found = corrected
+      ? { doc: corrected, redirect: pages.releaseSlug(corrected) !== req.params.slug }
+      : await locateRecord('release', req.params.slug, catalogue);
     if (!found) {
       sendHtml(res, 404, pages.renderNotFound());
       return;

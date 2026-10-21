@@ -4,13 +4,14 @@
  * Does not read or write KV.
  */
 
+const fs = require('fs');
+const path = require('path');
 const slugify = require('../utils/slugify');
 const { scrubConfirm } = require('./scrubConfirm');
 
 const BOOKING_EMAIL = 'booking@mixxea.com';
 const NAKA_SPOTIFY = 'https://open.spotify.com/track/4ltsIrgI1ohN3NPDQ4O4ZH';
 const CORAZON_SPOTIFY = 'https://open.spotify.com/track/0McK0zrgqBM0xx8scNhegq';
-const CORAZON_EMBED = '0McK0zrgqBM0xx8scNhegq';
 
 const CATEGORY_ALIASES = {
   agency: 'agency',
@@ -137,6 +138,97 @@ const UNCONFIRMED_LINKS = {
   'MXX-057': ['spotify', 'apple', 'beatport', 'soundcloud', 'bandcamp'],
 };
 
+// Covers that belong to the three confirmed releases. Copying any of them
+// onto another title is the shared-artwork failure. American Icon's
+// ba21e77a file is the one that was showing up on the older pages.
+const RESERVED_ART = [
+  'ba21e77a-34d7-48c0-bfe2-c8cec75823f4',
+  '934f516a-cdce-4a30-a3c7-8c96b6c7bdc3',
+  '4d239b09-e750-4c67-9151-ac33e6b6c055',
+];
+
+// Spotify ids already stored for one release. A copy on a different title
+// is dropped instead of repeated.
+const SPOTIFY_OWNER = {
+  '4ltsIrgI1ohN3NPDQ4O4ZH': 'FSR40',
+  '0McK0zrgqBM0xx8scNhegq': 'FSR037',
+  '2KlYubUf1bfOgQcjYetjUm': 'FSR43',
+  '0l1BIKCEKaC5xOmsxTT6L4': 'FSR42',
+};
+
+// Beatport catalogue numbers confirmed 21 Oct 2026. Artwork and Spotify come
+// from that release's own stored record, or from a cover file already in the
+// repo. Beatport CDN images are not introduced here.
+const BEATPORT_CATALOGUE = [
+  {
+    id: 'fsr43',
+    slug: 'kenta-dirty-circuit',
+    title: 'Dirty Circuit',
+    titles: ['dirty circuit'],
+    artist: 'KENTA',
+    aliases: ['MXX-091', 'FSR43'],
+    catNo: 'FSR43',
+    beatport: 'https://www.beatport.com/release/dirty-circuit/6851284',
+    date: '2025-06-30',
+    promote: false,
+    clearUnconfirmed: false,
+    spotify: '',
+  },
+  {
+    id: 'fsr42',
+    slug: 'bennyhews-something-else',
+    title: 'Something Else',
+    titles: ['something else'],
+    artist: 'Bennyhews',
+    aliases: ['FSR42'],
+    catNo: 'FSR42',
+    beatport: 'https://www.beatport.com/release/something-else/6779285',
+    date: '2025-06-30',
+    promote: false,
+    clearUnconfirmed: false,
+    spotify: '',
+  },
+  {
+    id: 'fsr40',
+    slug: 's1nce-naka',
+    title: 'Naka',
+    titles: ['naka'],
+    artist: 'S1NCE',
+    aliases: ['MXX-092', 'FSR40'],
+    catNo: 'FSR40',
+    beatport: 'https://www.beatport.com/release/naka/6851275',
+    date: '2025-07-01',
+    promote: true,
+    clearUnconfirmed: true,
+    spotify: NAKA_SPOTIFY,
+    genre: 'Afro House',
+    localCover: {
+      full: '/img/covers/MXX-092_1600.webp',
+      thumb: '/img/covers/MXX-092_600.webp',
+      og: '/og/og-release-mxx-092.jpg',
+    },
+  },
+  {
+    id: 'fsr037',
+    slug: 'fl3x-corazon',
+    title: 'Corazon',
+    titles: ['corazon'],
+    artist: 'FL3X',
+    aliases: ['MXX-087', 'FSR037'],
+    catNo: 'FSR037',
+    beatport: 'https://www.beatport.com/release/corazon/6851269',
+    date: '2025-03-07',
+    promote: true,
+    clearUnconfirmed: true,
+    spotify: CORAZON_SPOTIFY,
+    genre: 'Afro House',
+    localCover: {
+      full: '/img/covers/MXX-087_1600.webp',
+      thumb: '/img/covers/MXX-087_600.webp',
+    },
+  },
+];
+
 function clone(value) {
   return JSON.parse(JSON.stringify(value == null ? null : value));
 }
@@ -156,10 +248,13 @@ function catKey(release) {
 
 function catLabel(release) {
   const raw = String(release && release.catNo || '').trim().toUpperCase();
-  if (/^MXX-?\d+$/.test(raw.replace(/\s/g, ''))) {
+  const compact = raw.replace(/\s+/g, '');
+  if (/^MXX-?\d+$/.test(compact)) {
     const digits = raw.replace(/\D/g, '');
     return 'MXX-' + digits.padStart(3, '0');
   }
+  const fsr = compact.match(/^FSR-?(\d+)$/);
+  if (fsr) return 'FSR' + fsr[1];
   return raw;
 }
 
@@ -200,6 +295,11 @@ function creditNames(release) {
 }
 
 function spotifyEmbedId(url) {
+  const match = String(url || '').match(/open\.spotify\.com\/(?:embed\/)?track\/([A-Za-z0-9]+)/);
+  return match ? match[1] : '';
+}
+
+function spotifyId(url) {
   const match = String(url || '').match(/open\.spotify\.com\/(?:embed\/)?(?:track|album)\/([A-Za-z0-9]+)/);
   return match ? match[1] : '';
 }
@@ -277,13 +377,13 @@ function launchRelease(spec) {
   const links = {
     spotify: spec.spotify || '',
     apple: '',
-    beatport: '',
+    beatport: spec.beatport || '',
     soundcloud: '',
     bandcamp: '',
     youtube: '',
   };
-  const artwork = `/img/covers/${spec.catNo}_1600.webp`;
-  const artworkThumb = `/img/covers/${spec.catNo}_600.webp`;
+  const artwork = spec.artwork || '';
+  const artworkThumb = spec.artworkThumb || artwork;
   return {
     id: spec.id,
     slug: spec.slug,
@@ -321,9 +421,12 @@ const LAUNCH = [
     slug: 's1nce-naka',
     title: 'Naka',
     artist: 'S1NCE',
-    catNo: 'MXX-092',
+    catNo: 'FSR40',
     date: '2025-07-01',
     spotify: NAKA_SPOTIFY,
+    beatport: 'https://www.beatport.com/release/naka/6851275',
+    artwork: '/img/covers/MXX-092_1600.webp',
+    artworkThumb: '/img/covers/MXX-092_600.webp',
     ogImage: '/og/og-release-mxx-092.jpg',
   }),
   launchRelease({
@@ -331,9 +434,12 @@ const LAUNCH = [
     slug: 'fl3x-corazon',
     title: 'Corazon',
     artist: 'FL3X',
-    catNo: 'MXX-087',
+    catNo: 'FSR037',
     date: '2025-03-07',
     spotify: CORAZON_SPOTIFY,
+    beatport: 'https://www.beatport.com/release/corazon/6851269',
+    artwork: '/img/covers/MXX-087_1600.webp',
+    artworkThumb: '/img/covers/MXX-087_600.webp',
   }),
 ];
 
@@ -347,14 +453,140 @@ function stripUploadUrl(value) {
   return url;
 }
 
-function artworkMissing(release) {
-  const url = String(release.artwork || (release.cover && release.cover.url) || '');
-  return !url || url.startsWith('/uploads/');
+function namesMatch(release, artist) {
+  const wanted = String(artist || '').trim().toLowerCase();
+  if (!wanted) return false;
+  if (creditNames(release).some((name) => name.toLowerCase() === wanted)) return true;
+  return String(release && release.artist || '').trim().toLowerCase() === wanted;
+}
+
+function matchesBeatport(release, spec) {
+  if (!release || !spec) return false;
+  const cat = catLabel(release);
+  if (cat && spec.aliases.includes(cat)) return true;
+  return spec.titles.includes(plainTitle(release.title)) && namesMatch(release, spec.artist);
+}
+
+function beatportSpecFor(release) {
+  return BEATPORT_CATALOGUE.find((spec) => matchesBeatport(release, spec)) || null;
+}
+
+function storedFlag(value) {
+  return value === true || value === 'true' || value === 1 || value === '1' || value === 'on';
+}
+
+function cleanArtUrl(url) {
+  const text = String(url || '').trim();
+  if (!text || /\/uploads\//i.test(text)) return '';
+  if (RESERVED_ART.some((id) => text.includes(id))) return '';
+  if (/^https?:\/\//i.test(text)) return text;
+  if (text.startsWith('/') && !text.startsWith('//')) return text;
+  return '';
+}
+
+function fileUrl(urlPath) {
+  const text = String(urlPath || '');
+  if (!text.startsWith('/') || text.startsWith('//') || text.includes('..')) return '';
+  const file = path.join(__dirname, '../../public', text.replace(/^\/+/, ''));
+  return fs.existsSync(file) ? text : '';
+}
+
+function ownedSpotify(release, spec) {
+  const url = String((release && release.spotify) || (release && release.links && release.links.spotify) || '').trim();
+  const id = spotifyId(url);
+  const owner = SPOTIFY_OWNER[id];
+  if (url && /^https?:\/\//i.test(url) && (!owner || owner === spec.catNo)) return url;
+  if (spec.spotify) return spec.spotify;
+  return '';
+}
+
+function ownedArtwork(release, spec) {
+  const full = cleanArtUrl(release && release.artwork) || cleanArtUrl(release && release.cover && release.cover.url);
+  const thumb = cleanArtUrl(release && release.artworkThumb) || cleanArtUrl(release && release.cover && release.cover.thumbUrl);
+  const og = cleanArtUrl(release && release.ogImage);
+  const alt = (release && release.cover && release.cover.alt) || `${(release && release.title) || spec.title} by ${(release && release.artist) || spec.artist}, cover artwork`;
+  if (full) {
+    return {
+      artwork: full,
+      artworkThumb: thumb || full,
+      cover: {
+        url: full,
+        thumbUrl: thumb || full,
+        alt,
+        ...(release.cover && release.cover.w ? { w: release.cover.w } : {}),
+        ...(release.cover && release.cover.h ? { h: release.cover.h } : {}),
+      },
+      ogImage: og || fileUrl(spec.localCover && spec.localCover.og),
+    };
+  }
+  const localFull = fileUrl(spec.localCover && spec.localCover.full);
+  const localThumb = fileUrl(spec.localCover && spec.localCover.thumb) || localFull;
+  if (!localFull) return { artwork: '', artworkThumb: '', cover: null, ogImage: og || fileUrl(spec.localCover && spec.localCover.og) };
+  return {
+    artwork: localFull,
+    artworkThumb: localThumb,
+    cover: {
+      url: localFull,
+      thumbUrl: localThumb,
+      alt: `${spec.title} by ${spec.artist}, cover artwork`,
+      w: 1600,
+      h: 1600,
+    },
+    ogImage: og || fileUrl(spec.localCover && spec.localCover.og),
+  };
+}
+
+function applyBeatportCatalogue(release) {
+  const spec = beatportSpecFor(release);
+  if (!spec) return null;
+  const next = { ...release };
+  const previousLinks = next.links && typeof next.links === 'object' ? next.links : {};
+  const spotify = ownedSpotify(release, spec);
+  const art = ownedArtwork(release, spec);
+  const cleared = spec.clearUnconfirmed;
+  next.catNo = spec.catNo;
+  next.label = 'Mixxea Records';
+  next.date = spec.date;
+  next.releaseDate = spec.date;
+  if (!next.slug) next.slug = spec.slug;
+  if (!next.id) next.id = spec.id;
+  if (!next.title) next.title = spec.title;
+  if (!next.artist) next.artist = spec.artist;
+  next.artists = creditNames(next);
+  if (storedFlag(release && release.catalogueOnly)) next.catalogueOnly = true;
+  else delete next.catalogueOnly;
+  if (spec.promote && (!next.status || next.status === 'draft')) next.status = 'out';
+  if (spec.genre && !next.genre) next.genre = spec.genre;
+  if (!next.format && next.type) next.format = next.type === 'remix' ? 'remixes' : next.type;
+  next.spotify = spotify;
+  next.apple = cleared ? '' : (next.apple || previousLinks.apple || '');
+  next.beatport = spec.beatport;
+  next.soundcloud = cleared ? '' : (next.soundcloud || previousLinks.soundcloud || '');
+  next.bandcamp = cleared ? '' : (next.bandcamp || previousLinks.bandcamp || '');
+  next.youtube = next.youtube || previousLinks.youtube || '';
+  next.links = {
+    spotify,
+    apple: next.apple,
+    beatport: spec.beatport,
+    soundcloud: next.soundcloud,
+    bandcamp: next.bandcamp,
+    youtube: next.youtube,
+  };
+  const track = spotifyEmbedId(spotify);
+  next.embed = track ? { provider: 'spotify', id: track } : null;
+  next.artwork = art.artwork;
+  next.artworkThumb = art.artworkThumb;
+  next.cover = art.cover;
+  if (art.ogImage) next.ogImage = art.ogImage;
+  else if (next.ogImage && RESERVED_ART.some((id) => String(next.ogImage).includes(id))) next.ogImage = '';
+  return scrubConfirm(next);
 }
 
 function applyReleaseFixes(release) {
   const confirmed = applyConfirmedRelease(release);
   if (confirmed) return confirmed;
+  const beatport = applyBeatportCatalogue(release);
+  if (beatport) return beatport;
   const next = { ...release };
   const label = catLabel(next);
   if (label) next.catNo = label;
@@ -365,34 +597,6 @@ function applyReleaseFixes(release) {
   const clear = UNCONFIRMED_LINKS[cat] || [];
   if (clear.length) emptyLinks(next, clear);
   if (DRAFT_CATS.has(cat)) next.status = 'draft';
-  if (cat === 'MXX-092' || cat === 'MXX-087') {
-    if (!next.status || next.status === 'draft') next.status = 'out';
-    if (artworkMissing(next)) {
-      next.artwork = `/img/covers/${cat}_1600.webp`;
-      next.artworkThumb = `/img/covers/${cat}_600.webp`;
-      next.cover = {
-        url: next.artwork,
-        thumbUrl: next.artworkThumb,
-        alt: `${next.title} by ${next.artist}, cover artwork`,
-        w: 1600,
-        h: 1600,
-      };
-    } else if (!next.artworkThumb) {
-      next.artworkThumb = `/img/covers/${cat}_600.webp`;
-    }
-    if (cat === 'MXX-092' && !next.spotify && !((next.links || {}).spotify)) {
-      next.spotify = NAKA_SPOTIFY;
-      next.links = { ...(next.links || {}), spotify: NAKA_SPOTIFY };
-    }
-    if (cat === 'MXX-087') {
-      next.spotify = CORAZON_SPOTIFY;
-      next.links = { ...(next.links || {}), spotify: CORAZON_SPOTIFY };
-      next.embed = { provider: 'spotify', id: CORAZON_EMBED };
-    }
-    if (cat === 'MXX-092' && !next.ogImage) next.ogImage = '/og/og-release-mxx-092.jpg';
-    if (!next.genre) next.genre = 'Afro House';
-    if (!next.date) next.date = cat === 'MXX-092' ? '2025-07-01' : '2025-03-07';
-  }
   if (DRAFT_CATS.has(cat)) {
     const year = String(next.date || next.releaseDate || '').match(/\d{4}/);
     next.date = year ? year[0] : '';
@@ -402,6 +606,8 @@ function applyReleaseFixes(release) {
   if (!next.embed && spotify) {
     const id = spotifyEmbedId(spotify);
     if (id) next.embed = { provider: 'spotify', id };
+  } else if (next.embed && next.embed.id && !spotifyEmbedId(spotify) && /\/album\//.test(spotify)) {
+    next.embed = null;
   }
   return scrubConfirm(next);
 }
@@ -462,12 +668,18 @@ function transformArtists(artists) {
 function transformReleases(releases) {
   const list = ensureConfirmedReleases(asList(releases).filter((release) => release && !isFakeRelease(release))).map(applyReleaseFixes);
   for (const launch of LAUNCH) {
-    const index = list.findIndex((release) => catLabel(release) === launch.catNo);
+    const spec = BEATPORT_CATALOGUE.find((item) => item.slug === launch.slug);
+    const index = list.findIndex((release) => (spec && matchesBeatport(release, spec)) || release.id === launch.id);
     if (index === -1) {
-      list.push(clone(launch));
+      list.push(applyReleaseFixes(clone(launch)));
       continue;
     }
-    list[index] = applyReleaseFixes({ ...launch, ...list[index], id: list[index].id || launch.id, catNo: launch.catNo });
+    list[index] = applyReleaseFixes({
+      ...launch,
+      ...list[index],
+      id: list[index].id || launch.id,
+      slug: list[index].slug || launch.slug,
+    });
   }
   return list;
 }

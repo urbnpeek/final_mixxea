@@ -306,6 +306,11 @@ async function main() {
     assert(h1Count(page.body) === 1, 'h1 ' + h1Count(page.body));
     assert(page.body.includes('rel="canonical" href="https://www.mixxea.com/releases/kenta-dirty-circuit"'), 'canonical');
     assert(!page.body.includes('/artists/kenta'), 'detail linked the artist');
+    assert(page.body.includes('>FSR43<'), 'kenta page cat');
+    assert(page.body.includes('https://www.beatport.com/release/dirty-circuit/6851284'), 'kenta beatport');
+    const kentaCover = page.body.split('class="release-cover">')[1].split('class="release-info"')[0];
+    assert(kentaCover.includes('mixxea-og.jpg'), 'kenta lost its own cover');
+    assert(!kentaCover.includes('ba21e77a'), 'kenta cover is American Icon');
     assert(page.body.includes('MusicRecording'), 'missing MusicRecording');
     const data = jsonLd(page.body);
     const recording = recordingOf(data);
@@ -314,6 +319,12 @@ async function main() {
     const other = await request(port, 'GET', '/releases/bennyhews-something-else');
     assert(other.status === 200, 'bennyhews ' + other.status);
     assert(!other.body.includes('/artists/bennyhews'), 'bennyhews artist link');
+    assert(other.body.includes('>FSR42<'), 'bennyhews page cat');
+    assert(other.body.includes('https://www.beatport.com/release/something-else/6779285'), 'bennyhews beatport');
+    const bennyCover = other.body.split('class="release-cover">')[1].split('class="release-info"')[0];
+    assert(bennyCover.includes('Artwork pending'), 'bennyhews invented a cover');
+    assert(!bennyCover.includes('ba21e77a') && !bennyCover.includes('open.spotify.com'), 'bennyhews shared art or spotify');
+    assert(!page.body.includes('5107702') && !other.body.includes('4946866'), 'fishermen beatport id');
     const missing = await request(port, 'GET', '/releases/not-a-real-release');
     assert(missing.status === 404, 'unknown release ' + missing.status);
     const artist = await request(port, 'GET', '/artists/kenta');

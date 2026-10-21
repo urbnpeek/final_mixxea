@@ -97,7 +97,10 @@ function newsCard(post, { featured = false, excerpt = false } = {}) {
 
 function embedBlock(release) {
   const spotify = platformHref(release, 'spotify');
-  const id = (release.embed && release.embed.id) || (String(spotify).match(/track\/([A-Za-z0-9]+)/) || [])[1] || '';
+  if (/\/album\//.test(String(spotify))) return '';
+  const fromUrl = (String(spotify).match(/\/track\/([A-Za-z0-9]+)/) || [])[1] || '';
+  const fromEmbed = release.embed && release.embed.provider === 'spotify' ? release.embed.id : '';
+  const id = fromUrl || fromEmbed || '';
   if (!id) return '';
   const thumb = pages.coverUrl(release, true) || pages.coverUrl(release, false) || '';
   const title = `${release.artist || ''} — ${release.title || ''}`.replace(/^ — | — $/g, '');

@@ -88,11 +88,19 @@ function main() {
   assert(once.artists.find((artist) => artist.slug === 'other-artist').bookable === false, 'other artist bookable');
   assert(!JSON.stringify(once).includes('[CONFIRM]'), 'confirm marker would be written');
   assert(creditNames(love).includes('David Hopperman') && creditNames(love).includes('Jayy Dee'), 'feat split');
-  const naka = once.releases.find((release) => release.catNo === 'MXX-092');
-  const corazon = once.releases.find((release) => release.catNo === 'MXX-087');
-  assert(naka && naka.status === 'out' && naka.spotify.includes('4ltsIrgI1ohN3NPDQ4O4ZH'), 'naka launch');
-  assert(corazon && corazon.status === 'out' && corazon.spotify === 'https://open.spotify.com/track/0McK0zrgqBM0xx8scNhegq', 'corazon spotify');
+  const naka = once.releases.find((release) => release.title === 'Naka');
+  const corazon = once.releases.find((release) => release.title === 'Corazon');
+  assert(naka && naka.catNo === 'FSR40' && naka.status === 'out' && naka.spotify.includes('4ltsIrgI1ohN3NPDQ4O4ZH'), 'naka launch');
+  assert(naka.beatport === 'https://www.beatport.com/release/naka/6851275', 'naka beatport ' + naka.beatport);
+  assert(naka.label === 'Mixxea Records', 'naka label');
+  assert(naka.artwork === '/img/covers/MXX-092_1600.webp', 'naka artwork ' + naka.artwork);
+  assert(!String(naka.artwork).includes('ba21e77a'), 'naka uses icon art');
+  assert(corazon && corazon.catNo === 'FSR037' && corazon.status === 'out' && corazon.spotify === 'https://open.spotify.com/track/0McK0zrgqBM0xx8scNhegq', 'corazon spotify');
+  assert(corazon.beatport === 'https://www.beatport.com/release/corazon/6851269', 'corazon beatport');
+  assert(corazon.artwork === '/img/covers/MXX-087_1600.webp', 'corazon artwork ' + corazon.artwork);
   assert(corazon.embed && corazon.embed.provider === 'spotify' && corazon.embed.id === '0McK0zrgqBM0xx8scNhegq', 'corazon embed');
+  assert(corazon.artwork !== naka.artwork, 'naka and corazon share artwork');
+  assert(!once.releases.some((release) => String(release.beatport || '').includes('5107702') || String(release.beatport || '').includes('4946866')), 'fishermen beatport id');
   assert(!once.news.some((item) => /vexr/i.test(item.title)), 'fake news remains');
   assert(once.news.length === 1, 'real news dropped');
   assert(once.events.length === 0, 'fake event remains');
@@ -122,6 +130,78 @@ function main() {
   assert(!lovePage.includes('Ray Sam'), 'ray sam credit');
   const nakaHidden = releaseHiddenReason(naka, once.artists);
   assert(!nakaHidden, 'naka hidden: ' + nakaHidden);
+
+  const icon = 'https://geo-media.beatport.com/image_size/1400x1400/ba21e77a-34d7-48c0-bfe2-c8cec75823f4.jpg';
+  const sharedSpotify = 'https://open.spotify.com/track/4ltsIrgI1ohN3NPDQ4O4ZH';
+  const older = transform({
+    artists: once.artists,
+    releases: [
+      { id: 'kenta', title: 'Dirty Circuit', artist: 'KENTA', slug: 'kenta-dirty-circuit', catNo: 'MXX-091', status: 'published', catalogueOnly: true, date: '2025-06-30', genre: 'Tech House', artwork: icon, cover: { url: icon, thumbUrl: icon, alt: 'shared' }, spotify: sharedSpotify, beatport: 'https://www.beatport.com/release/dirty-circuit/5107702', label: 'Fishermen Records' },
+      { id: 'benny', title: 'Something Else', artist: 'Bennyhews', slug: 'bennyhews-something-else', status: 'published', catalogueOnly: true, date: '2025-06-30', genre: 'Tech House', artwork: icon, spotify: sharedSpotify, beatport: 'https://www.beatport.com/release/something-else/6779285' },
+      { id: 'mxx-092', title: 'Naka', artist: 'S1NCE', slug: 's1nce-naka', catNo: 'MXX-092', status: 'out', artwork: icon, spotify: sharedSpotify, beatport: 'https://www.beatport.com/release/naka/5107702' },
+      { id: 'mxx-087', title: 'Corazon', artist: 'FL3X', slug: 'fl3x-corazon', catNo: 'MXX-087', status: 'out', artwork: icon, spotify: 'https://open.spotify.com/track/2KlYubUf1bfOgQcjYetjUm', beatport: 'https://www.beatport.com/release/corazon/4946866' },
+    ],
+    news: [],
+    events: [],
+    categories: [],
+  });
+  const byTitle = (title) => older.releases.find((release) => release.title === title);
+  const dirty = byTitle('Dirty Circuit');
+  const something = byTitle('Something Else');
+  const nakaFixed = byTitle('Naka');
+  const corazonFixed = byTitle('Corazon');
+  assert(dirty.catNo === 'FSR43' && dirty.label === 'Mixxea Records' && dirty.catalogueOnly === true, 'dirty cat');
+  assert(dirty.beatport === 'https://www.beatport.com/release/dirty-circuit/6851284', 'dirty beatport');
+  assert(!dirty.artwork && !dirty.cover, 'dirty kept the shared icon: ' + dirty.artwork);
+  assert(!dirty.spotify, 'dirty kept another release spotify');
+  assert(something.catNo === 'FSR42' && something.catalogueOnly === true, 'something cat');
+  assert(something.beatport === 'https://www.beatport.com/release/something-else/6779285', 'something beatport');
+  assert(!something.artwork && !something.spotify, 'something kept shared assets');
+  assert(nakaFixed.catNo === 'FSR40' && nakaFixed.artwork === '/img/covers/MXX-092_1600.webp', 'naka local art');
+  assert(nakaFixed.spotify.includes('4ltsIrgI1ohN3NPDQ4O4ZH') && nakaFixed.beatport.endsWith('/6851275'), 'naka links');
+  assert(corazonFixed.catNo === 'FSR037' && corazonFixed.artwork === '/img/covers/MXX-087_1600.webp', 'corazon local art');
+  assert(corazonFixed.spotify.includes('0McK0zrgqBM0xx8scNhegq') && corazonFixed.beatport.endsWith('/6851269'), 'corazon links');
+  assert(!older.artists.some((artist) => /kenta|bennyhews/i.test(artist.slug || artist.name || '')), 'catalogue artist page added');
+  const ownArt = 'https://zirwxbdwhxlhzqwo.public.blob.vercel-storage.com/artwork/46336b45-5b97-41ca-b88f-9db3172a515c.webp';
+  const ownThumb = 'https://zirwxbdwhxlhzqwo.public.blob.vercel-storage.com/artwork/e8d747e0-8291-4ed2-a31a-e1379ab95308.webp';
+  const kept = transform({
+    artists: [],
+    releases: [{
+      id: 'kenta',
+      title: 'Dirty Circuit',
+      artist: 'KENTA',
+      slug: 'kenta-dirty-circuit',
+      catNo: 'MXX-091',
+      status: 'published',
+      catalogueOnly: true,
+      genre: 'Tech House',
+      artwork: ownArt,
+      cover: { url: ownArt, thumbUrl: ownThumb, alt: 'Dirty Circuit by KENTA, cover artwork', w: 1600, h: 1600 },
+      spotify: 'https://open.spotify.com/track/2KlYubUf1bfOgQcjYetjUm',
+      beatport: 'https://www.beatport.com/release/dirty-circuit/6851284',
+    }],
+    news: [],
+    events: [],
+    categories: [],
+  });
+  const keptDirty = kept.releases.find((release) => release.title === 'Dirty Circuit');
+  assert(keptDirty.artwork === ownArt && keptDirty.cover.thumbUrl === ownThumb, 'stored kenta art replaced');
+  assert(keptDirty.spotify.includes('2KlYubUf1bfOgQcjYetjUm'), 'stored kenta spotify dropped');
+  assert(keptDirty.catNo === 'FSR43', 'stored kenta cat');
+  const dirtyPage = renderReleasePage(dirty, older.artists, { relatedReleases: [] });
+  const dirtyCover = dirtyPage.split('class="release-cover">')[1].split('class="release-info"')[0];
+  assert(dirtyCover.includes('Artwork pending'), 'dirty placeholder missing');
+  assert(!dirtyCover.includes('ba21e77a'), 'dirty cover is the icon');
+  assert(dirtyPage.includes('>FSR43<'), 'dirty page cat');
+  assert(dirtyPage.includes('https://www.beatport.com/release/dirty-circuit/6851284'), 'dirty page beatport');
+  assert(!dirtyPage.includes('/artists/kenta'), 'dirty artist page');
+  const nakaPage = renderReleasePage(nakaFixed, older.artists, { relatedReleases: [] });
+  assert(nakaPage.includes('/img/covers/MXX-092_1600.webp') && nakaPage.includes('>FSR40<'), 'naka page');
+  assert(nakaPage.includes('/6851275') && !nakaPage.includes('5107702'), 'naka page beatport');
+  const confirmedStill = older.releases.find((release) => release.catNo === 'FSR004');
+  assert(confirmedStill && confirmedStill.artwork.includes('ba21e77a') && confirmedStill.beatport.endsWith('/6844691'), 'confirmed remix changed');
+  assert(older.releases.find((release) => release.catNo === 'AJR007').artwork.includes('934f516a'), 'gotta changed');
+  assert(older.releases.find((release) => release.catNo === 'MXR010').artwork.includes('4d239b09'), 'love changed');
 
   const mapped = transform({
     artists: [],
@@ -192,6 +272,23 @@ function main() {
   assert(demos.includes('ar@mixxea.com') && demos.includes('info@mixxea.com'), 'demos emails');
   assert(!html.split('id="demos"')[0].includes('ar@mixxea.com'), 'ar@ outside demos');
   assert(!html.split('id="demos"')[0].includes('info@mixxea.com'), 'info@ outside demos');
+
+  const beatport = spawnSync(process.execPath, ['scripts/migrate-beatport-catnos.js', '--fixtures', 'test/fixtures/beatport-catnos'], {
+    cwd: path.join(__dirname, '..'),
+    encoding: 'utf8',
+  });
+  assert(beatport.status === 0, beatport.stderr || beatport.stdout);
+  for (const line of ['FSR43', 'FSR42', 'FSR40', 'FSR037', 'FSR004', 'AJR007', 'MXR010', '6851284', '6779285', '6851275', '6851269', 'second pass: no further differences', 'no changes written', 'redis: not contacted']) {
+    assert(beatport.stdout.includes(line), 'beatport dry-run missing ' + line);
+  }
+  assert(!beatport.stdout.includes('5107702') && !beatport.stdout.includes('4946866'), 'fishermen id in dry-run');
+  assert(!beatport.stdout.includes('LEAKED'), beatport.stdout);
+  const blocked = spawnSync(process.execPath, ['scripts/migrate-beatport-catnos.js'], {
+    cwd: path.join(__dirname, '..'),
+    encoding: 'utf8',
+    env: { ...process.env, KV_REST_API_URL: 'https://example.upstash.io', KV_REST_API_TOKEN: 'secret' },
+  });
+  assert(blocked.status !== 0 && /production KV/.test(blocked.stderr), blocked.stderr || blocked.stdout);
 
   const dry = spawnSync(process.execPath, ['scripts/migrate-redesign-data.js', '--fixtures', 'test/fixtures/redesign'], {
     cwd: path.join(__dirname, '..'),
