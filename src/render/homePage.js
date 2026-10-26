@@ -256,7 +256,7 @@ ${pages.siteFooter({ year, socials: SOCIALS })}`;
   };
 
   return pages.pageShell({
-    title: 'Mixxea Records & FreqVault Agency — Electronic Music Label & Booking Agency',
+    title: 'Mixxea Records & FreqVault Agency: Label & Booking',
     description: 'Independent electronic music label Mixxea Records and booking agency FreqVault. Releases, artist management and bookings — booking@mixxea.com.',
     canonicalPath: '/',
     jsonLd,

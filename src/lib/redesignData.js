@@ -78,6 +78,15 @@ const LABEL_ARTISTS = [
   { id: 'fl3x', name: 'FL3X', slug: 'fl3x', type: 'label', onRoster: false, bookable: false, status: 'signed' },
 ];
 
+// Search descriptions. Separate from biography. No line breaks.
+const ARTIST_META_DESCRIPTIONS = {
+  'david-hopperman': 'David Hopperman blends French Touch with refined house sensibilities. Read his Mixxea artist profile: biography, releases and booking via booking@mixxea.com.',
+  'wally-lopez': 'Wally Lopez is a Spanish house DJ, producer and radio host with a career spanning over two decades. Mixxea artist profile, releases and booking enquiries.',
+  'eddie-bitar': 'Eddie Bitar is a Berlin-based techno and minimal artist. Read his Mixxea artist profile and send booking enquiries to FreqVault Agency: booking@mixxea.com.',
+  's1nce': 'S1NCE is an artist on the Mixxea Records roster. See the Mixxea artist profile, releases including Naka, and booking enquiries via booking@mixxea.com.',
+  'fl3x': 'FL3X is an artist on the Mixxea Records roster. See the Mixxea artist profile, releases including Corazon, and booking enquiries via booking@mixxea.com.',
+};
+
 const CATEGORIES = [
   { slug: 'label', name: 'Label', description: '', accent: 'label' },
   { slug: 'agency', name: 'Agency', description: '', accent: 'agency' },
@@ -240,6 +249,16 @@ function asList(value) {
 function artistKey(artist) {
   const slug = slugify(artist && (artist.slug || artist.name));
   return slug || String(artist && artist.id || '').toLowerCase();
+}
+
+function collapseMeta(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function explicitArtistDescription(artist) {
+  const approved = ARTIST_META_DESCRIPTIONS[artistKey(artist)];
+  if (approved) return approved;
+  return collapseMeta(artist && artist.description);
 }
 
 function catKey(release) {
@@ -650,11 +669,13 @@ function transformArtists(artists) {
       type: profile.type,
       photo: profile.photo,
       photoAlt: current.photoAlt || profile.photoAlt,
+      description: explicitArtistDescription({ ...current, slug: current.slug || profile.slug }),
     };
   }
   for (const label of LABEL_ARTISTS) {
-    const exists = list.some((artist) => artistKey(artist) === label.slug || String(artist.name || '').trim().toLowerCase() === label.name.toLowerCase());
-    if (!exists) list.push({ ...label });
+    const index = list.findIndex((artist) => artistKey(artist) === label.slug || String(artist.name || '').trim().toLowerCase() === label.name.toLowerCase());
+    if (index === -1) list.push({ ...label });
+    else list[index] = { ...list[index], description: explicitArtistDescription({ ...list[index], slug: list[index].slug || label.slug }) };
   }
   const roster = new Set(ROSTER_PROFILES.map((profile) => profile.slug));
   for (const artist of list) {
@@ -662,7 +683,10 @@ function transformArtists(artists) {
       artist.bookable = false;
     }
   }
-  return list.map(scrubConfirm);
+  return list.map((artist) => scrubConfirm({
+    ...artist,
+    description: explicitArtistDescription(artist),
+  }));
 }
 
 function transformReleases(releases) {
@@ -839,4 +863,5 @@ module.exports = {
   isFakeArtist,
   isFakeRelease,
   creditNames,
+  explicitArtistDescription,
 };

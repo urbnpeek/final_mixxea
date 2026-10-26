@@ -25,10 +25,15 @@ function coerceBookable(body, previous) {
   return body.bookable === true || body.bookable === 'true' || body.bookable === 'on' || body.bookable === '1';
 }
 
+function plainDescription(value) {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 160);
+}
+
 router.post('/', requireAdmin, upload.single('photo'), async (req, res) => {
   const artists = await db.get('artists');
   const photoUrl = await uploadFile(req.file, 'artists');
-  const artist  = { id: uuid(), ...req.body, bookable: coerceBookable(req.body), photo: photoUrl, createdAt: new Date().toISOString() };
+  const artist  = { id: uuid(), ...req.body, description: plainDescription(req.body.description), bookable: coerceBookable(req.body), photo: photoUrl, createdAt: new Date().toISOString() };
   artists.push(artist);
   await db.set('artists', artists);
   res.status(201).json(artist);
@@ -40,6 +45,9 @@ router.put('/:id', requireAdmin, upload.single('photo'), async (req, res) => {
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
   const photoUrl = req.file ? await uploadFile(req.file, 'artists') : null;
   artists[idx]  = { ...artists[idx], ...req.body, bookable: coerceBookable(req.body, artists[idx]), ...(photoUrl ? { photo: photoUrl } : {}), updatedAt: new Date().toISOString() };
+  if (Object.prototype.hasOwnProperty.call(req.body, 'description')) {
+    artists[idx].description = plainDescription(req.body.description);
+  }
   await db.set('artists', artists);
   res.json(artists[idx]);
 });

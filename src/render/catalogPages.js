@@ -7,6 +7,7 @@ const blocks = require('./blocks');
 const { canonicalOrigin } = require('../lib/siteUrl');
 const { renderMarkdown, markdownToText } = require('../lib/markdown');
 const { categoryLabel, publicCategory, categoryAccent } = require('../lib/categories');
+const { creditNames } = require('../lib/redesignData');
 
 const BASE = canonicalOrigin();
 const RELEASE_PAGE_SIZE = 24;
@@ -109,11 +110,88 @@ function formatFact(release) {
   return ['Format', formatLabel(shown)];
 }
 
+function joinNames(names) {
+  const list = names.map((name) => String(name || '').replace(/\s+/g, ' ').trim()).filter(Boolean);
+  if (!list.length) return 'Mixxea';
+  if (list.length === 1) return list[0];
+  if (list.length === 2) return `${list[0]} and ${list[1]}`;
+  return `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}`;
+}
+
+function releaseArtistPhrase(release) {
+  const names = creditNames(release);
+  if (names.length) return joinNames(names);
+  return joinNames(String(release && release.artist || '').split(/\s*(?:;|,|\/|&|\+)\s*|\s+\band\b\s+/i));
+}
+
+function pageShowsCredits(release) {
+  // The public page renders the artist byline, release facts, platform buttons,
+  // and the description. It does not render a credits heading or track credits.
+  // "Credits" in the meta sentence is only true when that description says so.
+  return /\bcredits?\b/i.test(markdownToText(release && release.description || ''));
+}
+
+function listenSentences(labels) {
+  if (!labels.length) return [];
+  const sentences = [];
+  if (labels.length === 2) sentences.push(`There are links to listen on both ${labels[0]} and ${labels[1]}.`);
+  sentences.push(`Links to listen on ${joinNames(labels)}.`);
+  if (labels.length > 1) sentences.push(`Links to listen on ${labels[0]}.`);
+  return sentences;
+}
+
+function oneTrueDetail(release) {
+  const date = pages.formatCatalogueDate(release.date || release.releaseDate);
+  const cat = String(release.catNo || '').replace(/\s+/g, ' ').trim();
+  const genre = String(release.genre || '').replace(/\s+/g, ' ').trim();
+  if (date) return `Released ${date}.`;
+  if (cat) return `Catalogue number ${cat}.`;
+  if (genre) return `Genre: ${genre}.`;
+  return '';
+}
+
+function extendToRange(text, release) {
+  if (text.length >= 120) return text;
+  const extras = [];
+  const cat = String(release.catNo || '').replace(/\s+/g, ' ').trim();
+  const date = pages.formatCatalogueDate(release.date || release.releaseDate);
+  if (cat) extras.push(`Catalogue number ${cat}.`);
+  if (date) extras.push(`Released ${date}.`);
+  let next = text;
+  for (const extra of extras) {
+    if (next.length >= 120) break;
+    const candidate = `${next} ${extra}`;
+    if (candidate.length <= 160) next = candidate;
+  }
+  return next;
+}
+
+function releaseMetaDescription(release) {
+  const stored = String(release && release.seo && release.seo.description || '');
+  const explicit = stored.replace(/\s+/g, ' ').trim();
+  if (explicit && !/[\r\n]/.test(stored) && explicit.length >= 120 && explicit.length <= 160) return explicit;
+  const title = String(release.title || 'Release').replace(/\s+/g, ' ').trim() || 'Release';
+  const artists = releaseArtistPhrase(release);
+  const base = `${title} by ${artists} on Mixxea Records, the independent electronic music label.`;
+  const labels = blocks.filledPlatforms(release).map((item) => item.label);
+  if (pageShowsCredits(release) && labels.length) {
+    return extendToRange(`${base} Release details, credits and links to listen.`, release);
+  }
+  const details = labels.length ? listenSentences(labels) : [oneTrueDetail(release)].filter(Boolean);
+  const texts = details.map((detail) => `${base} ${detail}`);
+  const ranged = texts.find((text) => text.length >= 120 && text.length <= 160);
+  if (ranged) return ranged;
+  const within = texts.filter((text) => text.length <= 160).sort((a, b) => b.length - a.length);
+  const picked = within[0] || texts[texts.length - 1] || base;
+  if (picked.length > 160) return picked;
+  return extendToRange(picked, release);
+}
+
 function renderReleasePage(release, artists, options = {}) {
   const slug = pages.releaseSlug(release);
   const title = release.title || 'Release';
   const seo = release.seo || {};
-  const description = String(seo.description || markdownToText(release.description) || `${title} by ${release.artist} on Mixxea Records.`).slice(0, 160);
+  const description = releaseMetaDescription(release);
   const pageTitle = seo.title || `${title} — ${release.artist} | Mixxea Records`;
   const image = pages.absoluteAsset(seo.ogImage || release.ogImage || pages.coverUrl(release, false) || release.artwork) || `${BASE}/og/mixxea-og.jpg`;
   const platforms = blocks.filledPlatforms(release);
@@ -244,7 +322,7 @@ function renderReleaseIndex(releases, query) {
 ${pages.siteFooter()}`;
   return pages.pageShell({
     title: 'Releases | Mixxea Records',
-    description: 'Releases from Mixxea Records, the independent electronic music label.',
+    description: 'All releases from Mixxea Records, the independent electronic music label: new singles, EPs and remixes, with artist credits and links to listen.',
     canonicalPath: query.page > 1 ? `/releases?page=${paged.current}` : '/releases',
     extraHead: links.extra,
     jsonLd,
@@ -321,7 +399,7 @@ function renderNewsIndex(posts, query) {
 ${pages.siteFooter()}`;
   return pages.pageShell({
     title: 'News | Mixxea Records',
-    description: 'News from Mixxea Records and FreqVault.',
+    description: 'News from Mixxea Records and FreqVault Agency: label releases, artist roster announcements and booking agency updates from the Mixxea team.',
     canonicalPath: query.page > 1 ? `/news?page=${paged.current}` : '/news',
     extraHead: links.extra,
     jsonLd,
@@ -332,7 +410,10 @@ ${pages.siteFooter()}`;
 function renderNewsCategory(category, posts, query, allPosts) {
   const paged = slicePage(pages.sortNews(posts), query.page, NEWS_PAGE_SIZE);
   const name = category.name || category.label;
-  const description = String(category.description || '').slice(0, 160) || `${name} from Mixxea Records.`;
+  const visible = String(category.description || '').trim();
+  const description = category.slug === 'agency'
+    ? 'Agency news from FreqVault Agency, the booking arm of Mixxea Records: roster additions, artist announcements and booking updates. booking@mixxea.com'
+    : (visible.slice(0, 160) || `${name} from Mixxea Records.`);
   const rows = paged.items.length
     ? paged.items.map((post) => {
       const href = '/news/' + pages.newsSlug(post);
@@ -378,7 +459,7 @@ function renderNewsCategory(category, posts, query, allPosts) {
 <section class="band"><div class="wrap">
   <p class="crumbs"><a href="/news">News</a> / <span>${pages.esc(name)}</span></p>
   <h1 class="d-l">${pages.esc(name)}<span style="color:${category.accent === 'agency' ? 'var(--fv-signal-text)' : 'var(--mx-acid)'}">.</span></h1>
-  ${category.description ? `<p class="body-l">${pages.esc(description)}</p>` : ''}
+  ${visible ? `<p class="body-l">${pages.esc(visible.slice(0, 160))}</p>` : ''}
   <div class="chips">${categoryChips(category.slug, allPosts || posts)}</div>
   ${rows}
   ${links.html}

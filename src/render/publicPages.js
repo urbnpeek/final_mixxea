@@ -11,6 +11,7 @@ const { publicDetailExists } = require('../lib/publicDetail');
 const { renderMarkdown, markdownToText } = require('../lib/markdown');
 const { categoryLabel, publicCategory, categoryAccent } = require('../lib/categories');
 const { scrubConfirm } = require('../lib/scrubConfirm');
+const { explicitArtistDescription } = require('../lib/redesignData');
 
 const BASE = canonicalOrigin();
 const BOOKING_EMAIL = 'booking@mixxea.com';
@@ -89,6 +90,12 @@ function factualLead(artist) {
   const where = place(artist);
   if (where) bits.push(`Location: ${where}.`);
   return bits.join(' ');
+}
+
+function artistMetaDescription(artist) {
+  // Description is its own field. Biography is not a meta description.
+  const text = explicitArtistDescription(artist);
+  return text || factualLead(artist);
 }
 
 function jsonScript(data) {
@@ -706,6 +713,7 @@ function renderArtistPage({ artist, artists, releases, events }) {
   const slug = artistSlug(artist);
   const name = artist.name;
   const lead = factualLead(artist);
+  const description = artistMetaDescription(artist);
   const bio = String(artist.bio || '').trim();
   const photo = safeUrl(artist.photo);
   const bookable = isBookable(artist);
@@ -755,7 +763,7 @@ function renderArtistPage({ artist, artists, releases, events }) {
         name,
         url: `${BASE}/artists/${slug}`,
         ...(artist.genre ? { genre: artist.genre } : {}),
-        ...(bio ? { description: bio } : {}),
+        description,
         ...(photo ? { image: photo } : {}),
       },
       {
@@ -798,7 +806,7 @@ ${seoFooter()}`;
 
   return pageShell({
     title: `${name} | Mixxea Artist Profile`,
-    description: bio || lead,
+    description,
     canonicalPath: `/artists/${slug}`,
     jsonLd,
     body,

@@ -5,7 +5,8 @@
 const { spawnSync } = require('child_process');
 const path = require('path');
 const { transform, creditNames, restoreCollections } = require('../src/lib/redesignData');
-const { formatCatalogueDate } = require('../src/render/publicPages');
+const { formatCatalogueDate, renderArtistPage } = require('../src/render/publicPages');
+const { renderNewsIndex, renderNewsCategory } = require('../src/render/catalogPages');
 const { releaseHiddenReason } = require('../src/lib/rosterCatalog');
 const { renderHome } = require('../src/render/homePage');
 
@@ -15,6 +16,21 @@ function assert(condition, message) {
     error.name = 'AssertionError';
     throw error;
   }
+}
+
+function decodeHtml(value) {
+  return String(value || '')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+}
+
+function decodedMeta(html) {
+  const match = html.match(/<meta name="description" content="([^"]*)"/);
+  assert(match, 'meta description missing');
+  return decodeHtml(match[1]);
 }
 
 function fixture() {
@@ -236,6 +252,85 @@ function main() {
   for (const banned of ['VEXR', 'LYDA', 'MXA004', 'MXA005', 'Est. 2024', '[CONFIRM]', 'EXAMPLE', 'booking@mixxea,com']) {
     assert(!html.includes(banned), 'homepage contains ' + banned);
   }
+  const eddie = once.artists.find((artist) => artist.slug === 'eddie-bitar');
+  const since = once.artists.find((artist) => artist.slug === 's1nce');
+  const flex = once.artists.find((artist) => artist.slug === 'fl3x');
+  assert(hop.description === 'David Hopperman blends French Touch with refined house sensibilities. Read his Mixxea artist profile: biography, releases and booking via booking@mixxea.com.', hop.description);
+  assert(wally.description === 'Wally Lopez is a Spanish house DJ, producer and radio host with a career spanning over two decades. Mixxea artist profile, releases and booking enquiries.', wally.description);
+  assert(eddie.description.startsWith('Eddie Bitar is a Berlin-based techno and minimal artist.'), eddie.description);
+  assert(since.description.includes('releases including Naka') && since.description.includes('booking@mixxea.com'), since.description);
+  assert(flex.description.includes('releases including Corazon'), flex.description);
+  for (const artist of [hop, wally, eddie, since, flex]) {
+    assert(!/[\r\n]/.test(artist.description), artist.slug + ' description has a newline');
+    assert(artist.description.length >= 120 && artist.description.length <= 160, artist.slug + ' ' + artist.description.length);
+  }
+  const hopPage = renderArtistPage({
+    artist: { ...hop, bio: 'Biography\r\nDavid Hopperman has established himself.\r\nAvailable for festivals, clubs, private events.' },
+    artists: once.artists,
+    releases: [],
+    events: [],
+  });
+  const hopMeta = decodedMeta(hopPage);
+  assert(hopMeta === hop.description, hopMeta);
+  assert(!hopMeta.includes('Available for festivals'), 'availability claim in meta');
+  assert(hopPage.includes('Available for festivals, clubs, private events.'), 'biography removed');
+  assert(hopPage.includes('<h1>David Hopperman</h1>'), 'artist H1 changed');
+  assert(hopPage.includes('<title>David Hopperman | Mixxea Artist Profile</title>'), 'artist title changed');
+  assert(hopPage.includes('href="https://www.mixxea.com/artists/david-hopperman"'), 'artist canonical changed');
+  const wallyPage = renderArtistPage({
+    artist: { ...wally, bio: 'Available for festivals, clubs, private events.\n\nSpanish house DJ.' },
+    artists: once.artists,
+    releases: [],
+    events: [],
+  });
+  assert(decodedMeta(wallyPage) === wally.description, decodedMeta(wallyPage));
+  assert(!decodedMeta(wallyPage).includes('Available for festivals'), 'wally availability claim in meta');
+
+  function assertReleaseMeta(release, artists) {
+    const html = renderReleasePage(release, artists, { relatedReleases: [] });
+    const meta = decodedMeta(html);
+    const block = (html.match(/class="platforms">([\s\S]*?)<\/div>/) || ['', ''])[1];
+    const labels = [...block.matchAll(/>([^<]+)<\/a>/g)].map((item) => decodeHtml(item[1])).filter(Boolean);
+    assert(meta.length >= 120 && meta.length <= 160, (release.slug || release.title) + ' ' + meta.length + ' ' + meta);
+    assert(!/[\r\n]/.test(meta), 'newline in release meta');
+    assert(meta.startsWith(release.title + ' by '), meta);
+    assert(meta.includes('on Mixxea Records, the independent electronic music label.'), meta);
+    const info = html.slice(html.indexOf('release-info'), html.indexOf('Also on Mixxea'));
+    if (/\bcredits?\b/i.test(info) && labels.length) {
+      assert(meta.endsWith('Release details, credits and links to listen.'), meta);
+    } else {
+      assert(!/\bcredits?\b/i.test(meta), meta);
+      labels.forEach((label) => assert(meta.includes(label), (release.slug || release.title) + ' missing ' + label + ' :: ' + meta));
+    }
+    assert(html.includes('| Mixxea Records</title>'), 'release title changed');
+    assert(html.includes('/releases/' + (release.slug || '')), 'release canonical changed');
+  }
+  for (const release of shown) assertReleaseMeta(release, once.artists);
+  for (const release of [dirty, something, nakaFixed, corazonFixed]) assertReleaseMeta(release, older.artists);
+  const credited = renderReleasePage({
+    title: 'Night Drive',
+    artist: 'Ada',
+    slug: 'ada-night-drive',
+    description: 'Credits: Ada wrote the track.',
+    beatport: 'https://www.beatport.com/release/night-drive/1',
+    date: '2025-01-02',
+    catNo: 'MXX-100',
+  }, [], {});
+  assert(decodedMeta(credited).includes('Release details, credits and links to listen.'), decodedMeta(credited));
+  const news = renderNewsIndex([], {});
+  assert(decodedMeta(news) === 'News from Mixxea Records and FreqVault Agency: label releases, artist roster announcements and booking agency updates from the Mixxea team.', decodedMeta(news));
+  assert(news.includes('<h1 class="d-l">News.</h1>'), 'news H1 changed');
+  const agency = renderNewsCategory({ slug: 'agency', name: 'Agency', label: 'Agency', description: '' }, [], {}, []);
+  assert(decodedMeta(agency) === 'Agency news from FreqVault Agency, the booking arm of Mixxea Records: roster additions, artist announcements and booking updates. booking@mixxea.com', decodedMeta(agency));
+  assert(!agency.includes('class="body-l"'), 'agency page gained a visible intro');
+  assert(agency.includes('<title>Agency | Mixxea News</title>'), 'agency title changed');
+  const releasesIndex = renderReleaseIndex(shown, {});
+  assert(decodedMeta(releasesIndex) === 'All releases from Mixxea Records, the independent electronic music label: new singles, EPs and remixes, with artist credits and links to listen.', decodedMeta(releasesIndex));
+  assert(releasesIndex.includes('<h1 class="d-l">Releases.</h1>'), 'releases H1 changed');
+
+  assert(html.includes('<title>Mixxea Records &amp; FreqVault Agency: Label &amp; Booking</title>'), 'homepage title');
+  assert(html.includes('class="h-title"'), 'homepage H1 removed');
+  assert(!html.includes('Electronic Music Label'), 'old homepage title');
   assert(html.includes('booking@mixxea.com'), 'booking address missing');
   assert(html.includes('Since 2013'), 'founding line missing');
   assert(!html.includes('[CONFIRM'), 'homepage renders a confirm marker');
