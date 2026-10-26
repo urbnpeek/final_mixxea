@@ -257,7 +257,8 @@ function main() {
   const flex = once.artists.find((artist) => artist.slug === 'fl3x');
   assert(hop.description === 'David Hopperman blends French Touch with refined house sensibilities. Read his Mixxea artist profile: biography, releases and booking via booking@mixxea.com.', hop.description);
   assert(wally.description === 'Wally Lopez is a Spanish house DJ, producer and radio host with a career spanning over two decades. Mixxea artist profile, releases and booking enquiries.', wally.description);
-  assert(eddie.description.startsWith('Eddie Bitar is a Berlin-based techno and minimal artist.'), eddie.description);
+  assert(eddie.description === 'Eddie Bitar is an artist on the Mixxea Records roster. Read his Mixxea artist profile and send booking enquiries to FreqVault Agency: booking@mixxea.com.', eddie.description);
+  assert(!/berlin|techno|minimal|psytrance|city/i.test(eddie.description), eddie.description);
   assert(since.description.includes('releases including Naka') && since.description.includes('booking@mixxea.com'), since.description);
   assert(flex.description.includes('releases including Corazon'), flex.description);
   for (const artist of [hop, wally, eddie, since, flex]) {
@@ -325,7 +326,8 @@ function main() {
   assert(!agency.includes('class="body-l"'), 'agency page gained a visible intro');
   assert(agency.includes('<title>Agency | Mixxea News</title>'), 'agency title changed');
   const releasesIndex = renderReleaseIndex(shown, {});
-  assert(decodedMeta(releasesIndex) === 'All releases from Mixxea Records, the independent electronic music label: new singles, EPs and remixes, with artist credits and links to listen.', decodedMeta(releasesIndex));
+  assert(decodedMeta(releasesIndex) === 'All releases from Mixxea Records, the independent electronic music label, including remixes, with links to listen on Spotify and Beatport.', decodedMeta(releasesIndex));
+  assert(!/artist credits|\bEPs?\b|singles/i.test(decodedMeta(releasesIndex)), decodedMeta(releasesIndex));
   assert(releasesIndex.includes('<h1 class="d-l">Releases.</h1>'), 'releases H1 changed');
 
   assert(html.includes('<title>Mixxea Records &amp; FreqVault Agency: Label &amp; Booking</title>'), 'homepage title');

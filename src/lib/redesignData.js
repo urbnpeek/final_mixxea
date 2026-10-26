@@ -82,7 +82,7 @@ const LABEL_ARTISTS = [
 const ARTIST_META_DESCRIPTIONS = {
   'david-hopperman': 'David Hopperman blends French Touch with refined house sensibilities. Read his Mixxea artist profile: biography, releases and booking via booking@mixxea.com.',
   'wally-lopez': 'Wally Lopez is a Spanish house DJ, producer and radio host with a career spanning over two decades. Mixxea artist profile, releases and booking enquiries.',
-  'eddie-bitar': 'Eddie Bitar is a Berlin-based techno and minimal artist. Read his Mixxea artist profile and send booking enquiries to FreqVault Agency: booking@mixxea.com.',
+  'eddie-bitar': 'Eddie Bitar is an artist on the Mixxea Records roster. Read his Mixxea artist profile and send booking enquiries to FreqVault Agency: booking@mixxea.com.',
   's1nce': 'S1NCE is an artist on the Mixxea Records roster. See the Mixxea artist profile, releases including Naka, and booking enquiries via booking@mixxea.com.',
   'fl3x': 'FL3X is an artist on the Mixxea Records roster. See the Mixxea artist profile, releases including Corazon, and booking enquiries via booking@mixxea.com.',
 };

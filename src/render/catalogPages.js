@@ -322,7 +322,7 @@ function renderReleaseIndex(releases, query) {
 ${pages.siteFooter()}`;
   return pages.pageShell({
     title: 'Releases | Mixxea Records',
-    description: 'All releases from Mixxea Records, the independent electronic music label: new singles, EPs and remixes, with artist credits and links to listen.',
+    description: 'All releases from Mixxea Records, the independent electronic music label, including remixes, with links to listen on Spotify and Beatport.',
     canonicalPath: query.page > 1 ? `/releases?page=${paged.current}` : '/releases',
     extraHead: links.extra,
     jsonLd,
