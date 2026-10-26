@@ -166,6 +166,15 @@ function extendToRange(text, release) {
   return next;
 }
 
+function appendShownCatalogue(text, release) {
+  // Cat. no. is a fact row on the release page. Add it only to short metas.
+  if (text.length >= 135 || text.length > 160) return text;
+  const cat = String(release.catNo || '').replace(/\s+/g, ' ').trim();
+  if (!cat || text.includes(cat)) return text;
+  const candidate = `${text} Cat. no. ${cat}.`;
+  return candidate.length <= 160 ? candidate : text;
+}
+
 function releaseMetaDescription(release) {
   const stored = String(release && release.seo && release.seo.description || '');
   const explicit = stored.replace(/\s+/g, ' ').trim();
@@ -175,16 +184,16 @@ function releaseMetaDescription(release) {
   const base = `${title} by ${artists} on Mixxea Records, the independent electronic music label.`;
   const labels = blocks.filledPlatforms(release).map((item) => item.label);
   if (pageShowsCredits(release) && labels.length) {
-    return extendToRange(`${base} Release details, credits and links to listen.`, release);
+    return appendShownCatalogue(extendToRange(`${base} Release details, credits and links to listen.`, release), release);
   }
   const details = labels.length ? listenSentences(labels) : [oneTrueDetail(release)].filter(Boolean);
   const texts = details.map((detail) => `${base} ${detail}`);
   const ranged = texts.find((text) => text.length >= 120 && text.length <= 160);
-  if (ranged) return ranged;
+  if (ranged) return appendShownCatalogue(ranged, release);
   const within = texts.filter((text) => text.length <= 160).sort((a, b) => b.length - a.length);
   const picked = within[0] || texts[texts.length - 1] || base;
   if (picked.length > 160) return picked;
-  return extendToRange(picked, release);
+  return appendShownCatalogue(extendToRange(picked, release), release);
 }
 
 function renderReleasePage(release, artists, options = {}) {

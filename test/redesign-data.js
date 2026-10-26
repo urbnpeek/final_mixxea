@@ -257,7 +257,7 @@ function main() {
   const flex = once.artists.find((artist) => artist.slug === 'fl3x');
   assert(hop.description === 'David Hopperman blends French Touch with refined house sensibilities. Read his Mixxea artist profile: biography, releases and booking via booking@mixxea.com.', hop.description);
   assert(wally.description === 'Wally Lopez is a Spanish house DJ, producer and radio host with a career spanning over two decades. Mixxea artist profile, releases and booking enquiries.', wally.description);
-  assert(eddie.description === 'Eddie Bitar is an artist on the Mixxea Records roster. Read his Mixxea artist profile and send booking enquiries to FreqVault Agency: booking@mixxea.com.', eddie.description);
+  assert(eddie.description === 'Eddie Bitar is an electronic music artist on the Mixxea roster. Read his profile and send booking enquiries to FreqVault Agency: booking@mixxea.com.', eddie.description);
   assert(!/berlin|techno|minimal|psytrance|city/i.test(eddie.description), eddie.description);
   assert(since.description.includes('releases including Naka') && since.description.includes('booking@mixxea.com'), since.description);
   assert(flex.description.includes('releases including Corazon'), flex.description);
@@ -286,6 +286,16 @@ function main() {
   });
   assert(decodedMeta(wallyPage) === wally.description, decodedMeta(wallyPage));
   assert(!decodedMeta(wallyPage).includes('Available for festivals'), 'wally availability claim in meta');
+  const wallyBio = 'Wally Lopez is one of Spain\'s most influential electronic music artists.\n\nAvailable for festivals, clubs, private events, and special performances worldwide.';
+  const wallyBody = renderArtistPage({
+    artist: { ...wally, bio: wallyBio },
+    artists: once.artists,
+    releases: [],
+    events: [],
+  });
+  assert(wallyBody.includes('one of Spain'), 'wally biography removed');
+  assert(!wallyBody.includes('Available for festivals, clubs, private events, and special performances worldwide.'), 'wally availability sentence remains');
+  assert(!wallyBody.includes('special performances worldwide'), 'wally availability sentence remains');
 
   function assertReleaseMeta(release, artists) {
     const html = renderReleasePage(release, artists, { relatedReleases: [] });
@@ -303,7 +313,20 @@ function main() {
       assert(!/\bcredits?\b/i.test(meta), meta);
       labels.forEach((label) => assert(meta.includes(label), (release.slug || release.title) + ' missing ' + label + ' :: ' + meta));
     }
-    assert(html.includes('| Mixxea Records</title>'), 'release title changed');
+    const titleTag = decodeHtml((html.match(/<title>([^<]*)<\/title>/) || ['', ''])[1]);
+    if (release.slug === 'david-hopperman-gotta-be-the-one') {
+      assert(titleTag.length <= 60, titleTag + ' ' + titleTag.length);
+      assert(titleTag.includes('David Hopperman') && titleTag.includes('The Subject'), titleTag);
+      assert(html.includes('<h1 class="d-l">Gotta Be the One</h1>'), 'gotta h1 changed');
+    } else {
+      assert(html.includes('| Mixxea Records</title>'), 'release title changed');
+    }
+    if (['FSR004', 'FSR40', 'FSR037', 'MXR010'].includes(release.catNo)) {
+      assert(meta.includes('Cat. no. ' + release.catNo + '.'), meta);
+    }
+    if (['FSR43', 'FSR42', 'AJR007'].includes(release.catNo)) {
+      assert(!meta.includes('Cat. no.'), meta);
+    }
     assert(html.includes('/releases/' + (release.slug || '')), 'release canonical changed');
   }
   for (const release of shown) assertReleaseMeta(release, once.artists);

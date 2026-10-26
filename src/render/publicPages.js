@@ -84,6 +84,17 @@ function rosterLabel(artist) {
   return '';
 }
 
+const AVAILABILITY_SENTENCE = 'Available for festivals, clubs, private events, and special performances worldwide.';
+
+function publicBiography(value) {
+  return String(value || '')
+    .split(AVAILABILITY_SENTENCE).join('')
+    .replace(/[^\S\n]{2,}/g, ' ')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 function factualLead(artist) {
   const bits = [`${artist.name} is listed on the Mixxea roster.`];
   if (artist.genre) bits.push(`Genre: ${artist.genre}.`);
@@ -190,7 +201,7 @@ function renderDirectoryCards(artists) {
   return list.map((artist) => {
     const slug = artistSlug(artist);
     const meta = metaLine(artist);
-    const bio = String(artist.bio || '').trim();
+    const bio = publicBiography(artist.bio);
     const book = isBookable(artist)
       ? `<a class="btn btn-primary" href="/booking-agency?artist=${esc(slug)}#inquiry">Book</a>`
       : '';
@@ -714,7 +725,7 @@ function renderArtistPage({ artist, artists, releases, events }) {
   const name = artist.name;
   const lead = factualLead(artist);
   const description = artistMetaDescription(artist);
-  const bio = String(artist.bio || '').trim();
+  const bio = publicBiography(artist.bio);
   const photo = safeUrl(artist.photo);
   const bookable = isBookable(artist);
   const roster = Array.isArray(artists) && artists.length ? artists : [artist];

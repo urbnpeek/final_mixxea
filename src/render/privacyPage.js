@@ -190,7 +190,7 @@ ${siteFooter()}`;
 
   return pageShell({
     title: 'Privacy and cookies | Mixxea',
-    description: 'Privacy and cookie notice for www.mixxea.com, operated by Ronala Imobiliare SRL.',
+    description: 'Privacy and cookie notice for www.mixxea.com, operated by Ronala Imobiliare SRL. Covers the public site, bookings, demos, newsletter and cookies.',
     canonicalPath: '/privacy',
     robots: preview ? 'noindex, nofollow' : 'index,follow',
     body,

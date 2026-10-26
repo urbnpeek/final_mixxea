@@ -82,7 +82,7 @@ const LABEL_ARTISTS = [
 const ARTIST_META_DESCRIPTIONS = {
   'david-hopperman': 'David Hopperman blends French Touch with refined house sensibilities. Read his Mixxea artist profile: biography, releases and booking via booking@mixxea.com.',
   'wally-lopez': 'Wally Lopez is a Spanish house DJ, producer and radio host with a career spanning over two decades. Mixxea artist profile, releases and booking enquiries.',
-  'eddie-bitar': 'Eddie Bitar is an artist on the Mixxea Records roster. Read his Mixxea artist profile and send booking enquiries to FreqVault Agency: booking@mixxea.com.',
+  'eddie-bitar': 'Eddie Bitar is an electronic music artist on the Mixxea roster. Read his profile and send booking enquiries to FreqVault Agency: booking@mixxea.com.',
   's1nce': 'S1NCE is an artist on the Mixxea Records roster. See the Mixxea artist profile, releases including Naka, and booking enquiries via booking@mixxea.com.',
   'fl3x': 'FL3X is an artist on the Mixxea Records roster. See the Mixxea artist profile, releases including Corazon, and booking enquiries via booking@mixxea.com.',
 };
@@ -119,6 +119,9 @@ const CONFIRMED_RELEASES = [
     label: 'Mixxea Records',
     date: '2017-08-07',
     catNo: 'AJR007',
+    // Document title only. The shared "{title} — {artist} | Mixxea Records"
+    // template stays, so other release titles are unchanged. H1 stays the track title.
+    seoTitle: 'Gotta Be the One — David Hopperman; The Subject | Mixxea',
     beatport: 'https://www.beatport.com/release/gotta-be-the-one/6841378',
     artwork: 'https://geo-media.beatport.com/image_size/1400x1400/934f516a-cdce-4a30-a3c7-8c96b6c7bdc3.jpg',
     aliases: ['MXX-007', 'AJR007'],
@@ -364,6 +367,7 @@ function confirmedRecord(spec) {
     ...links,
     links,
     embed: null,
+    ...(spec.seoTitle ? { seo: { title: spec.seoTitle } } : {}),
   };
 }
 

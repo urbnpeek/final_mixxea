@@ -295,6 +295,9 @@ async function main() {
     assert(!page.body.includes('Freq Grup SRL'), 'old controller name');
     assert(page.body.includes('Privacy and cookies | Mixxea'), 'privacy title changed');
     assert(page.body.includes('operated by Ronala Imobiliare SRL'), 'privacy meta entity');
+    const privacyMeta = (page.body.match(/<meta name="description" content="([^"]*)">/) || [])[1] || '';
+    assert(privacyMeta.length >= 130 && privacyMeta.length <= 160, 'privacy meta ' + privacyMeta.length + ' ' + privacyMeta);
+    assert(page.body.includes('<meta name="robots" content="index,follow">'), 'privacy robots');
     assert(page.body.includes('id="cookies"'), 'cookies anchor missing');
     assert(page.body.includes('data-cookie-settings'), 'cookie settings control missing');
     assert(page.body.includes('Change cookie settings'), 'change settings label missing');
