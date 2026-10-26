@@ -272,6 +272,8 @@ async function main() {
     }
     const home = await request(port, '/');
     assert(home.body.includes('class="h-title"'), 'home H1 missing');
+    assert(home.body.includes('<title>Mixxea Records &amp; FreqVault Agency: Label &amp; Booking</title>'), 'homepage title');
+    assert(!home.body.includes('Electronic Music Label &amp; Booking Agency'), 'old homepage title');
     assert(home.body.includes('booking@mixxea.com'), 'booking email changed');
     assert(!home.body.includes('GTM-KCNCSXM7'), 'GTM still present');
     assert(home.body.includes('G-MEVRRCQQ5T'), 'GA4 id missing');
@@ -289,7 +291,13 @@ async function main() {
   await check('privacy page, cookie redirects, and sitemap', async () => {
     const page = await request(port, '/privacy');
     assert(page.status === 200, 'status ' + page.status);
-    assert(page.body.includes('Freq Grup SRL'), 'controller missing');
+    assert(page.body.includes('Ronala Imobiliare SRL'), 'controller missing');
+    assert(!page.body.includes('Freq Grup SRL'), 'old controller name');
+    assert(page.body.includes('Privacy and cookies | Mixxea'), 'privacy title changed');
+    assert(page.body.includes('operated by Ronala Imobiliare SRL'), 'privacy meta entity');
+    const privacyMeta = (page.body.match(/<meta name="description" content="([^"]*)">/) || [])[1] || '';
+    assert(privacyMeta.length >= 130 && privacyMeta.length <= 160, 'privacy meta ' + privacyMeta.length + ' ' + privacyMeta);
+    assert(page.body.includes('<meta name="robots" content="index,follow">'), 'privacy robots');
     assert(page.body.includes('id="cookies"'), 'cookies anchor missing');
     assert(page.body.includes('data-cookie-settings'), 'cookie settings control missing');
     assert(page.body.includes('Change cookie settings'), 'change settings label missing');

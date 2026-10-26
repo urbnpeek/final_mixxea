@@ -11,6 +11,7 @@ const { publicDetailExists } = require('../lib/publicDetail');
 const { renderMarkdown, markdownToText } = require('../lib/markdown');
 const { categoryLabel, publicCategory, categoryAccent } = require('../lib/categories');
 const { scrubConfirm } = require('../lib/scrubConfirm');
+const { explicitArtistDescription } = require('../lib/redesignData');
 
 const BASE = canonicalOrigin();
 const BOOKING_EMAIL = 'booking@mixxea.com';
@@ -83,12 +84,29 @@ function rosterLabel(artist) {
   return '';
 }
 
+const AVAILABILITY_SENTENCE = 'Available for festivals, clubs, private events, and special performances worldwide.';
+
+function publicBiography(value) {
+  return String(value || '')
+    .split(AVAILABILITY_SENTENCE).join('')
+    .replace(/[^\S\n]{2,}/g, ' ')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 function factualLead(artist) {
   const bits = [`${artist.name} is listed on the Mixxea roster.`];
   if (artist.genre) bits.push(`Genre: ${artist.genre}.`);
   const where = place(artist);
   if (where) bits.push(`Location: ${where}.`);
   return bits.join(' ');
+}
+
+function artistMetaDescription(artist) {
+  // Description is its own field. Biography is not a meta description.
+  const text = explicitArtistDescription(artist);
+  return text || factualLead(artist);
 }
 
 function jsonScript(data) {
@@ -183,7 +201,7 @@ function renderDirectoryCards(artists) {
   return list.map((artist) => {
     const slug = artistSlug(artist);
     const meta = metaLine(artist);
-    const bio = String(artist.bio || '').trim();
+    const bio = publicBiography(artist.bio);
     const book = isBookable(artist)
       ? `<a class="btn btn-primary" href="/booking-agency?artist=${esc(slug)}#inquiry">Book</a>`
       : '';
@@ -706,7 +724,8 @@ function renderArtistPage({ artist, artists, releases, events }) {
   const slug = artistSlug(artist);
   const name = artist.name;
   const lead = factualLead(artist);
-  const bio = String(artist.bio || '').trim();
+  const description = artistMetaDescription(artist);
+  const bio = publicBiography(artist.bio);
   const photo = safeUrl(artist.photo);
   const bookable = isBookable(artist);
   const roster = Array.isArray(artists) && artists.length ? artists : [artist];
@@ -755,7 +774,7 @@ function renderArtistPage({ artist, artists, releases, events }) {
         name,
         url: `${BASE}/artists/${slug}`,
         ...(artist.genre ? { genre: artist.genre } : {}),
-        ...(bio ? { description: bio } : {}),
+        description,
         ...(photo ? { image: photo } : {}),
       },
       {
@@ -798,7 +817,7 @@ ${seoFooter()}`;
 
   return pageShell({
     title: `${name} | Mixxea Artist Profile`,
-    description: bio || lead,
+    description,
     canonicalPath: `/artists/${slug}`,
     jsonLd,
     body,

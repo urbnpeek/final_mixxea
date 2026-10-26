@@ -77,7 +77,8 @@ async function main() {
     assert(privacy.body.includes('_gcl_au'), 'ads linker cookie missing');
     assert(privacy.body.includes('_fbp'), 'meta cookie missing');
     assert(privacy.body.includes('Google Analytics measurement ID used by our Google tag'), 'neutral measurement wording');
-    assert(privacy.body.includes('Freq Grup SRL'), 'controller changed');
+    assert(privacy.body.includes('Ronala Imobiliare SRL'), 'controller changed');
+    assert(!privacy.body.includes('Freq Grup SRL'), 'old controller name');
     const consent = require('fs').readFileSync(require('path').join(__dirname, '../public/js/consent.js'), 'utf8');
     assert(consent.includes('domain=.mixxea.com'), 'mixxea cookie domain');
     assert(consent.includes("'_ga_*'") && consent.includes("'_gcl_*'") && consent.includes("'_gcl_au'"), 'cookie patterns');

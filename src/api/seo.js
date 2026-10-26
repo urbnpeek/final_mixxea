@@ -17,6 +17,7 @@ const { publicDetailExists } = require('../lib/publicDetail');
 const { publicCategory } = require('../lib/categories');
 const { CATEGORIES } = require('../lib/redesignData');
 const { releaseSlug, newsSlug } = require('../render/publicPages');
+const { explicitArtistDescription } = require('../lib/redesignData');
 const router  = express.Router();
 
 function lastmodOf(record, fallback) {
@@ -208,7 +209,7 @@ router.get('/schema.json', async (req, res) => {
           'name': a.name,
           'url': `${BASE}/artists/${a.slug || slugify(a.name)}`,
           ...(a.genre  ? { 'genre': a.genre }       : {}),
-          ...(a.bio    ? { 'description': a.bio }   : {}),
+          ...(explicitArtistDescription(a) ? { 'description': explicitArtistDescription(a) } : {}),
           ...(a.photo  ? { 'image': a.photo }       : {}),
         })),
         ...upcoming.map(e => ({

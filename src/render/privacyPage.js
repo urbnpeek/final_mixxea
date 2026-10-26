@@ -27,7 +27,7 @@ ${draft}
     <p>This notice describes how www.mixxea.com handles personal data. It covers the public site, the booking form, demo submissions, the newsletter, the artist portal, the DJ pool, and staff sign-in.</p>
 
     <h2>Who we are</h2>
-    <p>The controller is Freq Grup SRL, CUI 52133484, Trade Reg. No. J2025050803009, EUID ROONRC.J2025050803009, Intr. Gheorghe Simionescu 19, Ap. B26, 014155 București (Sector 1), România.</p>
+    <p>The controller is Ronala Imobiliare SRL, CUI 52133484, Trade Reg. No. J2025050803009, EUID ROONRC.J2025050803009, Intr. Gheorghe Simionescu 19, Ap. B26, 014155 București (Sector 1), România.</p>
     <p>No data protection officer is appointed. Privacy requests go to <a href="mailto:hello@mixxea.com">hello@mixxea.com</a>.</p>
 
     <h2>Contact messages</h2>
@@ -190,7 +190,7 @@ ${siteFooter()}`;
 
   return pageShell({
     title: 'Privacy and cookies | Mixxea',
-    description: 'Privacy and cookie notice for www.mixxea.com, operated by Freq Grup SRL.',
+    description: 'Privacy and cookie notice for www.mixxea.com, operated by Ronala Imobiliare SRL. Covers the public site, bookings, demos, newsletter and cookies.',
     canonicalPath: '/privacy',
     robots: preview ? 'noindex, nofollow' : 'index,follow',
     body,
