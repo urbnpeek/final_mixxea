@@ -337,7 +337,8 @@ function main() {
       assert(meta.includes('Cat. no. ' + release.catNo + '.'), meta);
     }
     if (['FSR43', 'FSR42', 'AJR007'].includes(release.catNo)) {
-      assert(!meta.includes('Cat. no.'), meta);
+      // SEO 28 Oct 2026: these cat. nos now go in the meta (within 160 characters).
+      assert(meta.includes(release.catNo) && meta.length <= 160, meta);
     }
     assert(html.includes('/releases/' + (release.slug || '')), 'release canonical changed');
   }
