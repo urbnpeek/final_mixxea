@@ -123,7 +123,7 @@ const CONFIRMED_RELEASES = [
     catNo: 'AJR007',
     // Document title only. The shared "{title} — {artist} | Mixxea Records"
     // template stays, so other release titles are unchanged. H1 stays the track title.
-    seoTitle: 'Gotta Be the One — David Hopperman; The Subject | Mixxea',
+    seoTitle: 'Gotta Be the One (AJR007) — David Hopperman; The Subject',
     beatport: 'https://www.beatport.com/release/gotta-be-the-one/6841378',
     artwork: 'https://geo-media.beatport.com/image_size/1400x1400/934f516a-cdce-4a30-a3c7-8c96b6c7bdc3.jpg',
     aliases: ['MXX-007', 'AJR007'],
