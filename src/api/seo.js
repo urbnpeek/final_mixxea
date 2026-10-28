@@ -46,6 +46,7 @@ async function generateSitemap() {
     { loc: `${BASE}/`,                          lastmod: today, changefreq: 'weekly',  priority: '1.0' },
     { loc: `${BASE}/record-label`,              lastmod: today, changefreq: 'monthly', priority: '0.9' },
     { loc: `${BASE}/booking-agency`,            lastmod: today, changefreq: 'monthly', priority: '0.9' },
+    { loc: `${BASE}/booking-agency/romania`,    lastmod: '2026-10-27', changefreq: 'monthly', priority: '0.8' },
     { loc: `${BASE}/artist-management`,         lastmod: today, changefreq: 'monthly', priority: '0.8' },
     { loc: `${BASE}/electronic-music-artists`,  lastmod: today, changefreq: 'monthly', priority: '0.8' },
     { loc: `${BASE}/submit-demo`,               lastmod: today, changefreq: 'monthly', priority: '0.7' },

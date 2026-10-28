@@ -253,6 +253,33 @@ async function main() {
     assert(!res.body.includes('class="h-title"'), 'homepage shell');
   });
 
+  await check('booking-agency/romania page (MX-03)', async () => {
+    const res = await request(port, '/booking-agency/romania');
+    assert(res.status === 200, 'status ' + res.status);
+    const links = canonicals(res.body);
+    assert(links.length === 1 && links[0].includes('https://www.mixxea.com/booking-agency/romania'), 'canonical ' + links);
+    assert(res.body.includes('<title>Booking Agency Romania: Electronic DJs | FreqVault Agency</title>'), 'title');
+    assert((res.body.match(/<h1/g) || []).length === 1, 'one h1');
+    assert(res.body.includes('Electronic music artist (genre TBC)'), 'Eddie Bitar genre TBC');
+    assert(res.body.includes('href="/artists/david-hopperman"') && res.body.includes('href="/artists/eddie-bitar"'), 'artist links');
+    assert(res.body.includes('mailto:booking@mixxea.com?subject=Booking%20request%20%E2%80%93%20Romania'), 'CTA');
+    assert(res.body.includes('Ronala Imobiliare SRL'), 'legal footer entity');
+    const main = res.body.slice(res.body.indexOf('<main'), res.body.indexOf('</main>'));
+    assert(!main.includes('Ronala'), 'no entity in body');
+    assert(!/[€$]\s?\d|exclusive|\bfee:/i.test(main), 'no fees or exclusivity');
+    const ld = JSON.parse(res.body.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+    const types = ld['@graph'].map((n) => n['@type']);
+    assert(JSON.stringify(types) === '["WebPage","BreadcrumbList","FAQPage"]', 'schema types ' + types);
+    assert(ld['@graph'][2].mainEntity.length === 5, 'five FAQs');
+    assert(!/<a /.test(JSON.stringify(ld)), 'no HTML in schema');
+    const parent = await request(port, '/booking-agency');
+    assert(parent.body.includes('href="/booking-agency/romania"'), 'parent links to romania');
+    const sm = await request(port, '/sitemap.xml');
+    assert(sm.body.includes('https://www.mixxea.com/booking-agency/romania'), 'sitemap');
+    const slash = await request(port, '/booking-agency/romania/');
+    assert(slash.status === 301, 'trailing slash ' + slash.status);
+  });
+
   await check('public pages stay 200 with www canonicals', async () => {
     const pages = [
       ['/', 'https://www.mixxea.com/'],
