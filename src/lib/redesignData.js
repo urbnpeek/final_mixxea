@@ -60,9 +60,11 @@ const ROSTER_PROFILES = [
   {
     slug: 'eddie-bitar',
     name: 'Eddie Bitar',
-    genre: 'Techno',
-    city: 'Berlin',
-    country: 'DE',
+    // Genre TBC; no location on file. Neutral everywhere (profile, cards, schema).
+    genre: 'Electronic music artist (genre TBC)',
+    city: undefined,
+    country: undefined,
+    location: undefined,
     bookable: true,
     bookingEmail: BOOKING_EMAIL,
     featured: 3,
@@ -666,6 +668,7 @@ function transformArtists(artists) {
       genre: profile.genre,
       city: profile.city,
       country: profile.country,
+      ...('location' in profile ? { location: profile.location } : {}),
       bookable: true,
       bookingEmail: BOOKING_EMAIL,
       featured: profile.featured,
