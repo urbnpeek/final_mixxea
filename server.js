@@ -236,6 +236,11 @@ app.get('/booking-agency', async (req, res) => {
   }
 });
 
+app.get(['/booking-agency/romania', '/booking-agency/romania/'], (req, res) => {
+  if (req.path.endsWith('/')) return redirectTo(res, '/booking-agency/romania');
+  sendHtml(res, 200, require('./src/render/bookingRomania').renderBookingRomania(), 'public, s-maxage=300, stale-while-revalidate=86400');
+});
+
 app.get('/electronic-music-artists', async (req, res) => {
   try {
     const artists = await db.get('artists');
