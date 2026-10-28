@@ -175,7 +175,29 @@ function appendShownCatalogue(text, release) {
   return candidate.length <= 160 ? candidate : text;
 }
 
+// SEO request 28 Oct 2026: show these verified cat. nos in title and meta.
+const SEO_CAT_NOS = new Set(['FSR42', 'FSR43', 'AJR007']);
+
+function withSeoCatNo(text, release) {
+  const cat = String(release && release.catNo || '').trim();
+  if (!SEO_CAT_NOS.has(cat) || text.includes(cat)) return text;
+  const candidate = `${text} Cat. no. ${cat}.`;
+  return candidate.length <= 160 ? candidate : text;
+}
+
 function releaseMetaDescription(release) {
+  return withSeoCatNo(baseReleaseMetaDescription(release), release);
+}
+
+function seoCatTitle(title, release) {
+  const cat = String(release && release.catNo || '').trim();
+  if (!SEO_CAT_NOS.has(cat) || title.includes(cat)) return title;
+  const next = title.replace(/ — /, ` (${cat}) — `);
+  // Keep titles at or under 60 characters; the meta description still carries the cat. no.
+  return next.length <= 60 ? next : title;
+}
+
+function baseReleaseMetaDescription(release) {
   const stored = String(release && release.seo && release.seo.description || '');
   const explicit = stored.replace(/\s+/g, ' ').trim();
   if (explicit && !/[\r\n]/.test(stored) && explicit.length >= 120 && explicit.length <= 160) return explicit;
@@ -201,7 +223,7 @@ function renderReleasePage(release, artists, options = {}) {
   const title = release.title || 'Release';
   const seo = release.seo || {};
   const description = releaseMetaDescription(release);
-  const pageTitle = seo.title || `${title} — ${release.artist} | Mixxea Records`;
+  const pageTitle = seoCatTitle(seo.title || `${title} — ${release.artist} | Mixxea Records`, release);
   const image = pages.absoluteAsset(seo.ogImage || release.ogImage || pages.coverUrl(release, false) || release.artwork) || `${BASE}/og/mixxea-og.jpg`;
   const platforms = blocks.filledPlatforms(release);
   const buttons = platforms.map((item, index) => `<a class="btn ${index === 0 ? 'paper' : ''}" href="${pages.esc(item.href)}" target="_blank" rel="noopener">${pages.esc(item.label)}</a>`).join('');
