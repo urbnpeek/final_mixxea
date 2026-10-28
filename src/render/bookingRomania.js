@@ -15,8 +15,6 @@ const TITLE = 'Booking Agency Romania: Electronic DJs | FreqVault Agency';
 const DESCRIPTION = 'Booking electronic artists for a club or festival in Romania? Send your offer to FreqVault Agency, the booking arm of Mixxea Records: booking@mixxea.com.';
 const H1 = 'Electronic music booking agency for Romania';
 
-// Entity line from freqvault/org/shared/LEGAL_FOOTER.md (valid until ONRC registers the rename).
-const ENTITY_LINE = 'FreqVault Group is operated by Ronala Imobiliare SRL · CUI 52133484 · J2025050803009 · Intr. Gheorghe Simionescu 19, Ap. B26, 014155 București, Romania';
 
 const FAQ = [
   ['How do I book an artist for an event in Romania?',
@@ -128,7 +126,7 @@ ${FAQ.map(([q, a]) => `      <article class="faq-item"><h3>${esc(q)}</h3><p>${a}
   </div>
 </section>
 </main>
-${siteFooter().replace('<div class="wrap ft-base">', `<div class="wrap ft-base"><span class="small">${esc(ENTITY_LINE)}</span>`)}`;
+${siteFooter()}`;
 }
 
 function renderBookingRomania() {

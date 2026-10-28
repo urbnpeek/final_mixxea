@@ -559,6 +559,9 @@ function siteNav(currentPath) {
 </div>`;
 }
 
+// Entity line from freqvault/org/shared/LEGAL_FOOTER.md (valid until ONRC registers the rename).
+const ENTITY_LINE = 'FreqVault Group is operated by Ronala Imobiliare SRL · CUI 52133484 · J2025050803009 · Intr. Gheorghe Simionescu 19, Ap. B26, 014155 București, Romania';
+
 function siteFooter(options = {}) {
   const year = options.year || new Date().getFullYear();
   const socials = options.socials || [
@@ -609,7 +612,7 @@ function siteFooter(options = {}) {
       <p class="small" data-nl-status></p>
     </div>
   </div>
-  <div class="wrap ft-base">
+  <div class="wrap ft-base"><span class="small">${esc(ENTITY_LINE)}</span>
     <span>&copy; ${year} Mixxea Records · FreqVault Agency · Since 2013</span>
     <span><a href="/privacy">Privacy</a> · <button type="button" class="linkish" data-cookie-settings>Cookie settings</button> · <a href="/portal">Artist login</a></span>
   </div>
@@ -979,6 +982,7 @@ module.exports = {
   seoFooter,
   siteNav,
   siteFooter,
+  ENTITY_LINE,
   applyChrome,
   listArtists,
   esc,
