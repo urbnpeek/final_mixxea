@@ -259,6 +259,18 @@ function main() {
   assert(wally.description === 'Wally Lopez is a Spanish house DJ, producer and radio host with a career spanning over two decades. Mixxea artist profile, releases and booking enquiries.', wally.description);
   assert(eddie.description === 'Eddie Bitar is an electronic music artist on the Mixxea roster. Read his profile and send booking enquiries to FreqVault Agency: booking@mixxea.com.', eddie.description);
   assert(!/berlin|techno|minimal|psytrance|city/i.test(eddie.description), eddie.description);
+  assert(eddie.genre === 'Electronic music artist (genre TBC)', eddie.genre);
+  assert(!eddie.city && !eddie.country && !eddie.location, 'Eddie Bitar must have no location');
+  {
+    const { renderArtistPage } = require('../src/render/publicPages');
+    const page = typeof renderArtistPage === 'function' ? String(renderArtistPage({ artist: eddie, artists: once.artists, releases: once.releases || [], events: once.events || [] }) || '') : '';
+    if (page) {
+      assert(page.includes('Electronic music artist (genre TBC)'), 'Eddie profile genre');
+      assert(!/Techno|Berlin|"DE"/.test(page), 'Eddie profile still shows old genre/location');
+    }
+    const eddieTile = html.split('Eddie Bitar').slice(1).join('').slice(0, 600);
+    assert(!/Techno|Berlin/.test(eddieTile), 'home card shows old genre/location');
+  }
   assert(since.description.includes('releases including Naka') && since.description.includes('booking@mixxea.com'), since.description);
   assert(flex.description.includes('releases including Corazon'), flex.description);
   for (const artist of [hop, wally, eddie, since, flex]) {
