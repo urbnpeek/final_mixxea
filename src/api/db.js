@@ -141,7 +141,8 @@ async function peek(collection) {
 const PREVIEW_COLLECTIONS = new Set(['artists', 'releases', 'news', 'events', 'categories']);
 
 async function get(collection) {
-  const data = await readCollection(collection);
+  let data = await readCollection(collection);
+  if (collection === 'news') data = require('../content/codePosts').withCodePosts(data);
   if (process.env.VERCEL_ENV !== 'preview' || !PREVIEW_COLLECTIONS.has(collection)) return data;
   const { transformCollection } = require('../lib/redesignData');
   return transformCollection(collection, data);
