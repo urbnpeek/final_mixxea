@@ -129,15 +129,35 @@ const CONFIRMED_RELEASES = [
     aliases: ['MXX-007', 'AJR007'],
   },
   {
+    // Release page copy from ARIA's final doc (Mario confirmed metadata 29 Oct
+    // 2026). UPC and ISRCs stay off the site. Listen links: Beatport and
+    // Apple Music only. The old slug redirects to the new one.
     id: 'mxr010',
-    slug: 'david-hopperman-love-fake',
+    slug: 'mxr010-love-and-fake',
+    previousSlugs: ['david-hopperman-love-fake'],
     title: 'Love & Fake',
-    artist: 'David Hopperman; Jayy Dee',
+    artist: 'David Hopperman feat. Jayy Dee',
     label: 'Mixxea Records',
     date: '2019-07-01',
     catNo: 'MXR010',
+    genre: 'Dance / Pop',
     beatport: 'https://www.beatport.com/release/love-fake/2629699',
-    artwork: 'https://geo-media.beatport.com/image_size/1400x1400/4d239b09-e750-4c67-9151-ac33e6b6c055.jpg',
+    apple: 'https://music.apple.com/us/album/love-fake-single/1730913165',
+    artwork: '/img/covers/MXR010_1600.webp',
+    artworkThumb: '/img/covers/MXR010_600.webp',
+    ogImage: '/og/og-release-mxr010.jpg',
+    coverAlt: 'Love & Fake by David Hopperman feat. Jayy Dee, cover art, Mixxea Records MXR010',
+    seoDescription: 'Love & Fake by David Hopperman feat. Jayy Dee on Mixxea Records (MXR010), released 1 July 2019. Extended Mix, Radio Edit and Instrument Mix.',
+    description: [
+      '"Love & Fake" is a vocal record from David Hopperman featuring Jayy Dee, released on Mixxea Records on 1 July 2019 (MXR010). The release comes in three versions: an Extended Mix, a Radio Edit and an Instrument Mix.',
+      'Send your music: [Submit a demo →](/submit-demo)',
+      'Bookings: [booking@mixxea.com](mailto:booking@mixxea.com)',
+    ].join('\n\n'),
+    tracks: [
+      { title: 'Love & Fake (feat. Jayy Dee)', mix: 'Extended Mix', bpm: 125, key: 'A minor', length: '3:42' },
+      { title: 'Love & Fake (feat. Jayy Dee)', mix: 'Radio Edit', bpm: 125, key: 'A minor', length: '2:37' },
+      { title: 'Love & Fake (feat. Jayy Dee)', mix: 'Instrument Mix', bpm: 125, key: 'A minor', length: '3:42' },
+    ],
     aliases: ['MXX-052', 'MXR010'],
   },
 ];
@@ -341,12 +361,13 @@ function matchesConfirmed(release, spec) {
 function confirmedRecord(spec) {
   const links = {
     spotify: '',
-    apple: '',
+    apple: spec.apple || '',
     beatport: spec.beatport,
     soundcloud: '',
     bandcamp: '',
     youtube: '',
   };
+  const thumb = spec.artworkThumb || spec.artwork;
   return {
     id: spec.id,
     slug: spec.slug,
@@ -358,18 +379,27 @@ function confirmedRecord(spec) {
     releaseDate: spec.date,
     catNo: spec.catNo,
     status: 'out',
-    description: '',
+    description: spec.description || '',
+    ...(spec.previousSlugs ? { previousSlugs: spec.previousSlugs.slice() } : {}),
+    ...(spec.genre ? { genre: spec.genre } : {}),
+    ...(spec.format ? { format: spec.format } : {}),
+    ...(spec.tracks ? { tracks: clone(spec.tracks) } : {}),
+    ...(spec.ogImage ? { ogImage: spec.ogImage } : {}),
     artwork: spec.artwork,
-    artworkThumb: spec.artwork,
+    artworkThumb: thumb,
     cover: {
       url: spec.artwork,
-      thumbUrl: spec.artwork,
-      alt: `${spec.title} by ${spec.artist}, cover artwork`,
+      thumbUrl: thumb,
+      alt: spec.coverAlt || `${spec.title} by ${spec.artist}, cover artwork`,
+      ...(spec.artwork && spec.artwork.startsWith('/') ? { w: 1600, h: 1600 } : {}),
     },
     ...links,
     links,
     embed: null,
-    ...(spec.seoTitle ? { seo: { title: spec.seoTitle } } : {}),
+    ...(spec.seoTitle || spec.seoDescription ? { seo: {
+      ...(spec.seoTitle ? { title: spec.seoTitle } : {}),
+      ...(spec.seoDescription ? { description: spec.seoDescription } : {}),
+    } } : {}),
   };
 }
 
