@@ -43,9 +43,18 @@ const CODE_POSTS = [
     date: '2026-10-30',
     status: 'scheduled',
     publishedAt: '2026-10-30T10:00:00.000Z', // Fri 30 Oct 2026, 12:00 EET
-    image: '',
-    cover: null,
+    image: '/img/news/mixxea-demo-submissions-16x9.jpg',
+    imageAlt: 'Mixxea Records Is Listening: Demo Submissions Are Open',
+    cover: {
+      url: '/img/news/mixxea-demo-submissions-16x9.webp',
+      thumbUrl: '',
+      alt: 'Mixxea Records Is Listening: Demo Submissions Are Open',
+      w: 1920,
+      h: 1080,
+    },
+    ogImage: 'https://www.mixxea.com/og/og-news-demo-submissions.jpg',
     seo: {
+      ogImage: 'https://www.mixxea.com/og/og-news-demo-submissions.jpg',
       title: 'Mixxea Records Is Listening: Demo Submissions Are Open',
       description: 'Mixxea Records A&R is open for demos. Send electronic club music as a private download link with a short note through the submission form.',
     },
