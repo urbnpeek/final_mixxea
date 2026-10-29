@@ -54,7 +54,7 @@ function releaseByArtist(release) {
 function releaseJsonLd(release) {
   const slug = pages.releaseSlug(release);
   const url = `${BASE}/releases/${slug}`;
-  const image = pages.absoluteAsset(pages.coverUrl(release, false) || release.artwork || release.ogImage) || `${BASE}/og/mixxea-og.jpg`;
+  const image = pages.absoluteAsset(pages.coverUrl(release, false) || release.artwork || release.ogImage) || `${BASE}/og/mixxea-og-r2.jpg`;
   const byArtist = releaseByArtist(release);
   const sameAs = blocks.filledPlatforms(release).map((item) => item.href);
   const description = markdownToText((release.seo && release.seo.description) || release.description || '').slice(0, 160);
@@ -224,7 +224,7 @@ function renderReleasePage(release, artists, options = {}) {
   const seo = release.seo || {};
   const description = releaseMetaDescription(release);
   const pageTitle = seoCatTitle(seo.title || `${title} — ${release.artist} | Mixxea Records`, release);
-  const image = pages.absoluteAsset(seo.ogImage || release.ogImage || pages.coverUrl(release, false) || release.artwork) || `${BASE}/og/mixxea-og.jpg`;
+  const image = pages.absoluteAsset(seo.ogImage || release.ogImage || pages.coverUrl(release, false) || release.artwork) || `${BASE}/og/mixxea-og-r2.jpg`;
   const platforms = blocks.filledPlatforms(release);
   const buttons = platforms.map((item, index) => `<a class="btn ${index === 0 ? 'paper' : ''}" href="${pages.esc(item.href)}" target="_blank" rel="noopener">${pages.esc(item.label)}</a>`).join('');
   const facts = [

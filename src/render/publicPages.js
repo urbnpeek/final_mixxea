@@ -540,7 +540,7 @@ function siteNav(currentPath) {
   return `<a class="skip" href="#content">Skip to content</a>
 <header class="site-nav">
   <div class="wrap">
-    <a class="wm" href="/" aria-label="Mixxea home">MI<i>X</i>XEA</a>
+    <a class="wm wm-logo" href="/" aria-label="Mixxea Records home"><img src="/img/brand/mixxea-logo-horizontal-dark-r2.svg" alt="Mixxea Records" width="103" height="44" decoding="async"></a>
     <nav aria-label="Primary"><ul class="nav-links">${items}</ul></nav>
     <div class="nav-right">
       <a class="mail small" href="mailto:${BOOKING_EMAIL}">${BOOKING_EMAIL}</a>
@@ -644,13 +644,22 @@ function applyChrome(html, currentPath) {
   out = out.replace(/Freq Vault/g, 'FreqVault');
   out = out.replace(/Jack \/ FreqVault · Mixxea Records/g, 'FreqVault Agency · Mixxea Records');
   out = out.replace(/Est\. 2024(?:\s*·\s*Global)?/g, 'Since 2013 · Label & management since 2017');
-  out = out.replace(/\/og\/mixxea-og\.svg/g, '/og/mixxea-og.jpg');
+  out = out.replace(/\/og\/mixxea-og\.(?:svg|jpg)/g, '/og/mixxea-og-r2.jpg');
+  out = out.replace(/<link rel="(?:shortcut )?icon"[^>]*>\s*|<link rel="apple-touch-icon"[^>]*>\s*|<link rel="manifest"[^>]*>\s*/gi, '');
+  out = out.replace(/<\/head>/i, `${ICON_TAGS}\n</head>`);
   return out;
 }
 
+const ICON_TAGS = `<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/icon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/icon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">`;
+
 function pageShell({ title, description, canonicalPath, robots, jsonLd, body, omitCanonical, ogType, ogImage, extraHead, articleFonts, published, modified, section }) {
   const canonical = canonicalPath ? `${BASE}${canonicalPath}` : '';
-  const image = ogImage || `${BASE}/og/mixxea-og.jpg`;
+  const image = ogImage || `${BASE}/og/mixxea-og-r2.jpg`;
   const graph = jsonLd ? jsonScript(jsonLd) : '';
   const canonicalTag = !omitCanonical && canonical
     ? `<link rel="canonical" href="${esc(canonical)}">`
@@ -680,12 +689,17 @@ ${canonicalTag}
 <meta property="og:description" content="${esc(description)}">
 ${ogUrl}
 <meta property="og:image" content="${esc(image)}">
-<meta name="twitter:card" content="summary_large_image">
+${image === `${BASE}/og/mixxea-og-r2.jpg` ? '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n' : ''}<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(title)}">
 <meta name="twitter:description" content="${esc(description)}">
 <meta name="twitter:image" content="${esc(image)}">
 ${articleMeta}
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/icon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/icon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
 <link rel="stylesheet" href="/css/site.css">
 <script>document.documentElement.classList.add('js')</script>
 ${trackingHead()}
@@ -870,7 +884,7 @@ function renderNewsArticle(article, options = {}) {
   const pageTitle = seo.title
     ? String(seo.title)
     : (fullTitle.length <= 60 ? fullTitle : `${title.slice(0, Math.max(1, 60 - suffix.length - 1)).trim()}…${suffix}`);
-  const image = absoluteAsset((seo.ogImage) || article.ogImage || coverUrl(article, false) || article.image) || `${BASE}/og/mixxea-og.jpg`;
+  const image = absoluteAsset((seo.ogImage) || article.ogImage || coverUrl(article, false) || article.image) || `${BASE}/og/mixxea-og-r2.jpg`;
   const when = formatNewsDate(article.date || article.publishedAt || article.createdAt);
   const category = categoryLabel(article.category || 'News') || 'News';
   const categorySlug = (publicCategory(article.category) || {}).slug || '';
