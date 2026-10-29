@@ -113,6 +113,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .site-nav .wrap{width:100%;display:flex;align-items:center;justify-content:space-between;gap:var(--s-5)}
 .wm{font-family:var(--f-display);font-weight:800;font-size:26px;letter-spacing:.22em;line-height:1}
 .wm i{font-style:normal;color:var(--mx-acid)}
+.wm-logo{display:inline-flex;align-items:center}.wm-logo img{display:block;height:44px;width:auto}
+@media (max-width:640px){.wm-logo img{height:36px}}
 .nav-links{display:flex;gap:28px;list-style:none;margin:0;padding:0}
 .nav-links a{color:var(--mx-mute);font-size:14px;font-weight:500}
 .nav-links a:hover{color:var(--mx-paper)}

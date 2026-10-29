@@ -180,7 +180,7 @@ router.get('/schema.json', async (req, res) => {
           'foundingDate': '2013',
           'url': `${BASE}/record-label`,
           'description': 'Independent electronic music record label focused on artist development and releases.',
-          'logo': { '@type': 'ImageObject', 'url': `${BASE}/og/mixxea-og.jpg` },
+          'logo': { '@type': 'ImageObject', 'url': `${BASE}/og/mixxea-og-r2.jpg` },
           'department': [{ '@type': 'Organization', 'name': 'FreqVault Agency' }],
           'sameAs': [
             'https://www.instagram.com/mixxeaofficial/',
@@ -193,7 +193,7 @@ router.get('/schema.json', async (req, res) => {
           'name': 'FreqVault Agency',
           'url': `${BASE}/booking-agency`,
           'description': 'Artist management and booking agency for DJs, producers, and electronic live acts.',
-          'logo': { '@type': 'ImageObject', 'url': `${BASE}/og/mixxea-og.jpg` },
+          'logo': { '@type': 'ImageObject', 'url': `${BASE}/og/mixxea-og-r2.jpg` },
         },
         ...liveReleases.map(r => ({
           '@type': 'MusicAlbum',
@@ -271,7 +271,7 @@ router.get('/news/:slug/schema.json', async (req, res) => {
       '@type': 'BlogPosting',
       'headline': article.title,
       'description': description,
-      'image': article.image || `${BASE}/og/mixxea-og.jpg`,
+      'image': article.image || `${BASE}/og/mixxea-og-r2.jpg`,
       'datePublished': article.date || (article.createdAt || '').slice(0, 10),
       'dateModified':  (article.updatedAt || article.date || article.createdAt || '').slice(0, 10),
       'author': {
