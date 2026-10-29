@@ -79,11 +79,13 @@ function main() {
   assert(love.date === '2019-07-01' && love.releaseDate === '2019-07-01', 'love date ' + love.date);
   assert(formatCatalogueDate(love.date) === '01 Jul 2019', 'love date render');
   assert(love.label === 'Mixxea Records', 'love label');
-  assert(love.artist === 'David Hopperman; Jayy Dee', 'love artist ' + love.artist);
+  assert(love.artist === 'David Hopperman feat. Jayy Dee', 'love artist ' + love.artist);
+  assert(love.slug === 'mxr010-love-and-fake' && love.previousSlugs.includes('david-hopperman-love-fake'), 'love slug ' + love.slug);
+  assert(love.genre === 'Dance / Pop', 'love genre ' + love.genre);
   assert(!love.spotify && !(love.links && love.links.spotify), 'unknown spotify still set');
-  assert(!love.apple && !(love.links && love.links.apple), 'unknown apple still set');
+  assert(love.apple === 'https://music.apple.com/us/album/love-fake-single/1730913165' && love.links.apple === love.apple, 'love apple ' + love.apple);
   assert(love.beatport === 'https://www.beatport.com/release/love-fake/2629699', 'love beatport ' + love.beatport);
-  assert(love.artwork === 'https://geo-media.beatport.com/image_size/1400x1400/4d239b09-e750-4c67-9151-ac33e6b6c055.jpg', 'love artwork');
+  assert(love.artwork === '/img/covers/MXR010_1600.webp' && love.artworkThumb === '/img/covers/MXR010_600.webp' && love.ogImage === '/og/og-release-mxr010.jpg', 'love artwork');
   assert(!love.title.includes('[CONFIRM]'), 'confirm marker kept in title');
   const gotta = once.releases.find((release) => release.title === 'Gotta Be the One');
   assert(gotta.catNo === 'AJR007' && gotta.status === 'out', 'gotta ' + gotta.catNo + ' ' + gotta.status);
@@ -142,7 +144,12 @@ function main() {
   assert(lovePage.includes('>MXR010<'), 'love page cat');
   assert(lovePage.includes('https://www.beatport.com/release/love-fake/2629699'), 'love page link');
   assert(!lovePage.includes('open.spotify.com/track'), 'love page invented spotify');
-  assert(!lovePage.includes('music.apple.com'), 'love page invented apple');
+  assert(lovePage.includes('https://music.apple.com/us/album/love-fake-single/1730913165'), 'love page apple');
+  assert(((lovePage.match(/<div class="platforms">(.*?)<\/div>/) || ['', ''])[1].match(/<a /g) || []).length === 2, 'love page listen links');
+  assert(!/5057272236618|UKACT19462|\bISRC\b|\bUPC\b/i.test(lovePage), 'love page shows UPC/ISRC');
+  assert(lovePage.includes('<dd>Dance / Pop</dd>') && lovePage.includes('Instrument Mix') && lovePage.includes('2:37'), 'love page details');
+  assert(lovePage.includes('/og/og-release-mxr010.jpg'), 'love og');
+  assert(lovePage.includes('booking@mixxea.com'), 'love booking'); 
   assert(!lovePage.includes('Ray Sam'), 'ray sam credit');
   const nakaHidden = releaseHiddenReason(naka, once.artists);
   assert(!nakaHidden, 'naka hidden: ' + nakaHidden);
@@ -217,7 +224,7 @@ function main() {
   const confirmedStill = older.releases.find((release) => release.catNo === 'FSR004');
   assert(confirmedStill && confirmedStill.artwork.includes('ba21e77a') && confirmedStill.beatport.endsWith('/6844691'), 'confirmed remix changed');
   assert(older.releases.find((release) => release.catNo === 'AJR007').artwork.includes('934f516a'), 'gotta changed');
-  assert(older.releases.find((release) => release.catNo === 'MXR010').artwork.includes('4d239b09'), 'love changed');
+  assert(older.releases.find((release) => release.catNo === 'MXR010').artwork === '/img/covers/MXR010_1600.webp', 'love changed');
 
   const mapped = transform({
     artists: [],
@@ -317,6 +324,12 @@ function main() {
     assert(meta.length >= 120 && meta.length <= 160, (release.slug || release.title) + ' ' + meta.length + ' ' + meta);
     assert(!/[\r\n]/.test(meta), 'newline in release meta');
     assert(meta.startsWith(release.title + ' by '), meta);
+    // Approved copy (MXR010): the stored meta description is used as written.
+    if (release.seo && release.seo.description) {
+      assert(meta === release.seo.description, 'approved meta changed ' + meta);
+      assert(html.includes('/releases/' + (release.slug || '')), 'release canonical changed');
+      return;
+    }
     assert(meta.includes('on Mixxea Records, the independent electronic music label.'), meta);
     const info = html.slice(html.indexOf('release-info'), html.indexOf('Also on Mixxea'));
     if (/\bcredits?\b/i.test(info) && labels.length) {
@@ -333,7 +346,9 @@ function main() {
     } else {
       assert(html.includes('| Mixxea Records</title>'), 'release title changed');
     }
-    if (['FSR004', 'FSR40', 'FSR037', 'MXR010'].includes(release.catNo)) {
+    if (release.catNo === 'MXR010') {
+      assert(meta.includes('(MXR010)') && meta.length <= 160, meta);
+    } else if (['FSR004', 'FSR40', 'FSR037'].includes(release.catNo)) {
       assert(meta.includes('Cat. no. ' + release.catNo + '.'), meta);
     }
     if (['FSR43', 'FSR42', 'AJR007'].includes(release.catNo)) {

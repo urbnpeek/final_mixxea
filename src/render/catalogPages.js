@@ -218,6 +218,15 @@ function baseReleaseMetaDescription(release) {
   return appendShownCatalogue(extendToRange(picked, release), release);
 }
 
+// Track list: title, mix, BPM, key and length only. Codes such as ISRC are
+// never rendered, even when a stored row carries them.
+function trackListBlock(release) {
+  const tracks = Array.isArray(release && release.tracks) ? release.tracks.filter((t) => t && t.title) : [];
+  if (!tracks.length) return '';
+  const rows = tracks.map((t, i) => `<tr><td>${i + 1}</td><td>${pages.esc(t.title)}</td><td>${pages.esc(t.mix || '')}</td><td>${pages.esc(t.bpm == null ? '' : String(t.bpm))}</td><td>${pages.esc(t.key || '')}</td><td>${pages.esc(t.length || '')}</td></tr>`).join('');
+  return `<div class="tracklist" style="margin-top:24px"><h2 class="h3">Track list</h2><div class="view-table"><table class="rel-table"><thead><tr><th>#</th><th>Track</th><th>Mix</th><th>BPM</th><th>Key</th><th>Length</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
 function renderReleasePage(release, artists, options = {}) {
   const slug = pages.releaseSlug(release);
   const title = release.title || 'Release';
@@ -260,6 +269,7 @@ function renderReleasePage(release, artists, options = {}) {
       <div class="platforms">${buttons}</div>
       ${blocks.embedBlock(release)}
       ${release.description ? `<div class="a-body" style="margin-top:24px">${renderMarkdown(release.description)}</div>` : ''}
+      ${trackListBlock(release)}
     </div>
   </div>
 </div></section>
