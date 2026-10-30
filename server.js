@@ -157,7 +157,7 @@ app.get('/sitemap.xml', async (req, res) => {
   try {
     const xml = await generateSitemap();
     res.set('Content-Type', 'application/xml');
-    res.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    res.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=600');
     res.send(xml);
   } catch (e) {
     console.error('[SEO] sitemap error:', e);
@@ -213,7 +213,7 @@ app.get('/', async (req, res, next) => {
       db.get('news'),
     ]);
     const html = require('./src/render/homePage').renderHome({ artists, releases, events, news });
-    sendHtml(res, 200, html, 'public, s-maxage=300, stale-while-revalidate=86400');
+    sendHtml(res, 200, html, 'public, s-maxage=300, stale-while-revalidate=600');
   } catch (e) {
     console.error('[pages] home', e);
     next();
@@ -238,7 +238,7 @@ app.get('/booking-agency', async (req, res) => {
 
 app.get(['/booking-agency/romania', '/booking-agency/romania/'], (req, res) => {
   if (req.path.endsWith('/')) return redirectTo(res, '/booking-agency/romania');
-  sendHtml(res, 200, require('./src/render/bookingRomania').renderBookingRomania(), 'public, s-maxage=300, stale-while-revalidate=86400');
+  sendHtml(res, 200, require('./src/render/bookingRomania').renderBookingRomania(), 'public, s-maxage=300, stale-while-revalidate=600');
 });
 
 app.get('/electronic-music-artists', async (req, res) => {
@@ -534,7 +534,7 @@ const serveSeoDetail = (folder) => (req, res) => {
 
 app.get('/events/:slug', serveSeoDetail('events'));
 
-const PUBLIC_PAGE_CACHE = 'public, s-maxage=300, stale-while-revalidate=86400';
+const PUBLIC_PAGE_CACHE = 'public, s-maxage=300, stale-while-revalidate=600';
 const catalog = require('./src/render/catalogPages');
 const contentStore = require('./src/lib/contentStore');
 const { releaseHiddenReason, newsHiddenReason, visibleReleases, visibleNews } = require('./src/lib/rosterCatalog');
