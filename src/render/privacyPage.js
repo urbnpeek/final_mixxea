@@ -3,6 +3,37 @@
  */
 const { siteNav, siteFooter, pageShell } = require('./publicPages');
 
+const PRIVACY_DESCRIPTION = 'Privacy and cookie notice for www.mixxea.com, operated by Ronala Imobiliare SRL. Covers the public site, bookings, demos, newsletter and cookies.';
+const SITE = 'https://www.mixxea.com';
+const PRIVACY_URL = `${SITE}/privacy`;
+
+/** WebPage + BreadcrumbList (Mixxea › Privacy). Publisher is the existing Organization node (#mixxea). No FAQPage. */
+function privacyJsonLd() {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': `${PRIVACY_URL}#webpage`,
+        url: PRIVACY_URL,
+        name: 'Privacy and cookies',
+        description: PRIVACY_DESCRIPTION,
+        inLanguage: 'en',
+        publisher: { '@id': `${SITE}/#mixxea`, legalName: 'Ronala Imobiliare SRL' },
+        breadcrumb: { '@id': `${PRIVACY_URL}#breadcrumb` },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${PRIVACY_URL}#breadcrumb`,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Mixxea', item: `${SITE}/` },
+          { '@type': 'ListItem', position: 2, name: 'Privacy', item: PRIVACY_URL },
+        ],
+      },
+    ],
+  };
+}
+
 const LAST_UPDATED = '3 October 2026';
 
 function cell(label, text) {
@@ -190,11 +221,12 @@ ${siteFooter()}`;
 
   return pageShell({
     title: 'Privacy and cookies | Mixxea',
-    description: 'Privacy and cookie notice for www.mixxea.com, operated by Ronala Imobiliare SRL. Covers the public site, bookings, demos, newsletter and cookies.',
+    description: PRIVACY_DESCRIPTION,
     canonicalPath: '/privacy',
     robots: preview ? 'noindex, nofollow' : 'index,follow',
+    jsonLd: privacyJsonLd(),
     body,
   });
 }
 
-module.exports = { renderPrivacyPage };
+module.exports = { renderPrivacyPage, privacyJsonLd, PRIVACY_DESCRIPTION };
