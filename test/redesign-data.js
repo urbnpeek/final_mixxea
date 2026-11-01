@@ -148,7 +148,23 @@ function main() {
   assert(legacyLabelPage.includes('<dt>Label</dt><dd>Mixxea Records</dd>'), 'legacy label not credited Mixxea Records');
   assert(!/ajme|fishermen/i.test(legacyLabelPage), 'legacy label rendered');
   const fishPage = renderReleasePage({ ...love, label: 'Fishermen Records' }, once.artists, { relatedReleases: [] });
-  assert(!/fishermen/i.test(fishPage) && fishPage.includes('"recordLabel":{"@type":"Organization","name":"Mixxea Records"}'), 'fishermen label rendered');
+  assert(!/fishermen/i.test(fishPage) && fishPage.includes('"recordLabel":{"@type":"Organization","@id":"https://www.mixxea.com/#mixxea","name":"Mixxea Records"}'), 'fishermen label rendered');
+  const ORG_ID = 'https://www.mixxea.com/#mixxea';
+  const ldNodes = (html) => [...html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)]
+    .flatMap((m) => { const d = JSON.parse(m[1]); return d['@graph'] || [d]; });
+  const findLabels = (node, out = []) => {
+    if (node && typeof node === 'object') { if (node.recordLabel) out.push(node.recordLabel); Object.values(node).forEach((v) => findLabels(v, out)); }
+    return out;
+  };
+  const shownReleases = once.releases;
+  assert(shownReleases.length >= 7, 'expected 7+ releases, got ' + shownReleases.length);
+  shownReleases.forEach((release) => {
+    const labels = findLabels(ldNodes(renderReleasePage(release, once.artists, { relatedReleases: [] })));
+    assert(labels.length && labels.every((l) => l['@id'] === ORG_ID && l.name === 'Mixxea Records'), 'recordLabel @id on ' + release.title);
+  });
+  const orgNode = ldNodes(renderHome(once)).find((n) => n['@id'] === ORG_ID);
+  assert(orgNode && orgNode['@type'] === 'Organization' && orgNode.name === 'Mixxea Records', 'site Organization ' + ORG_ID + ' missing from home graph');
+  console.log('ok  recordLabel resolves to ' + ORG_ID + ' on ' + shownReleases.length + ' release pages');
   const nakaHidden = releaseHiddenReason(naka, once.artists);
   assert(!nakaHidden, 'naka hidden: ' + nakaHidden);
 

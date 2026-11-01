@@ -65,7 +65,7 @@ function releaseJsonLd(release) {
     name: release.title,
     url,
     byArtist,
-    recordLabel: { '@type': 'Organization', name: 'Mixxea Records' },
+    recordLabel: { '@type': 'Organization', '@id': 'https://www.mixxea.com/#mixxea', name: PUBLIC_LABEL },
     ...(release.date ? { datePublished: release.date } : {}),
     image,
     ...(description ? { description } : {}),
