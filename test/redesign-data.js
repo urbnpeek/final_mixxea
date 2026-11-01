@@ -144,6 +144,11 @@ function main() {
   assert(!lovePage.includes('open.spotify.com/track'), 'love page invented spotify');
   assert(!lovePage.includes('music.apple.com'), 'love page invented apple');
   assert(!lovePage.includes('Ray Sam'), 'ray sam credit');
+  const legacyLabelPage = renderReleasePage({ ...love, label: 'AJME Records' }, once.artists, { relatedReleases: [] });
+  assert(legacyLabelPage.includes('<dt>Label</dt><dd>Mixxea Records</dd>'), 'legacy label not credited Mixxea Records');
+  assert(!/ajme|fishermen/i.test(legacyLabelPage), 'legacy label rendered');
+  const fishPage = renderReleasePage({ ...love, label: 'Fishermen Records' }, once.artists, { relatedReleases: [] });
+  assert(!/fishermen/i.test(fishPage) && fishPage.includes('"recordLabel":{"@type":"Organization","name":"Mixxea Records"}'), 'fishermen label rendered');
   const nakaHidden = releaseHiddenReason(naka, once.artists);
   assert(!nakaHidden, 'naka hidden: ' + nakaHidden);
 
