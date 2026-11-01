@@ -163,7 +163,7 @@ function main() {
     assert(labels.length && labels.every((l) => l['@id'] === ORG_ID && l.name === 'Mixxea Records'), 'recordLabel @id on ' + release.title);
   });
   const orgNode = ldNodes(renderHome(once)).find((n) => n['@id'] === ORG_ID);
-  assert(orgNode && orgNode['@type'] === 'Organization' && orgNode.name === 'Mixxea Records', 'site Organization ' + ORG_ID + ' missing from home graph');
+  assert(orgNode && orgNode['@type'] === 'Organization' && orgNode.name === 'Mixxea Records' && orgNode.legalName === 'Ronala Imobiliare SRL', 'site Organization ' + ORG_ID + ' missing from home graph');
   console.log('ok  recordLabel resolves to ' + ORG_ID + ' on ' + shownReleases.length + ' release pages');
   const nakaHidden = releaseHiddenReason(naka, once.artists);
   assert(!nakaHidden, 'naka hidden: ' + nakaHidden);
