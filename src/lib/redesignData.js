@@ -137,6 +137,8 @@ const CONFIRMED_RELEASES = [
     previousSlugs: ['david-hopperman-love-fake'],
     title: 'Love & Fake',
     artist: 'David Hopperman feat. Jayy Dee',
+    // Document title kept at or under 60 characters (52).
+    seoTitle: 'Love & Fake – David Hopperman feat. Jayy Dee | Mixxea',
     label: 'Mixxea Records',
     date: '2019-07-01',
     catNo: 'MXR010',

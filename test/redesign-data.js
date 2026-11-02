@@ -149,6 +149,8 @@ function main() {
   assert(!/5057272236618|UKACT19462|\bISRC\b|\bUPC\b/i.test(lovePage), 'love page shows UPC/ISRC');
   assert(lovePage.includes('<dd>Dance / Pop</dd>') && lovePage.includes('Instrument Mix') && lovePage.includes('2:37'), 'love page details');
   assert(lovePage.includes('/og/og-release-mxr010.jpg'), 'love og');
+  assert(lovePage.includes('<title>Love &amp; Fake – David Hopperman feat. Jayy Dee | Mixxea</title>') || lovePage.includes('<title>Love & Fake – David Hopperman feat. Jayy Dee | Mixxea</title>'), 'love title 52');
+  assert(lovePage.includes('"recordLabel":{"@type":"Organization","@id":"https://www.mixxea.com/#mixxea"'), 'love recordLabel id');
   assert(lovePage.includes('booking@mixxea.com'), 'love booking'); 
   assert(!lovePage.includes('Ray Sam'), 'ray sam credit');
   const legacyLabelPage = renderReleasePage({ ...love, label: 'AJME Records' }, once.artists, { relatedReleases: [] });
