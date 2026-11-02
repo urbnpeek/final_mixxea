@@ -442,13 +442,23 @@ ${pages.siteFooter()}`;
   });
 }
 
+// Meta descriptions for news category pages (SEO brief MX-P3, 2 Nov 2026).
+const CATEGORY_META = {
+  label: 'Label news from Mixxea Records (Afro House, Tech House, House): updates from the label team, including how to send your music through demo submissions.',
+  agency: 'Agency news from FreqVault Agency, the booking arm of Mixxea Records: roster additions, artist announcements and booking updates. booking@mixxea.com',
+  releases: 'Release news from Mixxea Records: new and catalogue releases from the label, with links to listen and the artists behind each record.',
+  artists: 'Artist news from Mixxea Records and FreqVault Agency: roster additions and announcements about the artists on the label and the agency.',
+};
+
 function renderNewsCategory(category, posts, query, allPosts) {
   const paged = slicePage(pages.sortNews(posts), query.page, NEWS_PAGE_SIZE);
   const name = category.name || category.label;
   const visible = String(category.description || '').trim();
-  const description = category.slug === 'agency'
-    ? 'Agency news from FreqVault Agency, the booking arm of Mixxea Records: roster additions, artist announcements and booking updates. booking@mixxea.com'
-    : (visible.slice(0, 160) || `${name} from Mixxea Records.`);
+  // A stored description wins only if it is a usable length (120-160);
+  // otherwise use the per-category map, then the short fallback.
+  const description = (visible.length >= 120 && visible.length <= 160)
+    ? visible
+    : (CATEGORY_META[category.slug] || visible.slice(0, 160) || `${name} from Mixxea Records.`);
   const rows = paged.items.length
     ? paged.items.map((post) => {
       const href = '/news/' + pages.newsSlug(post);
@@ -542,4 +552,5 @@ module.exports = {
   renderNewsCategory,
   renderPortal,
   releaseJsonLd,
+  CATEGORY_META,
 };
