@@ -790,7 +790,8 @@ function renderArtistPage({ artist, artists, releases, events }) {
         '@id': `${BASE}/artists/${slug}#artist`,
         name,
         url: `${BASE}/artists/${slug}`,
-        ...(artist.genre ? { genre: artist.genre } : {}),
+        // Omit placeholder genres (e.g. 'genre TBC') from schema; visible text keeps them.
+        ...(artist.genre && !/\bTBC\b/i.test(artist.genre) ? { genre: artist.genre } : {}),
         description,
         ...(photo ? { image: photo } : {}),
       },

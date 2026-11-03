@@ -267,6 +267,8 @@ function main() {
     if (page) {
       assert(page.includes('Electronic music artist (genre TBC)'), 'Eddie profile genre');
       assert(!/Techno|Berlin|"DE"/.test(page), 'Eddie profile still shows old genre/location');
+      const ld = (page.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g) || []).join('');
+      assert(!/"genre"/.test(ld), 'Eddie JSON-LD must omit genre while it is TBC');
     }
     const eddieTile = html.split('Eddie Bitar').slice(1).join('').slice(0, 600);
     assert(!/Techno|Berlin/.test(eddieTile), 'home card shows old genre/location');
