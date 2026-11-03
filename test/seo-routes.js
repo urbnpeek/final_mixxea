@@ -127,6 +127,26 @@ async function main() {
     }
   }
 
+  await check('site Organization #mixxea matches in seo.js and homePage.js', async () => {
+    const ORG_ID = 'https://www.mixxea.com/#mixxea';
+    const res = await request(port, '/api/seo/schema.json');
+    assert(res.status === 200, 'schema status ' + res.status);
+    const seoOrg = (JSON.parse(res.body)['@graph'] || []).find((n) => n['@id'] === ORG_ID);
+    assert(seoOrg && seoOrg['@type'] === 'Organization', 'seo.js Organization ' + ORG_ID + ' missing');
+    const home = await request(port, '/');
+    const homeOrg = [...home.body.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)]
+      .flatMap((m) => { const d = JSON.parse(m[1]); return d['@graph'] || [d]; })
+      .find((n) => n['@id'] === ORG_ID);
+    assert(homeOrg && homeOrg['@type'] === 'Organization', 'homePage.js Organization ' + ORG_ID + ' missing');
+    for (const org of [seoOrg, homeOrg]) {
+      assert(org.name === 'Mixxea Records', 'name ' + org.name);
+      assert(org.legalName === 'Ronala Imobiliare SRL', 'legalName ' + org.legalName);
+    }
+    for (const key of ['@id', 'name', 'legalName']) {
+      assert(seoOrg[key] === homeOrg[key], key + ' differs: ' + seoOrg[key] + ' vs ' + homeOrg[key]);
+    }
+  });
+
   await check('unknown path is a real 404', async () => {
     const res = await request(port, '/this-page-should-not-exist-xyz123');
     assert(res.status === 404, 'status ' + res.status);

@@ -9,6 +9,8 @@ const { renderMarkdown, markdownToText } = require('../lib/markdown');
 const { categoryLabel, publicCategory, categoryAccent } = require('../lib/categories');
 const { creditNames } = require('../lib/redesignData');
 
+const PUBLIC_LABEL = 'Mixxea Records';
+
 const BASE = canonicalOrigin();
 const RELEASE_PAGE_SIZE = 24;
 const NEWS_PAGE_SIZE = 12;
@@ -63,7 +65,7 @@ function releaseJsonLd(release) {
     name: release.title,
     url,
     byArtist,
-    recordLabel: { '@type': 'Organization', name: 'Mixxea Records' },
+    recordLabel: { '@type': 'Organization', '@id': 'https://www.mixxea.com/#mixxea', name: PUBLIC_LABEL },
     ...(release.date ? { datePublished: release.date } : {}),
     image,
     ...(description ? { description } : {}),
@@ -230,7 +232,9 @@ function renderReleasePage(release, artists, options = {}) {
   const facts = [
     ['Release date', pages.formatCatalogueDate(release.date || release.releaseDate)],
     ['Genre', release.genre],
-    ['Label', release.label || 'Mixxea Records'],
+    // 1 Nov 2026 (Fuad): every release, incl. ex-AJME / ex-Fishermen titles,
+    // is credited Mixxea Records. A stored label value is not shown publicly.
+    ['Label', PUBLIC_LABEL],
     ['Cat. no.', release.catNo],
     formatFact(release),
   ].filter((row) => row && row[1]);
