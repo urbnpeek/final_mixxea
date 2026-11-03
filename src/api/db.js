@@ -138,12 +138,14 @@ async function peek(collection) {
   catch (e) { return null; }
 }
 
-const PREVIEW_COLLECTIONS = new Set(['artists', 'releases', 'news', 'events', 'categories']);
+// Catalogue fix-ups from src/lib/redesignData.js, applied on read in every
+// environment (previously preview-only). Stored KV data is not modified.
+const FIXUP_COLLECTIONS = new Set(['artists', 'releases', 'news', 'events', 'categories']);
 
 async function get(collection) {
   let data = await readCollection(collection);
   if (collection === 'news') data = require('../content/codePosts').withCodePosts(data);
-  if (process.env.VERCEL_ENV !== 'preview' || !PREVIEW_COLLECTIONS.has(collection)) return data;
+  if (!FIXUP_COLLECTIONS.has(collection)) return data;
   const { transformCollection } = require('../lib/redesignData');
   return transformCollection(collection, data);
 }

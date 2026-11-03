@@ -24,7 +24,7 @@ const dataDir = path.join(__dirname, '../data');
 const artistFile = path.join(dataDir, 'artists.json');
 const artistBackup = fs.readFileSync(artistFile, 'utf8');
 fs.writeFileSync(artistFile, JSON.stringify([
-  { id: 'lyda', name: 'Lyda', slug: 'lyda', status: 'signed', genre: 'Techno' },
+  { id: 'orla', name: 'Orla', slug: 'orla', status: 'signed', genre: 'Techno' },
 ], null, 2));
 
 const app = require('../server');
@@ -73,21 +73,21 @@ function assert(condition, message) {
 
 async function main() {
   const dry = await seedKind('post', [
-    { id: 'live-1', title: 'Lyda joins the roster', status: 'published', body: 'Hello TECHNO night' },
+    { id: 'live-1', title: 'Orla joins the roster', status: 'published', body: 'Hello TECHNO night' },
     { id: 'live-2', title: 'Label note', status: 'published', category: 'Label News' },
   ], false);
   assert(dry.pending === 2, 'dry-run should plan both posts');
   assert(dry.rows.every((row) => row.action === 'would-write'), 'dry-run must not write');
-  assert(dry.rows[0].slug === 'lyda-joins-the-roster', 'frozen slug ' + dry.rows[0].slug);
+  assert(dry.rows[0].slug === 'orla-joins-the-roster', 'frozen slug ' + dry.rows[0].slug);
   assert(!(await hasIndex('post')), 'dry-run created an index');
 
   const applied = await seedKind('post', [
-    { id: 'live-1', title: 'Lyda joins the roster', status: 'published', body: 'Hello' },
+    { id: 'live-1', title: 'Orla joins the roster', status: 'published', body: 'Hello' },
     { id: 'live-2', title: 'Label note', status: 'published' },
   ], true);
   assert(applied.pending === 2, 'apply should write both');
   const again = await seedKind('post', [
-    { id: 'live-1', title: 'Lyda joins the roster', status: 'published' },
+    { id: 'live-1', title: 'Orla joins the roster', status: 'published' },
   ], true);
   assert(again.alreadyStored === 1, 'second apply should skip');
   assert(again.rows[0].action === 'skip', again.rows[0].action);
@@ -124,7 +124,7 @@ async function main() {
       cookie: adminCookie,
       body: {
         title: 'Night Bus',
-        artist: 'Lyda',
+        artist: 'Orla',
         action: 'draft',
         type: 'single',
         description: 'A draft',
@@ -134,7 +134,7 @@ async function main() {
     });
     assert(created.status === 201, 'status ' + created.status + ' ' + created.body);
     assert(!created.json.hacked && !created.json.isAdmin, 'unknown fields stored');
-    assert(created.json.slug === 'lyda-night-bus', 'slug ' + created.json.slug);
+    assert(created.json.slug === 'orla-night-bus', 'slug ' + created.json.slug);
     assert(created.json.rev === 1, 'rev ' + created.json.rev);
     const hidden = await request(port, 'GET', '/api/releases');
     assert(!hidden.body.includes('Night Bus'), 'draft leaked to public list');
@@ -144,13 +144,13 @@ async function main() {
     const page = await request(port, 'GET', created.json.previewUrl);
     assert(page.status === 200, 'preview ' + page.status);
     assert(/noindex/i.test(page.body), 'preview should be noindex');
-    const publicPage = await request(port, 'GET', '/releases/lyda-night-bus');
+    const publicPage = await request(port, 'GET', '/releases/orla-night-bus');
     assert(publicPage.status === 404, 'draft page ' + publicPage.status);
   });
 
   await check('revision conflict asks for a reload', async () => {
     const list = await request(port, 'GET', '/api/releases', { cookie: adminCookie });
-    const release = list.json.find((item) => item.slug === 'lyda-night-bus');
+    const release = list.json.find((item) => item.slug === 'orla-night-bus');
     const first = await request(port, 'PUT', '/api/releases/' + release.id, {
       cookie: adminCookie,
       body: { ...release, action: 'publish', rev: release.rev, description: 'First save' },
@@ -166,7 +166,7 @@ async function main() {
   });
 
   await check('published single has MusicRecording and streaming buttons', async () => {
-    const page = await request(port, 'GET', '/releases/lyda-night-bus');
+    const page = await request(port, 'GET', '/releases/orla-night-bus');
     assert(page.status === 200, 'status ' + page.status);
     assert(page.body.includes('MusicRecording'), 'missing MusicRecording');
     assert(page.headers['cache-control'].includes('s-maxage=300'), page.headers['cache-control']);
@@ -227,7 +227,7 @@ async function main() {
   await check('sitemap uses updatedAt and has no ping endpoint', async () => {
     const map = await request(port, 'GET', '/sitemap.xml');
     assert(map.status === 200, 'status ' + map.status);
-    assert(map.body.includes('https://www.mixxea.com/releases/lyda-night-bus'), 'release missing');
+    assert(map.body.includes('https://www.mixxea.com/releases/orla-night-bus'), 'release missing');
     assert(map.body.includes('https://www.mixxea.com/news/techno-notes'), 'renamed post missing');
     assert(!map.body.includes('/news/techno-night-notes'), 'old slug still listed');
     const source = fs.readFileSync(path.join(__dirname, '../src/api/news.js'), 'utf8');
@@ -245,11 +245,11 @@ async function main() {
     assert(token.status === 201 && token.json.token, token.body);
     const created = await request(port, 'POST', '/api/releases', {
       cookie: 'Authorization-placeholder',
-      body: { title: 'Token Single', artist: 'Lyda', action: 'draft', type: 'ep' },
+      body: { title: 'Token Single', artist: 'Orla', action: 'draft', type: 'ep' },
     });
     assert(created.status === 403, 'placeholder cookie should not authorize');
     const authed = await new Promise((resolve, reject) => {
-      const payload = JSON.stringify({ title: 'Token Single', artist: 'Lyda', action: 'publish', type: 'ep' });
+      const payload = JSON.stringify({ title: 'Token Single', artist: 'Orla', action: 'publish', type: 'ep' });
       const req = http.request({
         hostname: '127.0.0.1',
         port,
@@ -269,7 +269,7 @@ async function main() {
       req.end(payload);
     });
     assert(authed.status === 201, authed.body);
-    assert(authed.body.includes('lyda-token-single'), authed.body);
+    assert(authed.body.includes('orla-token-single'), authed.body);
   });
 
   await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
