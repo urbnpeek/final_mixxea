@@ -224,7 +224,12 @@ async function main() {
   let adminCookie = '';
 
   await check('admin form offers the catalogue checkbox', async () => {
-    const page = await request(port, 'GET', '/admin');
+    const anon = await request(port, 'GET', '/admin');
+    assert(!anon.body.includes('id="rel-type"') && !anon.body.includes('id="rel-catalogue-only"'), 'panel markup sent without login');
+    const signIn = await request(port, 'POST', '/api/auth/admin/login', {
+      body: { email: 'fuad@example.test', password: 'correct-horse' },
+    });
+    const page = await request(port, 'GET', '/admin', { cookie: authCookie(signIn) });
     assert(page.status === 200, 'status ' + page.status);
     assert(page.body.includes('Label catalogue release — artist not on roster, no artist page'), 'checkbox label missing');
     assert(page.body.includes('id="rel-catalogue-only"'), 'checkbox missing');
