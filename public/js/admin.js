@@ -550,7 +550,8 @@ const ADMIN = {
   },
 
   viewDemo(id) {
-    const d=this._demosCache.find(x=>x.id===id);
+    const cache=(this && this._demosCache) || (typeof STORE!=='undefined' && STORE.demos) || (typeof ADMIN!=='undefined' && ADMIN._demosCache) || [];
+    const d=cache.find(x=>x.id===id);
     if(!d)return;
     const sampMap={none:'No samples — 100% original',cleared:'Samples cleared & licensed',uncleared:'Samples used — not cleared'};
     const writersMap={sole:'Sole author',collab:'Multiple writers / collaborators'};
