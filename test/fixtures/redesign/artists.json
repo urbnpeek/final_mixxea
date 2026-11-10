@@ -29,7 +29,8 @@
     "type": "booking",
     "genre": "Techno",
     "city": "Berlin",
-    "country": "DE"
+    "country": "DE",
+    "bio": "Berlin-based techno and minimal artist."
   },
   {
     "id": "vexr",
