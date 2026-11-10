@@ -11,7 +11,8 @@ const cors       = require('cors');
 const path       = require('path');
 const fs         = require('fs');
 const crypto     = require('crypto');
-const { requireAdmin } = require('./src/api/middleware');
+const { requireAdmin, resolveActor, isStaffActor } = require('./src/api/middleware');
+const { renderAdminLogin, ADMIN_TITLE } = require('./src/render/adminLogin');
 const { router: seoRouter, generateSitemap } = require('./src/api/seo');
 const db = require('./src/api/db');
 const pages = require('./src/render/publicPages');
@@ -284,12 +285,27 @@ app.get('/index.html', (req, res) => {
   res.redirect(301, '/');
 });
 
-app.get('/admin', (req, res) => {
+// /admin: the panel markup (forms, staff fields, scripts) is only sent to a verified staff login.
+// Everyone else gets a standalone login page with no panel HTML. The API routes stay guarded by
+// requireAdmin/requireStaff as before; this closes the public HTML exposure (SIA P3, 9 Nov).
+app.get('/admin', async (req, res) => {
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  res.set('Vary', 'Cookie');
+  let actor = null;
+  try {
+    actor = await resolveActor(req);
+  } catch (e) {
+    actor = null;
+  }
+  if (!isStaffActor(actor)) {
+    sendHtml(res, 200, renderAdminLogin(), 'private, no-store');
+    return;
+  }
   const file = path.join(__dirname, 'public', 'index.html');
   const html = fs.readFileSync(file, 'utf8')
+    .replace(/<title>[^<]*<\/title>/i, `<title>${ADMIN_TITLE}</title>`)
     .replace(/<meta name="robots"[^>]*>/i, '<meta name="robots" content="noindex, nofollow">');
-  res.set('X-Robots-Tag', 'noindex, nofollow');
-  sendHtml(res, 200, html, 'no-store');
+  sendHtml(res, 200, html, 'private, no-store');
 });
 
 // JS files: never cache so updates deploy immediately

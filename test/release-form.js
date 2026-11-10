@@ -247,7 +247,12 @@ async function main() {
   let adminCookie = '';
 
   await check('admin page offers Tech House and a blank type', async () => {
-    const page = await request(port, 'GET', '/admin');
+    const anon = await request(port, 'GET', '/admin');
+    assert(!anon.body.includes('id="rel-type"') && !anon.body.includes('id="rel-catalogue-only"'), 'panel markup sent without login');
+    const signIn = await request(port, 'POST', '/api/auth/admin/login', {
+      body: { email: 'fuad@example.test', password: 'correct-horse' },
+    });
+    const page = await request(port, 'GET', '/admin', { cookie: authCookie(signIn) });
     assert.strictEqual(page.status, 200);
     const genres = releaseOptions(page.body, 'rel-genre').map((option) => option.label);
     assert.deepStrictEqual(genres, [...RELEASE_GENRES]);
