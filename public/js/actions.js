@@ -2,11 +2,13 @@
   function lookup(name) {
     var parts = String(name || '').split('.');
     var obj = window;
+    var parent = window;
     for (var i = 0; i < parts.length; i++) {
-      if (!obj) return null;
+      if (!obj) return { fn: null, ctx: window };
+      parent = obj;
       obj = obj[parts[i]];
     }
-    return obj;
+    return { fn: obj, ctx: parent || window };
   }
 
   function argValue(value, el, event) {
@@ -22,11 +24,12 @@
       spec.forEach(function (item) { run(item, el, event); });
       return;
     }
-    var fn = lookup(spec[0]);
-    if (typeof fn !== 'function') return;
+    var resolved = lookup(spec[0]);
+    if (typeof resolved.fn !== 'function') return;
     var args = [];
     for (var i = 1; i < spec.length; i++) args.push(argValue(spec[i], el, event));
-    fn.apply(window, args);
+    // Keep method receivers (ADMIN.viewDemo needs this === ADMIN).
+    resolved.fn.apply(resolved.ctx, args);
   }
 
   function onEvent(event) {
