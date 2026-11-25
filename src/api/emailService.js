@@ -416,12 +416,88 @@ async function sendContactConfirmation(data) {
   });
 }
 
+
+// ── Approved demo → release details link ──────────────────────────────────────
+// Artist-facing release emails only go to the artist on the production deployment.
+// Anywhere else (preview, local) they go to the A&R list instead, or are only logged
+// when EMAIL_MODE=log. This keeps previews from emailing real artists.
+function artistEmailRouting(artistEmail, env = process.env) {
+  if (env.EMAIL_MODE === 'log') return { mode: 'log', to: [] };
+  if (env.VERCEL_ENV === 'production') return { mode: 'live', to: uniqueEmails([artistEmail]) };
+  const ar = getAdminRecipients('demo');
+  return ar.length ? { mode: 'redirected', to: ar } : { mode: 'log', to: [] };
+}
+
+function renderDemoApproval({ artistName, trackTitle, url, expiresAt }) {
+  const label = escapeHtml(process.env.LABEL_NAME || 'Mixxea Records');
+  const expires = expiresAt ? new Date(expiresAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  return renderShell({
+    brand: 'mixxea',
+    preheader: `"${trackTitle || 'Your track'}" is approved, next steps`,
+    eyebrow: 'Demo Approved',
+    title: 'Your track is approved',
+    body: `<p>Hi ${escapeHtml(artistName || 'there')},</p>
+      <p>Good news: our A&amp;R team has approved <strong>"${escapeHtml(trackTitle || 'your track')}"</strong> for ${label}.</p>
+      <p>To move forward we need two things from you:</p>
+      <ol style="padding-left:20px;margin:0 0 14px">
+        <li style="margin-bottom:8px">Your artist and release details: legal name, artist name, contact details, track credits (writers/producers, splits), ISRC if you already have one, artwork if available, and any featured artists.</li>
+        <li>The final master as a WAV file (24-bit, 44.1 or 48 kHz, no clipping, no fades unless intended). Please do not send it as an email attachment.</li>
+      </ol>
+      <p>Please complete everything here:<br /><a href="${escapeHtml(url)}" style="color:#e8ff00;word-break:break-all">${escapeHtml(url)}</a></p>
+      ${expires ? `<p style="font-size:13px;color:#94a3b8">This personal link works until ${escapeHtml(expires)}. Please do not share it.</p>` : ''}
+      <p>Once we receive your details and the WAV, we will review them and come back to you with the release proposal and agreement for you to review before anything is signed or scheduled. Approval of the demo is not yet a release commitment; terms are set out in the agreement.</p>
+      <p>If you have any questions, just reply to this email.</p>
+      <p>Thanks for sending us your music,<br />Mixxea Records A&amp;R<br /><a href="https://mixxea.com" style="color:#e8ff00">mixxea.com</a></p>`,
+    ctaLabel: 'Complete release details',
+    ctaUrl: escapeHtml(url),
+    footerNote: 'Mixxea Records is a label of Freq Grup SRL.',
+  });
+}
+
+async function sendDemoApproval({ demo, url, expiresAt }) {
+  const routing = artistEmailRouting(demo.email);
+  const subject = `Mixxea Records: "${demo.trackTitle || 'your track'}" is approved, next steps`;
+  const html = renderDemoApproval({ artistName: demo.artistName, trackTitle: demo.trackTitle, url, expiresAt });
+  if (routing.mode === 'log') {
+    console.log('[EMAIL][RELEASE-LINK][LOG ONLY]', subject);
+    return { ok: true, skipped: true, mode: 'log' };
+  }
+  const result = await deliverEmail({
+    to: routing.to,
+    subject: routing.mode === 'redirected' ? `[TEST - not sent to artist] ${subject}` : subject,
+    html,
+    brand: 'demo',
+    replyTo: getAdminRecipients('demo'),
+    tags: [{ name: 'flow', value: 'demo-approval' }],
+  });
+  return { ...result, mode: routing.mode };
+}
+
+async function sendReleaseSubmittedNotification({ demo, details, appUrl }) {
+  const rows = [
+    ['Artist', details.artistName], ['Legal name', details.legalName], ['Track', `${details.trackTitle} (${details.version})`],
+    ['Country', details.country], ['Featured', details.featuredArtists || '—'], ['ISRC', details.isrc || '—'],
+    ['Credits', details.credits.map((c) => `${c.name} (${c.role.replace('_', ' + ')}) ${c.share}%`).join('; ')],
+  ].map(([k, v]) => `<p><strong>${escapeHtml(k)}:</strong> ${escapeHtml(v)}</p>`).join('');
+  return sendAdminNotification({
+    type: 'demo',
+    subject: `Release details received: "${details.trackTitle}" by ${details.artistName}`,
+    body: `${rows}<p>WAV uploaded${demo.release && demo.release.artwork ? ' + artwork' : ''}. Open Admin → Demos to view and download.</p>`,
+    ctaLabel: appUrl ? 'Open Admin' : undefined,
+    ctaUrl: appUrl ? `${appUrl.replace(/\/+$/, '')}/admin` : undefined,
+  });
+}
+
 function previewNewsletter(content) {
   return renderNewsletterTemplate(content);
 }
 
 module.exports = {
   getAdminRecipients,
+  artistEmailRouting,
+  renderDemoApproval,
+  sendDemoApproval,
+  sendReleaseSubmittedNotification,
   sendEmail,
   sendNewsletter,
   newsletterDelivery,

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <title>Release details · Mixxea Records</title>
+  <link rel="stylesheet" href="/css/release.css" />
+</head>
+<body>
+  <main class="rl-wrap">
+    <header class="rl-head">
+      <div class="rl-brand">MIXXEA RECORDS</div>
+      <h1>Release details</h1>
+      <p class="rl-sub" id="rl-sub">Loading your link…</p>
+    </header>
+
+    <div id="rl-alert" class="rl-alert" role="alert" hidden></div>
+
+    <form id="rl-form" class="rl-form" novalidate hidden>
+      <section>
+        <h2>1 · You</h2>
+        <div class="rl-grid">
+          <label>Legal name *<input name="legalName" autocomplete="name" required maxlength="160" /></label>
+          <label>Artist name *<input name="artistName" required maxlength="120" /></label>
+          <label>Email *<input name="email" type="email" autocomplete="email" required maxlength="200" /></label>
+          <label>Phone<input name="phone" type="tel" autocomplete="tel" maxlength="40" placeholder="+40 …" /></label>
+          <label>Country *<input name="country" autocomplete="country-name" required maxlength="80" /></label>
+          <label>Featured artists<input name="featuredArtists" maxlength="300" placeholder="Leave empty if none" /></label>
+        </div>
+      </section>
+
+      <section>
+        <h2>2 · The track</h2>
+        <div class="rl-grid">
+          <label>Track title *<input name="trackTitle" required maxlength="160" /></label>
+          <label>Version<input name="version" maxlength="80" placeholder="Original Mix" /></label>
+          <label>Genre<input name="genre" maxlength="60" /></label>
+          <label>BPM<input name="bpm" type="number" min="40" max="250" step="1" /></label>
+          <label>Key<input name="musKey" maxlength="20" placeholder="e.g. A minor" /></label>
+          <label>ISRC (if you already have one)<input name="isrc" maxlength="20" placeholder="CC-XXX-YY-NNNNN" /></label>
+        </div>
+      </section>
+
+      <section>
+        <h2>3 · Credits &amp; splits *</h2>
+        <p class="rl-hint">Everyone who wrote or produced the track, with their share. Shares must add up to 100%.</p>
+        <div id="rl-credits"></div>
+        <div class="rl-row">
+          <button type="button" class="rl-btn-ghost" id="rl-add-credit">+ Add person</button>
+          <span class="rl-hint" id="rl-credit-total">Total: 0%</span>
+        </div>
+        <div class="rl-err" data-err="credits"></div>
+      </section>
+
+      <section>
+        <h2>4 · Files</h2>
+        <div class="rl-file">
+          <label>WAV master *<input type="file" id="rl-wav" accept=".wav,audio/wav,audio/x-wav,audio/wave" /></label>
+          <p class="rl-hint">.wav only, 24-bit, 44.1 or 48 kHz, up to 500 MB. Uploads straight to our private storage.</p>
+          <div class="rl-progress" id="rl-wav-progress" hidden><div></div></div>
+          <div class="rl-ok" id="rl-wav-ok" hidden></div>
+          <div class="rl-err" data-err="wav"></div>
+        </div>
+        <div class="rl-file">
+          <label>Artwork (optional)<input type="file" id="rl-art" accept=".jpg,.jpeg,.png,image/jpeg,image/png" /></label>
+          <p class="rl-hint">JPG or PNG, square, up to 20 MB.</p>
+          <div class="rl-progress" id="rl-art-progress" hidden><div></div></div>
+          <div class="rl-ok" id="rl-art-ok" hidden></div>
+          <div class="rl-err" data-err="artwork"></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>5 · Anything else</h2>
+        <label>Notes for our A&amp;R team<textarea name="notes" rows="4" maxlength="2000"></textarea></label>
+        <label class="rl-check"><input type="checkbox" name="confirm" /> The details above are correct and I can share this master with Mixxea Records for review.</label>
+        <div class="rl-err" data-err="confirm"></div>
+      </section>
+
+      <button type="submit" class="rl-btn" id="rl-submit">Send release details</button>
+      <p class="rl-hint">Sending this does not sign anything. We will come back to you with the release proposal and agreement to review.</p>
+    </form>
+
+    <div id="rl-done" class="rl-done" hidden>
+      <h2>Thank you, we have everything.</h2>
+      <p>Our A&amp;R team will review your details and WAV and get back to you by email. If something needs to change, reply to your approval email.</p>
+    </div>
+  </main>
+  <script src="/js/vendor/vercel-blob-client.js"></script>
+  <script src="/js/release.js"></script>
+</body>
+</html>

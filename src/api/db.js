@@ -42,7 +42,26 @@ function getRedisConfig() {
   };
 }
 
+// DB_MODE=memory: preview/test isolation. Data lives only in this process and is
+// never read from or written to Redis. Ignored on the production deployment.
+function isMemoryMode(env = process.env) {
+  return env.DB_MODE === 'memory' && env.VERCEL_ENV !== 'production';
+}
+
+const MEMORY = new Map();
+function memoryGet(collection) {
+  if (!MEMORY.has(collection)) {
+    const seed = require('../lib/previewSeed').seedFor(collection);
+    MEMORY.set(collection, seed !== undefined ? seed : JSON.parse(JSON.stringify(DEFAULTS[collection] ?? [])));
+  }
+  return JSON.parse(JSON.stringify(MEMORY.get(collection)));
+}
+function memorySet(collection, data) {
+  MEMORY.set(collection, JSON.parse(JSON.stringify(data)));
+}
+
 function isRedisConfigured() {
+  if (isMemoryMode()) return false;
   const { url, token } = getRedisConfig();
   return Boolean(url && token);
 }
@@ -95,6 +114,7 @@ function localSet(collection, data) {
 // ── Public API ────────────────────────────────────────────────────────────────
 
 async function getRaw(collection) {
+  if (isMemoryMode()) return memoryGet(collection);
   if (isRedisConfigured()) {
     try {
       const data = await redisGet(collection);
@@ -114,7 +134,7 @@ const INDEXED = { releases: 'release', news: 'post' };
 
 async function readCollection(collection) {
   const kind = INDEXED[collection];
-  if (kind) {
+  if (kind && !isMemoryMode()) {
     try {
       const store = require('../lib/contentStore');
       if (await store.hasIndex(kind)) {
@@ -128,6 +148,7 @@ async function readCollection(collection) {
 }
 
 async function peek(collection) {
+  if (isMemoryMode()) return MEMORY.has(collection) ? memoryGet(collection) : null;
   if (isRedisConfigured()) {
     try { return await redisGet(collection); }
     catch (e) { return null; }
@@ -151,6 +172,7 @@ async function get(collection) {
 }
 
 async function set(collection, data) {
+  if (isMemoryMode()) { memorySet(collection, data); return; }
   if (isRedisConfigured()) {
     try {
       await redisSet(collection, data);
@@ -162,4 +184,4 @@ async function set(collection, data) {
   localSet(collection, data);
 }
 
-module.exports = { get, getRaw, peek, set, isRedisConfigured, getRedisConfig };
+module.exports = { get, getRaw, peek, set, isRedisConfigured, getRedisConfig, isMemoryMode };
