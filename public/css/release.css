@@ -1,0 +1,22 @@
+*{box-sizing:border-box}body{margin:0;background:#080808;color:#eaeaea;font:15px/1.55 Arial,Helvetica,sans-serif}
+.rl-wrap{max-width:760px;margin:0 auto;padding:40px 20px 80px}
+.rl-brand{font-size:11px;letter-spacing:.32em;color:#e8ff00;margin-bottom:10px}
+h1{font-size:32px;margin:0 0 6px;letter-spacing:-.02em}h2{font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:#c8b8ff;margin:0 0 14px}
+.rl-sub,.rl-hint{color:#9a9a9a;font-size:13px}
+section{border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px;margin:18px 0;background:#0e0e10}
+.rl-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:620px){.rl-grid{grid-template-columns:1fr}}
+label{display:block;font-size:12px;letter-spacing:.06em;color:#bdbdbd}
+input,select,textarea{display:block;width:100%;margin-top:6px;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:#141416;color:#fff;font:inherit}
+input[type=file]{padding:8px}input[type=checkbox]{display:inline;width:auto;margin:0 8px 0 0}
+.rl-check{display:flex;align-items:flex-start;margin-top:14px;font-size:13px;letter-spacing:0}
+.rl-credit{display:grid;grid-template-columns:2fr 1.3fr .8fr auto;gap:8px;margin-bottom:8px;align-items:end}
+.rl-row{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.rl-btn{background:#e8ff00;color:#080808;border:0;border-radius:999px;padding:14px 26px;font-weight:700;font-size:15px;cursor:pointer}
+.rl-btn[disabled]{opacity:.5;cursor:default}
+.rl-btn-ghost{background:none;border:1px solid rgba(255,255,255,.2);color:#ddd;border-radius:999px;padding:8px 14px;cursor:pointer}
+.rl-x{background:none;border:0;color:#ff7b7b;font-size:18px;cursor:pointer;padding:8px}
+.rl-err{color:#ff8a8a;font-size:12px;margin-top:6px;min-height:0}
+.rl-ok{color:#9be3b0;font-size:13px;margin-top:6px}
+.rl-alert{border:1px solid rgba(255,138,138,.4);background:rgba(255,138,138,.08);padding:14px;border-radius:10px;margin:16px 0}
+.rl-progress{height:6px;background:#222;border-radius:4px;overflow:hidden;margin-top:8px}.rl-progress div{height:100%;width:0;background:#c8b8ff}
+.rl-file{margin-bottom:16px}.rl-done{border:1px solid rgba(155,227,176,.4);border-radius:12px;padding:24px;margin-top:20px}

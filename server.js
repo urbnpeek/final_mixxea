@@ -75,6 +75,9 @@ const cspDirectives = {
     'https://pagead2.googlesyndication.com',
     'https://www.googleadservices.com',
     'https://googleads.g.doubleclick.net',
+    // /release/<token>: browser uploads go straight to Vercel Blob
+    'https://vercel.com',
+    'https://*.blob.vercel-storage.com',
   ],
   frameSrc: [
     'https://open.spotify.com',
@@ -322,6 +325,7 @@ app.use('/api/auth',         require('./src/api/auth'));
 app.use('/api/releases',     require('./src/api/releases'));
 app.use('/api/artists',      require('./src/api/artists'));
 app.use('/api/demos',        require('./src/api/demos'));
+app.use('/api/release',      require('./src/api/release'));
 app.use('/api/bookings',     require('./src/api/bookings'));
 app.use('/api/newsletter',   require('./src/api/newsletter'));
 app.use('/api/contact',      require('./src/api/contact'));
@@ -470,6 +474,14 @@ seoPageRoutes.forEach((fileName, routePath) => {
     const html = pages.applyChrome(fs.readFileSync(path.join(__dirname, 'public', fileName), 'utf8'), routePath);
     sendHtml(res, 200, html);
   });
+});
+
+// Approved-demo release details form (token link from the approval email).
+// No site chrome or analytics on this page so the token never leaves mixxea.com.
+app.get('/release/:token', (req, res) => {
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  res.set('Referrer-Policy', 'no-referrer');
+  sendHtml(res, 200, fs.readFileSync(path.join(__dirname, 'public', 'release.html'), 'utf8'), 'no-store');
 });
 
 app.get('/portal', (req, res) => {

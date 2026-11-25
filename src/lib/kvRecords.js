@@ -15,6 +15,8 @@ function redisConfig() {
 }
 
 function isRedisConfigured() {
+  // DB_MODE=memory (preview isolation, never production): no Redis at all.
+  if (process.env.DB_MODE === 'memory' && process.env.VERCEL_ENV !== 'production') return false;
   const { url, token } = redisConfig();
   return Boolean(url && token);
 }

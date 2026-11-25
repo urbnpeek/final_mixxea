@@ -12,6 +12,7 @@ const { resolveActor } = require('./middleware');
 const mailer  = require('./mailer');
 const { requireAdmin } = require('./middleware');
 const { getAppUrl }    = require('./appUrl');
+const releaseLink      = require('../lib/releaseLink');
 const router  = express.Router();
 
 function escapeHtml(value) {
@@ -155,7 +156,9 @@ router.post('/send-link', requireAdmin, async (req, res) => {
 
 // ── List demos (admin) ────────────────────────────────────────────────────────
 function presentDemo(demo) {
-  return presentRecord(demo, `/api/demos/${demo.id}/file`);
+  const out = presentRecord(demo, `/api/demos/${demo.id}/file`);
+  if (out && out.release) out.release = releaseLink.presentRelease(demo);
+  return out;
 }
 
 router.get('/', requireAdmin, async (req, res) => {
@@ -174,6 +177,89 @@ router.get('/:id/file', async (req, res) => {
     await sendStoredFile(res, demo.file);
   } catch (error) {
     console.error('[DEMOS] file error:', error);
+    if (!res.headersSent) res.status(500).json({ error: 'Could not open the file' });
+  }
+});
+
+
+// ── Approve + release-details link (admin) ───────────────────────────────────
+// Creates a fresh link (any older link for this demo stops working) and emails it.
+// Outside production the email goes to the A&R list or is only logged (see emailService).
+async function issueReleaseLink(req, res, { approve }) {
+  const demos = await db.get('demos');
+  const idx = demos.findIndex((d) => d.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  const demo = demos[idx];
+  if (!approve && demo.status !== 'approved') return res.status(409).json({ error: 'Approve the demo first' });
+  if (!demo.email || !String(demo.email).includes('@')) return res.status(400).json({ error: 'This demo has no artist email' });
+  const appUrl = getAppUrl(req);
+  if (!appUrl) return res.status(500).json({ error: 'Could not work out the site URL for the link' });
+
+  const { token, tokenHash, expiresAt } = releaseLink.createReleaseLink();
+  const now = new Date().toISOString();
+  const prev = demo.release || {};
+  const next = {
+    ...demo,
+    status: 'approved',
+    approvedAt: demo.approvedAt || now,
+    adminNotes: req.body && typeof req.body.notes === 'string' ? req.body.notes : (demo.adminNotes || ''),
+    release: { ...prev, tokenHash, expiresAt, linkCreatedAt: now },
+  };
+  demos[idx] = next;
+  await db.set('demos', demos);
+
+  const mail = await mailer.sendDemoApproval({ demo: next, url: releaseLink.releaseUrl(appUrl, token), expiresAt })
+    .catch((e) => ({ ok: false, error: e.message }));
+  if (mail && mail.ok) {
+    const fresh = await db.get('demos');
+    const j = fresh.findIndex((d) => d.id === demo.id);
+    if (j !== -1 && fresh[j].release && fresh[j].release.tokenHash === tokenHash) {
+      fresh[j].release = {
+        ...fresh[j].release,
+        linkSentAt: new Date().toISOString(),
+        linkSentCount: (fresh[j].release.linkSentCount || 0) + 1,
+        emailedTo: mail.mode === 'live' ? demo.email : `(${mail.mode}) A&R test copy`,
+        lastEmailMode: mail.mode,
+      };
+      await db.set('demos', fresh);
+      demos[idx] = fresh[j];
+    }
+  }
+  res.json({
+    demo: presentDemo(demos[idx]),
+    email: { ok: Boolean(mail && mail.ok), mode: mail && mail.mode, error: mail && !mail.ok ? (mail.error || 'Email failed') : undefined },
+  });
+}
+
+router.post('/:id/approve', requireAdmin, async (req, res) => {
+  try { await issueReleaseLink(req, res, { approve: true }); }
+  catch (e) { console.error('[DEMOS] approve error:', e); res.status(500).json({ error: e.message }); }
+});
+
+router.post('/:id/release-link', requireAdmin, async (req, res) => {
+  try { await issueReleaseLink(req, res, { approve: false }); }
+  catch (e) { console.error('[DEMOS] release-link error:', e); res.status(500).json({ error: e.message }); }
+});
+
+// Download the artist's uploaded WAV / artwork. Private Vercel Blob files have no
+// public or presigned URL, so they are streamed to signed-in admins only.
+router.get('/:id/release-file/:kind', async (req, res) => {
+  try {
+    const actor = await resolveActor(req);
+    if (!actor) return res.status(401).json({ error: 'Sign in required' });
+    if (actor.role !== 'admin') return res.status(403).json({ error: 'Admin access required' });
+    if (!['wav', 'artwork'].includes(req.params.kind)) return res.status(404).json({ error: 'File not found' });
+    const demos = await db.get('demos');
+    const demo = demos.find((item) => item.id === req.params.id);
+    const file = demo && demo.release && demo.release[req.params.kind];
+    if (!file || !(file.url || file.pathname)) return res.status(404).json({ error: 'File not found' });
+    const ext = req.params.kind === 'wav' ? 'wav' : (/\.png$/i.test(file.pathname || '') ? 'png' : 'jpg');
+    const safe = String(`${demo.artistName || 'artist'} - ${demo.trackTitle || 'track'}`).replace(/[^\w .-]+/g, '').slice(0, 80) || 'release';
+    res.set('Content-Disposition', `attachment; filename="${safe}.${ext}"`);
+    res.set('Cache-Control', 'no-store');
+    await sendStoredFile(res, file.url || file.pathname);
+  } catch (error) {
+    console.error('[DEMOS] release file error:', error);
     if (!res.headersSent) res.status(500).json({ error: 'Could not open the file' });
   }
 });

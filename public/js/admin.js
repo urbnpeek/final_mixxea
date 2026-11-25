@@ -493,11 +493,12 @@ const ADMIN = {
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${d.genre||'—'}<br><span style="color:var(--muted2)">${d.bpm?d.bpm+' BPM':''}</span></td>
         <td>${d.downloadLink?`<a href="${d.downloadLink}" target="_blank" class="tbl-btn" style="display:inline-block;font-size:9px">DL ↗</a>`:d.file?`<a href="/api/demos/${d.id}/file" target="_blank" class="tbl-btn" style="display:inline-block;font-size:9px">File ↗</a>`:'<span style="color:var(--muted2);font-size:10px;font-family:var(--Mono)">—</span>'}</td>
         <td style="font-family:var(--Mono);font-size:10px;color:var(--muted)">${fmtDate(d.submittedAt)}</td>
-        <td>${badge(d.status,sc[d.status]||'ab-draft')}</td>
+        <td>${badge(d.status,sc[d.status]||'ab-draft')}${ADMIN.releaseBadges(d)}</td>
         <td><div class="tbl-actions">
           <button class="tbl-btn" style="color:#c8b8ff"${actAttr(["ADMIN.viewDemo", d.id])}>View</button>
           <button class="tbl-btn"${actAttr(["ADMIN.setDemoStatus", d.id, "reviewing"])}>Review</button>
           <button class="tbl-btn" style="color:var(--g1)"${actAttr(["ADMIN.setDemoStatus", d.id, "approved"])}>Approve</button>
+          ${d.status==='approved'?`<button class="tbl-btn"${actAttr(["ADMIN.sendReleaseLink", d.id, false])}>Resend link</button>`:''}
           <button class="tbl-btn del"${actAttr(["ADMIN.setDemoStatus", d.id, "declined"])}>Decline</button>
           <button class="tbl-btn del"${actAttr(["ADMIN.deleteDemo", d.id])}>Delete</button>
         </div></td>
@@ -507,11 +508,58 @@ const ADMIN = {
   filterDemos(f,btn) { document.querySelectorAll('#a-demo .f-btn').forEach(b=>b.classList.remove('on')); if(btn)btn.classList.add('on'); this.loadDemos(f); },
 
   async setDemoStatus(id,status) {
+    if(status==='approved'){
+      const d0=(STORE.demos||[]).find(x=>x.id===id)||(this._demosCache||[]).find(x=>x.id===id);
+      const who=d0&&d0.email?d0.email:'the artist';
+      if(confirm(`Approve and email the release-details link to ${who}?\n\nOK = approve + send email\nCancel = approve without email`)){
+        return ADMIN.sendReleaseLink(id,true);
+      }
+    }
     const notify=status==='declined'&&confirm('Send decline email to artist?');
     const result=await api('PUT',`/demos/${id}/status`,{status,notify});
     if(!result)return;
     const d=STORE.demos.find(x=>x.id===id); if(d)d.status=status;
     toast(`Demo marked as ${status}`); this.loadDemos();
+  },
+
+  async sendReleaseLink(id,approve) {
+    if(!approve&&!confirm('Send a NEW release-details link to the artist? The previous link will stop working.'))return;
+    const result=await api('POST',`/demos/${id}/${approve?'approve':'release-link'}`,{});
+    if(!result)return;
+    const d=STORE.demos.find(x=>x.id===id); if(d&&result.demo)Object.assign(d,result.demo);
+    const e=result.email||{};
+    if(e.ok&&e.mode==='live')toast('Approved. Release link emailed to artist');
+    else if(e.ok&&e.mode==='redirected')toast('Test mode: link emailed to the A&R list, not the artist');
+    else if(e.ok&&e.mode==='log')toast('Test mode: email only logged (not sent)');
+    else toast('Approved, but the email failed: '+(e.error||'unknown error')+'. Use Resend link.','error');
+    ADMIN.loadDemos();
+  },
+
+  releaseBadges(d) {
+    if(d.status!=='approved')return '';
+    const p=(d.release&&d.release.progress)||{};
+    const b=(on,t)=>`<span style="display:inline-block;font-family:var(--Mono);font-size:9px;padding:2px 6px;border-radius:4px;margin:2px 3px 0 0;border:0.5px solid ${on?'rgba(155,227,176,.5)':'rgba(255,255,255,.15)'};color:${on?'#9be3b0':'var(--muted2)'}">${on?'✓':'·'} ${t}</span>`;
+    return `<div style="margin-top:4px">${b(p.linkSent,'link sent')}${b(p.detailsReceived,'details')}${b(p.wavReceived,'WAV')}${p.expired&&!p.detailsReceived?b(false,'link expired'):''}</div>`;
+  },
+
+  releaseSection(d) {
+    if(d.status!=='approved')return '';
+    const r=d.release; const p=(r&&r.progress)||{};
+    const lbl=(t)=>`<div style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-family:var(--Mono);margin-bottom:3px">${t}</div>`;
+    let html=`<hr style="border:none;border-top:0.5px solid rgba(255,255,255,.08);margin:18px 0"><div style="margin-bottom:10px">${lbl('Release details')}${ADMIN.releaseBadges(d)}`+
+      `<div style="font-size:11px;color:var(--muted);margin-top:6px">${p.linkSentAt?`Link sent ${esc(fmtDate(p.linkSentAt))} (${esc(p.linkSentCount)}×) to ${esc(p.emailedTo||'')}`:'No link sent yet'}${p.expiresAt?` · expires ${esc(fmtDate(p.expiresAt))}`:''}</div></div>`;
+    const x=r&&r.details;
+    if(x){
+      const row=(k,v)=>`<div><div style="font-size:10px;color:var(--muted);font-family:var(--Mono)">${esc(k)}</div><div style="font-size:13px">${esc(v||'—')}</div></div>`;
+      html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;margin-bottom:12px">`+
+        row('Legal name',x.legalName)+row('Artist name',x.artistName)+row('Email',x.email)+row('Phone',x.phone)+row('Country',x.country)+row('Featured artists',x.featuredArtists)+
+        row('Track',`${x.trackTitle} — ${x.version}`)+row('ISRC',x.isrc)+row('Genre / BPM / Key',`${x.genre||'—'} · ${x.bpm||'—'} · ${x.musKey||'—'}`)+row('Submitted',fmtDate(r.submittedAt))+`</div>`+
+        `<div style="margin-bottom:12px">${lbl('Credits & splits')}${(x.credits||[]).map(c=>`<div style="font-size:13px">${esc(c.name)} · ${esc(String(c.role).replace('_',' + '))} · ${esc(c.share)}%</div>`).join('')}</div>`+
+        (x.notes?`<div style="margin-bottom:12px">${lbl('Notes')}<div style="font-size:13px;white-space:pre-wrap">${esc(x.notes)}</div></div>`:'');
+    }
+    if(r&&r.wav)html+=`<div style="margin-bottom:8px">${lbl('WAV master')}<a href="${esc(r.wav.href)}" style="color:#c8b8ff">Download ${esc(r.wav.name)}</a>${r.wav.size?` <span style="color:var(--muted);font-size:11px">(${(r.wav.size/1048576).toFixed(1)} MB)</span>`:''}</div>`;
+    if(r&&r.artwork)html+=`<div style="margin-bottom:8px">${lbl('Artwork')}<a href="${esc(r.artwork.href)}" style="color:#c8b8ff">Download ${esc(r.artwork.name)}</a></div>`;
+    return html;
   },
 
   async deleteDemo(id) {
@@ -590,12 +638,14 @@ const ADMIN = {
         cell('Writers',writersMap[d.writers]||d.writers||'—','',d.cowriters||'')+
         cell('Publishing',pubMap[d.pubAgree]||d.pubAgree||'—','',d.ownPubName||'')
       )+
-      `<div style="margin-bottom:4px">${lbl('Status')}${badge(d.status,sc[d.status]||'ab-draft')}</div>`;
+      `<div style="margin-bottom:4px">${lbl('Status')}${badge(d.status,sc[d.status]||'ab-draft')}</div>`+
+      ADMIN.releaseSection(d);
 
     document.getElementById('adm-demo-detail-actions').innerHTML=
       `<button class="tbl-btn"${actAttr([["ADMIN.setDemoStatus", d.id, "reviewing"], ["closeDemoDetailModal"]])}>Mark Reviewing</button>`+
       `<button class="tbl-btn" style="color:var(--g1)"${actAttr([["ADMIN.setDemoStatus", d.id, "approved"], ["closeDemoDetailModal"]])}>Approve</button>`+
       `<button class="tbl-btn del"${actAttr([["ADMIN.setDemoStatus", d.id, "declined"], ["closeDemoDetailModal"]])}>Decline</button>`+
+      (d.status==='approved'?`<button class="tbl-btn"${actAttr([["ADMIN.sendReleaseLink", d.id, false], ["closeDemoDetailModal"]])}>Resend link</button>`:'')+
       (d.email?`<button class="tbl-btn" style="margin-left:auto"${actAttr(['mxCopy', d.email, "Email copied"])}>Copy Email</button>`:'');
 
     document.getElementById('adm-demo-detail-modal').style.display='flex';
