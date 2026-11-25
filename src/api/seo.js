@@ -177,7 +177,7 @@ router.get('/schema.json', async (req, res) => {
           '@type': 'Organization',
           '@id': `${BASE}/#mixxea`,
           'name': 'Mixxea Records',
-          'legalName': 'Ronala Imobiliare SRL',
+          'legalName': 'Freq Grup SRL',
           'foundingDate': '2013',
           'url': `${BASE}/record-label`,
           'description': 'Independent electronic music record label focused on artist development and releases.',

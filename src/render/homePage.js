@@ -247,7 +247,7 @@ ${pages.siteFooter({ year, socials: SOCIALS })}`;
         '@type': 'Organization',
         '@id': 'https://www.mixxea.com/#mixxea',
         name: 'Mixxea Records',
-        legalName: 'Ronala Imobiliare SRL',
+        legalName: 'Freq Grup SRL',
         url: 'https://www.mixxea.com/',
         foundingDate: '2013',
         email: 'booking@mixxea.com',
