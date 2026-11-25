@@ -559,8 +559,8 @@ function siteNav(currentPath) {
 </div>`;
 }
 
-// Entity line from freqvault/org/shared/LEGAL_FOOTER.md (valid until ONRC registers the rename).
-const ENTITY_LINE = 'FreqVault Group is operated by Ronala Imobiliare SRL · CUI 52133484 · J2025050803009 · Intr. Gheorghe Simionescu 19, Ap. B26, 014155 București, Romania';
+// Entity line from freqvault/org/shared/LEGAL_FOOTER.md (ONRC rename registered 24.11.2026, certificate B 6163355).
+const ENTITY_LINE = 'FreqVault Group is operated by Freq Grup SRL (formerly Ronala Imobiliare SRL) · CUI 52133484 · J2025050803009 · Intr. Gheorghe Simionescu 19, Ap. B26, 014155 București, Romania';
 
 function siteFooter(options = {}) {
   const year = options.year || new Date().getFullYear();

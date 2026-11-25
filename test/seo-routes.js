@@ -140,7 +140,7 @@ async function main() {
     assert(homeOrg && homeOrg['@type'] === 'Organization', 'homePage.js Organization ' + ORG_ID + ' missing');
     for (const org of [seoOrg, homeOrg]) {
       assert(org.name === 'Mixxea Records', 'name ' + org.name);
-      assert(org.legalName === 'Ronala Imobiliare SRL', 'legalName ' + org.legalName);
+      assert(org.legalName === 'Freq Grup SRL', 'legalName ' + org.legalName);
     }
     for (const key of ['@id', 'name', 'legalName']) {
       assert(seoOrg[key] === homeOrg[key], key + ' differs: ' + seoOrg[key] + ' vs ' + homeOrg[key]);
@@ -283,9 +283,9 @@ async function main() {
     assert(res.body.includes('Electronic music artist (genre TBC)'), 'Eddie Bitar genre TBC');
     assert(res.body.includes('href="/artists/david-hopperman"') && res.body.includes('href="/artists/eddie-bitar"'), 'artist links');
     assert(res.body.includes('mailto:booking@mixxea.com?subject=Booking%20request%20%E2%80%93%20Romania'), 'CTA');
-    assert(res.body.includes('Ronala Imobiliare SRL'), 'legal footer entity');
+    assert(res.body.includes('Freq Grup SRL (formerly Ronala Imobiliare SRL)'), 'legal footer entity');
     const main = res.body.slice(res.body.indexOf('<main'), res.body.indexOf('</main>'));
-    assert(!main.includes('Ronala'), 'no entity in body');
+    assert(!main.includes('Ronala') && !main.includes('Freq Grup'), 'no entity in body');
     assert(!/[€$]\s?\d|exclusive|\bfee:/i.test(main), 'no fees or exclusivity');
     const ld = JSON.parse(res.body.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
     const types = ld['@graph'].map((n) => n['@type']);
@@ -338,10 +338,10 @@ async function main() {
   await check('privacy page, cookie redirects, and sitemap', async () => {
     const page = await request(port, '/privacy');
     assert(page.status === 200, 'status ' + page.status);
-    assert(page.body.includes('Ronala Imobiliare SRL'), 'controller missing');
-    assert(!page.body.includes('Freq Grup SRL'), 'old controller name');
+    assert(page.body.includes('The controller is Freq Grup SRL (formerly Ronala Imobiliare SRL)'), 'controller missing');
+    assert(!page.body.replace(/Freq Grup SRL \(formerly Ronala Imobiliare SRL\)/g, '').includes('Ronala'), 'bare former name');
     assert(page.body.includes('Privacy and cookies | Mixxea'), 'privacy title changed');
-    assert(page.body.includes('operated by Ronala Imobiliare SRL'), 'privacy meta entity');
+    assert(page.body.includes('operated by Freq Grup SRL (formerly Ronala Imobiliare SRL)'), 'privacy meta entity');
     const privacyMeta = (page.body.match(/<meta name="description" content="([^"]*)">/) || [])[1] || '';
     assert(privacyMeta.length >= 130 && privacyMeta.length <= 160, 'privacy meta ' + privacyMeta.length + ' ' + privacyMeta);
     assert(page.body.includes('<meta name="robots" content="index,follow">'), 'privacy robots');
