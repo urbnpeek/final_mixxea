@@ -65,6 +65,8 @@ const ROSTER_PROFILES = [
     city: undefined,
     country: undefined,
     location: undefined,
+    // Stored bio named a genre and city; neutral until management confirms.
+    bio: 'Electronic music artist on the Mixxea Records roster. Full biography coming soon.',
     bookable: true,
     bookingEmail: BOOKING_EMAIL,
     featured: 3,
@@ -701,6 +703,7 @@ function transformArtists(artists) {
       city: profile.city,
       country: profile.country,
       ...('location' in profile ? { location: profile.location } : {}),
+      ...(profile.bio ? { bio: profile.bio } : {}),
       bookable: true,
       bookingEmail: BOOKING_EMAIL,
       featured: profile.featured,

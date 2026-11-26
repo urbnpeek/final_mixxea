@@ -291,6 +291,7 @@ function main() {
   assert(!/berlin|techno|minimal|psytrance|city/i.test(eddie.description), eddie.description);
   assert(eddie.genre === 'Electronic music artist (genre TBC)', eddie.genre);
   assert(!eddie.city && !eddie.country && !eddie.location, 'Eddie Bitar must have no location');
+  assert(eddie.bio === 'Electronic music artist on the Mixxea Records roster. Full biography coming soon.', eddie.bio);
   {
     const { renderArtistPage } = require('../src/render/publicPages');
     const page = typeof renderArtistPage === 'function' ? String(renderArtistPage({ artist: eddie, artists: once.artists, releases: once.releases || [], events: once.events || [] }) || '') : '';
@@ -301,7 +302,7 @@ function main() {
       assert(!/"genre"/.test(ld), 'Eddie JSON-LD must omit genre while it is TBC');
     }
     const eddieTile = html.split('Eddie Bitar').slice(1).join('').slice(0, 600);
-    assert(!/Techno|Berlin/.test(eddieTile), 'home card shows old genre/location');
+    assert(!/Techno|Berlin|minimal/i.test(eddieTile), 'home card shows old genre/location');
   }
   assert(since.description.includes('releases including Naka') && since.description.includes('booking@mixxea.com'), since.description);
   assert(flex.description.includes('releases including Corazon'), flex.description);
